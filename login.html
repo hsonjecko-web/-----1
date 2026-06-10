@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>تسجيل الدخول - NetTower Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--bg:#0B1120;--bg2:#111827;--card:#1F2937;--primary:#06B6D4;--primary-glow:rgba(6,182,212,.15);--success:#22C55E;--text:#F9FAFB;--text2:#94A3B8;--text3:#64748B;--radius:24px;--shadow-lg:0 8px 32px rgba(0,0,0,.5)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Tajawal',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--text3);border-radius:4px}
+.login-screen{width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.logo{width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,var(--primary),#0891B2);display:grid;place-items:center;font-size:36px;color:#fff;margin-bottom:12px;box-shadow:0 8px 32px var(--primary-glow)}
+h1{font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--primary),#67E8F9);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{color:var(--text2);font-size:13px;margin-bottom:28px;margin-top:2px}
+form{width:100%;display:flex;flex-direction:column;gap:14px}
+.input-wrap{position:relative}
+.input-wrap i{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--text3)}
+.input-wrap input{width:100%;background:var(--card);border:1px solid rgba(255,255,255,.06);padding:14px 48px 14px 16px;border-radius:14px;font-size:15px;color:var(--text);outline:none;font-family:'Tajawal',sans-serif;transition:.3s}
+.input-wrap input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow)}
+.check-label{display:flex;align-items:center;gap:8px;color:var(--text2);font-size:13px;justify-content:center}
+.check-label input{width:18px;height:18px;accent-color:var(--primary)}
+.submit-btn{width:100%;padding:16px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--primary),#0891B2);color:#fff;font-size:17px;font-weight:800;cursor:pointer;box-shadow:0 4px 24px var(--primary-glow);font-family:'Tajawal',sans-serif;transition:.3s;display:flex;align-items:center;justify-content:center;gap:8px}
+.submit-btn:active{transform:scale(.97)}
+.submit-btn i{font-size:16px}
+.error{color:#EF4444;font-size:13px;display:none;padding:10px;background:rgba(239,68,68,.12);border-radius:10px}
+</style>
+</head>
+<body>
+<div class="login-screen">
+  <div class="logo"><i class="fas fa-signal"></i></div>
+  <h1>NetTower Pro</h1>
+  <p class="sub">نظام إدارة مشتركي أبراج الإنترنت</p>
+  <form id="loginForm" onsubmit="doLogin(event)">
+    <div class="input-wrap">
+      <i class="fas fa-user"></i>
+      <input type="text" id="loginUser" value="admin" placeholder="اسم المستخدم">
+    </div>
+    <div class="input-wrap">
+      <i class="fas fa-lock"></i>
+      <input type="password" id="loginPass" value="admin" placeholder="كلمة المرور">
+    </div>
+    <label class="check-label">
+      <input type="checkbox" checked> تذكرني
+    </label>
+    <div class="error" id="loginError">❌ اسم المستخدم أو كلمة المرور غير صحيحة</div>
+    <button type="submit" class="submit-btn">دخول <i class="fas fa-arrow-left"></i></button>
+  </form>
+</div>
+<script>
+function doLogin(e) {
+  e.preventDefault();
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value.trim();
+  // دخول بسيط بدون تحقق خلفي - يقبل أي مدخلات
+  if (user && pass) {
+    window.location.href = 'index.html';
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+// الضغط على Enter في الحقل الأخير
+document.getElementById('loginPass').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('loginForm').requestSubmit();
+});
+</script>
+</body>
+</html>

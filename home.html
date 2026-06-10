@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>NetTower Pro - نظام إدارة الأبراج</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--bg:#0B1120;--bg2:#111827;--card:#1F2937;--card-hover:#2A3A4E;--primary:#06B6D4;--primary-glow:rgba(6,182,212,.15);--primary-light:rgba(6,182,212,.1);--success:#22C55E;--success-glow:rgba(34,197,94,.15);--warning:#F59E0B;--warning-glow:rgba(245,158,11,.15);--danger:#EF4444;--danger-glow:rgba(239,68,68,.15);--text:#F9FAFB;--text2:#94A3B8;--text3:#64748B;--radius:16px;--radius-sm:10px;--radius-xl:24px;--shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 8px 32px rgba(0,0,0,.5);--nav-h:68px;--sidebar-w:260px;--glass:rgba(31,41,55,.6);--glass-border:rgba(255,255,255,.04);--header-bg:rgba(11,17,32,.85)}
+[data-theme=light]{--bg:#F0F2F5;--bg2:#FFFFFF;--card:#FFFFFF;--card-hover:#F0F2F5;--primary:#0891B2;--primary-glow:rgba(8,145,178,.12);--primary-light:rgba(8,145,178,.08);--success:#16A34A;--success-glow:rgba(22,163,74,.12);--warning:#D97706;--warning-glow:rgba(217,119,6,.12);--danger:#DC2626;--danger-glow:rgba(220,38,38,.12);--text:#0F172A;--text2:#475569;--text3:#94A3B8;--shadow:0 1px 3px rgba(0,0,0,.08);--shadow-lg:0 8px 32px rgba(0,0,0,.12);--glass:rgba(255,255,255,.7);--glass-border:rgba(0,0,0,.06);--header-bg:rgba(255,255,255,.85)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Tajawal',sans-serif;min-height:100vh;overflow-x:hidden;line-height:1.6;display:flex}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--text3);border-radius:4px}
+::selection{background:var(--primary);color:#fff}
+
+/* toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--card);border:1px solid var(--glass-border);color:var(--text);padding:14px 32px;border-radius:14px;font-size:14px;font-weight:600;box-shadow:var(--shadow-lg);z-index:9999;opacity:0;transition:.5s cubic-bezier(.22,.68,0,1);pointer-events:none;white-space:nowrap;max-width:92%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===== SIDEBAR ===== */
+.sidebar{position:fixed;top:0;right:0;width:var(--sidebar-w);height:100vh;background:var(--bg2);border-left:1px solid var(--glass-border);z-index:500;display:flex;flex-direction:column;transition:transform .4s cubic-bezier(.22,.68,0,1);overflow-y:auto}
+.sidebar .logo{display:flex;align-items:center;gap:10px;padding:20px 18px;border-bottom:1px solid var(--glass-border)}
+.sidebar .logo .icon{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--primary),#0891B2);display:grid;place-items:center;font-size:20px;color:#fff;flex-shrink:0;box-shadow:0 4px 16px var(--primary-glow)}
+.sidebar .logo .info h4{font-size:16px;font-weight:900}
+.sidebar .logo .info span{font-size:11px;color:var(--text3)}
+.sidebar .side-user{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--glass-border)}
+.sidebar .side-user img{width:40px;height:40px;border-radius:12px;object-fit:cover}
+.sidebar .side-user div{flex:1}
+.sidebar .side-user div h5{font-size:14px;font-weight:700}
+.sidebar .side-user div p{font-size:11px;color:var(--text3)}
+.sidebar .side-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+.sidebar .side-nav .nav-section{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:12px 8px 4px;font-weight:700}
+.sidebar .side-nav a{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;color:var(--text2);text-decoration:none;font-size:13px;font-weight:600;cursor:pointer;transition:.25s;position:relative}
+.sidebar .side-nav a:hover{background:var(--card);color:var(--text)}
+.sidebar .side-nav a.active{background:var(--primary-light);color:var(--primary);box-shadow:inset 3px 0 0 var(--primary)}
+.sidebar .side-nav a i{width:20px;text-align:center;font-size:16px}
+.sidebar .side-nav a .sbadge{background:var(--danger);color:#fff;font-size:9px;padding:2px 8px;border-radius:20px;font-weight:800;margin-right:auto}
+.sidebar .side-foot{padding:14px;border-top:1px solid var(--glass-border);display:flex;flex-direction:column;gap:8px}
+.sidebar .side-foot button{width:100%;padding:12px;border-radius:12px;border:1px solid var(--glass-border);background:var(--card);color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;transition:.25s;display:flex;align-items:center;gap:8px;justify-content:center;font-family:'Tajawal',sans-serif}
+.sidebar .side-foot button:active{background:var(--danger);color:#fff;border-color:var(--danger)}
+.sidebar .side-foot .theme-row{display:flex;gap:6px}
+.sidebar .side-foot .theme-row button{flex:1;padding:10px;border-radius:10px;border:1px solid var(--glass-border);background:var(--card);color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;transition:.25s;display:flex;align-items:center;gap:6px;justify-content:center;font-family:'Tajawal',sans-serif}
+.sidebar .side-foot .theme-row button:active{transform:scale(.97)}
+.sidebar .side-foot .theme-row button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* sidebar overlay mobile */
+.side-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:499;opacity:0;pointer-events:none;transition:.35s;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.side-overlay.show{opacity:1;pointer-events:auto}
+
+/* ===== MAIN ===== */
+.main{flex:1;margin-right:var(--sidebar-w);max-width:calc(100% - var(--sidebar-w));padding-bottom:20px;position:relative}
+@media(max-width:768px){
+  .main{margin-right:0;max-width:100%;padding-bottom:calc(var(--nav-h) + 16px)}
+  .sidebar{transform:translateX(var(--sidebar-w))}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar .logo{padding:16px 18px}
+  .sidebar .side-nav a{padding:13px 12px;font-size:14px}
+}
+
+/* pages */
+.page{display:none;animation:pageIn .35s ease}
+.page.active{display:block}
+@keyframes pageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== HEADER ===== */
+.header{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--header-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border);position:sticky;top:0;z-index:100}
+.header .menu-btn{width:38px;height:38px;border-radius:12px;border:1px solid var(--glass-border);background:var(--card);color:var(--text2);font-size:16px;cursor:pointer;display:none;place-items:center;transition:.25s;flex-shrink:0}
+.header .menu-btn:active{background:var(--primary);color:#fff;border-color:var(--primary)}
+@media(max-width:768px){.header .menu-btn{display:grid}}
+.header .page-title{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px;flex:1}
+.header .page-title i{color:var(--primary)}
+.header .h-actions{display:flex;gap:8px}
+.header .h-actions button{width:36px;height:36px;border-radius:50%;border:1px solid var(--glass-border);background:var(--card);color:var(--text2);font-size:15px;cursor:pointer;transition:.25s;display:grid;place-items:center;position:relative}
+.header .h-actions button:active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.header .h-actions button .badge{position:absolute;top:-2px;right:-2px;background:var(--danger);color:#fff;font-size:8px;width:16px;height:16px;border-radius:50%;display:grid;place-items:center;font-weight:800;border:2px solid var(--bg)}
+.header .h-search{position:relative;width:200px}
+.header .h-search input{width:100%;background:var(--card);border:1px solid var(--glass-border);padding:9px 36px 9px 12px;border-radius:30px;font-size:13px;color:var(--text);outline:none;transition:.3s;font-family:'Tajawal',sans-serif}
+.header .h-search input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow)}
+.header .h-search input::placeholder{color:var(--text3)}
+.header .h-search i{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px}
+
+/* section header */
+.shead{display:flex;justify-content:space-between;align-items:center;padding:16px 20px 8px}
+.shead h2{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+.shead h2 i{color:var(--primary);font-size:15px}
+.shead a{color:var(--primary);font-size:12px;text-decoration:none;font-weight:700;cursor:pointer;padding:6px 14px;border-radius:20px;background:var(--primary-light);transition:.25s;display:flex;align-items:center;gap:4px}
+.shead a:active{background:var(--primary);color:#fff}
+
+/* stat cards */
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:8px 20px}
+.stat-card{background:var(--card);border-radius:var(--radius);padding:18px;border:1px solid var(--glass-border);transition:.25s;cursor:pointer;position:relative;overflow:hidden}
+.stat-card:active{transform:scale(.98)}
+.stat-card .top{display:flex;justify-content:space-between;align-items:flex-start}
+.stat-card .top .icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:18px;flex-shrink:0}
+.stat-card .top .icon.cyan{background:var(--primary-light);color:var(--primary)}
+.stat-card .top .icon.green{background:var(--success-glow);color:var(--success)}
+.stat-card .top .icon.orange{background:var(--warning-glow);color:var(--warning)}
+.stat-card .top .icon.red{background:var(--danger-glow);color:var(--danger)}
+.stat-card .num{font-size:24px;font-weight:900;margin-top:10px;line-height:1.2}
+.stat-card .label{font-size:12px;color:var(--text2);margin-top:2px}
+.stat-card .trend{font-size:11px;margin-top:6px;display:flex;align-items:center;gap:4px}
+.stat-card .trend.up{color:var(--success)}
+.stat-card .trend.down{color:var(--danger)}
+
+/* quick actions */
+.quick-acts{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;padding:8px 20px}
+.qa{background:var(--card);border-radius:var(--radius);padding:18px 10px;display:flex;flex-direction:column;align-items:center;gap:10px;border:1px solid var(--glass-border);cursor:pointer;transition:.25s;text-align:center}
+.qa:active{transform:scale(.95)}
+.qa .qicon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:20px}
+.qa .qicon.cyan{background:linear-gradient(135deg,var(--primary),rgba(6,182,212,.2));color:var(--primary)}
+.qa .qicon.green{background:linear-gradient(135deg,var(--success),rgba(34,197,94,.2));color:var(--success)}
+.qa .qicon.orange{background:linear-gradient(135deg,var(--warning),rgba(245,158,11,.2));color:var(--warning)}
+.qa .qicon.red{background:linear-gradient(135deg,var(--danger),rgba(239,68,68,.2));color:var(--danger)}
+.qa .qicon.purple{background:linear-gradient(135deg,#8B5CF6,rgba(139,92,246,.2));color:#8B5CF6}
+.qa span{font-size:12px;font-weight:700}
+
+/* search + filter */
+.search-bar{display:flex;gap:8px;padding:8px 20px}
+.search-bar .input-wrap{flex:1;position:relative}
+.search-bar .input-wrap i{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px}
+.search-bar .input-wrap input{width:100%;background:var(--card);border:1px solid var(--glass-border);padding:11px 40px 11px 12px;border-radius:12px;font-size:14px;color:var(--text);outline:none;transition:.3s;font-family:'Tajawal',sans-serif}
+.search-bar .input-wrap input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow)}
+.search-bar .input-wrap input::placeholder{color:var(--text3)}
+.search-bar .filter-btn{width:44px;border-radius:12px;border:1px solid var(--glass-border);background:var(--card);color:var(--text2);font-size:16px;cursor:pointer;display:grid;place-items:center;transition:.25s;flex-shrink:0}
+.search-bar .filter-btn:active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.filter-row{display:flex;gap:8px;padding:0 20px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.filter-row::-webkit-scrollbar{display:none}
+.filter-chip{padding:8px 18px;border-radius:30px;background:var(--card);border:1px solid var(--glass-border);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:.25s;flex-shrink:0}
+.filter-chip:active{transform:scale(.95)}
+.filter-chip.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 16px var(--primary-glow)}
+
+/* subscriber cards */
+.subs-list{display:flex;flex-direction:column;gap:10px;padding:0 20px 16px}
+.sub-card{background:var(--card);border-radius:var(--radius);padding:14px;border:1px solid var(--glass-border);transition:.25s;cursor:pointer;display:flex;gap:12px;align-items:center}
+.sub-card:active{transform:scale(.99)}
+.sub-card .avatar{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--primary),rgba(6,182,212,.2));display:grid;place-items:center;font-size:18px;color:var(--primary);font-weight:800;flex-shrink:0}
+.sub-card .avatar.off{color:var(--text3);background:var(--bg2)}
+.sub-card .info{flex:1;min-width:0}
+.sub-card .info .name{font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px}
+.sub-card .info .name .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.sub-card .info .name .dot.on{background:var(--success);box-shadow:0 0 8px var(--success-glow)}
+.sub-card .info .name .dot.off{background:var(--danger);box-shadow:0 0 8px var(--danger-glow)}
+.sub-card .info .name .dot.wait{background:var(--warning);box-shadow:0 0 8px var(--warning-glow)}
+.sub-card .info .phone{font-size:12px;color:var(--text2);margin-top:2px}
+.sub-card .info .meta{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+.sub-card .info .meta span{font-size:11px;padding:2px 10px;border-radius:20px;background:var(--bg2);color:var(--text2)}
+.sub-card .info .meta span.type{background:var(--primary-light);color:var(--primary)}
+.sub-card .info .meta span.paid{background:var(--success-glow);color:var(--success)}
+.sub-card .info .meta span.unpaid{background:var(--danger-glow);color:var(--danger)}
+.sub-card .info .meta span.expiring{background:var(--warning-glow);color:var(--warning)}
+.sub-card .actions{display:flex;gap:6px;flex-shrink:0}
+.sub-card .actions button{width:32px;height:32px;border-radius:10px;border:1px solid var(--glass-border);background:var(--bg2);color:var(--text2);font-size:13px;cursor:pointer;transition:.2s;display:grid;place-items:center}
+.sub-card .actions button:active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.sub-card .actions button.gr:active{background:var(--success);border-color:var(--success)}
+.sub-card .actions button.rd:active{background:var(--danger);border-color:var(--danger)}
+
+/* forms */
+.form-wrap{padding:8px 20px 20px;display:flex;flex-direction:column;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:13px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:6px}
+.form-group label i{color:var(--primary);font-size:13px}
+.form-group input,.form-group select,.form-group textarea{background:var(--card);border:1px solid var(--glass-border);padding:12px 16px;border-radius:12px;font-size:14px;color:var(--text);outline:none;transition:.25s;font-family:'Tajawal',sans-serif}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow)}
+.form-group input::placeholder,.form-group textarea::placeholder{color:var(--text3)}
+.form-group textarea{resize:vertical;min-height:70px}
+.form-group select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394A3B8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 14px center;padding-left:36px}
+.form-group .hint{font-size:12px;color:var(--text3);margin-top:2px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.form-row{grid-template-columns:1fr}}
+.form-actions{display:flex;gap:10px;padding-top:4px;flex-wrap:wrap}
+.form-actions button{flex:1;min-width:100px;padding:14px;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;transition:.25s;font-family:'Tajawal',sans-serif}
+.form-actions .primary{border:none;background:linear-gradient(135deg,var(--primary),#0891B2);color:#fff;box-shadow:0 4px 16px var(--primary-glow)}
+.form-actions .primary:active{transform:scale(.98)}
+.form-actions .secondary{border:1px solid var(--glass-border);background:var(--card);color:var(--text2)}
+.form-actions .secondary:active{background:var(--bg2)}
+.form-actions .danger{border:none;background:var(--danger);color:#fff}
+.form-actions .danger:active{transform:scale(.98)}
+.form-actions .success{border:none;background:var(--success);color:#fff}
+.form-actions .success:active{transform:scale(.98)}
+
+/* detail card */
+.detail-card{background:var(--card);border-radius:var(--radius);padding:18px;margin:8px 20px;border:1px solid var(--glass-border)}
+.detail-card .dhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.detail-card .dhead h3{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+.detail-card .dhead .sbadge{padding:4px 16px;border-radius:20px;font-size:11px;font-weight:700}
+.detail-card .dhead .sbadge.active{background:var(--success-glow);color:var(--success)}
+.detail-card .dhead .sbadge.inactive{background:var(--danger-glow);color:var(--danger)}
+.detail-card .dhead .sbadge.pending{background:var(--warning-glow);color:var(--warning)}
+.detail-card .dbody{display:flex;flex-direction:column;gap:8px}
+.detail-card .dbody .row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--glass-border)}
+.detail-card .dbody .row:last-child{border:none}
+.detail-card .dbody .row .label{font-size:13px;color:var(--text2);display:flex;align-items:center;gap:6px}
+.detail-card .dbody .row .value{font-size:14px;font-weight:700;text-align:left}
+.detail-card .dbody .row .value.primary{color:var(--primary)}
+.detail-card .dbody .row .value.success{color:var(--success)}
+.detail-card .dbody .row .value.danger{color:var(--danger)}
+.detail-card .dbody .row .value.warning{color:var(--warning)}
+.detail-actions{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin:8px 20px 20px}
+.detail-actions button{padding:12px 6px;border-radius:12px;border:1px solid var(--glass-border);background:var(--card);color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;transition:.25s;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:'Tajawal',sans-serif}
+.detail-actions button i{font-size:18px}
+.detail-actions button:active{transform:scale(.95)}
+.detail-actions button.cy{color:var(--primary);border-color:rgba(6,182,212,.2)}
+.detail-actions button.gr{color:var(--success);border-color:rgba(34,197,94,.2)}
+.detail-actions button.rd{color:var(--danger);border-color:rgba(239,68,68,.2)}
+.detail-actions button.ow{color:var(--warning);border-color:rgba(245,158,11,.2)}
+
+/* whatsapp */
+.whatsapp-templates{display:flex;flex-direction:column;gap:10px;padding:8px 20px 16px}
+.wa-tpl{background:var(--card);border-radius:var(--radius);padding:16px;border:1px solid var(--glass-border);cursor:pointer;transition:.25s}
+.wa-tpl:active{transform:scale(.99)}
+.wa-tpl.active{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-glow)}
+.wa-tpl .tpl-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.wa-tpl .tpl-title i{font-size:16px}
+.wa-tpl .tpl-preview{font-size:12px;color:var(--text2);margin-top:6px;padding:10px 14px;background:var(--bg2);border-radius:8px;line-height:1.5}
+.wa-preview{background:var(--card);border-radius:var(--radius);padding:16px;margin:8px 20px;border:1px solid var(--glass-border)}
+.wa-preview .label{font-size:12px;color:var(--text2);margin-bottom:6px}
+.wa-preview .msg{background:var(--bg2);padding:14px;border-radius:12px;font-size:13px;line-height:1.7;color:var(--text)}
+.wa-send-btn{display:block;width:calc(100% - 40px);margin:8px 20px;padding:16px;border-radius:14px;border:none;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;font-size:16px;font-weight:800;cursor:pointer;transition:.25s;box-shadow:0 4px 24px rgba(37,211,102,.3);font-family:'Tajawal',sans-serif}
+.wa-send-btn:active{transform:scale(.98)}
+
+/* finance */
+.fin-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:8px 20px}
+.fin-acts{display:flex;gap:10px;padding:8px 20px;flex-wrap:wrap}
+.fin-acts button{padding:14px 24px;border-radius:12px;border:1px solid var(--glass-border);background:var(--card);color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;transition:.25s;display:flex;align-items:center;gap:8px;font-family:'Tajawal',sans-serif}
+.fin-acts button:active{transform:scale(.97)}
+.fin-acts button i{font-size:18px}
+.fin-acts button.gr i{color:var(--success)}
+.fin-acts button.rd i{color:var(--danger)}
+.fin-list{display:flex;flex-direction:column;gap:6px;padding:0 20px 20px}
+.fin-item{background:var(--card);border-radius:12px;padding:14px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--glass-border)}
+.fin-item .fleft .fdate{font-size:11px;color:var(--text3)}
+.fin-item .fleft .fdesc{font-size:13px;font-weight:600}
+.fin-item .famount{font-size:16px;font-weight:800}
+.fin-item .famount.income{color:var(--success)}
+.fin-item .famount.expense{color:var(--danger)}
+.fin-item .ftype{font-size:11px;padding:2px 10px;border-radius:20px;background:var(--bg2);color:var(--text2)}
+
+/* reports */
+.report-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;padding:8px 20px}
+.rep-card{background:var(--card);border-radius:var(--radius);padding:18px;border:1px solid var(--glass-border);cursor:pointer;transition:.25s}
+.rep-card:active{transform:scale(.98)}
+.rep-card .rnum{font-size:30px;font-weight:900}
+.rep-card .rnum.cyan{color:var(--primary)}
+.rep-card .rnum.green{color:var(--success)}
+.rep-card .rnum.red{color:var(--danger)}
+.rep-card .rnum.orange{color:var(--warning)}
+.rep-card .rlabel{font-size:12px;color:var(--text2);margin-top:2px}
+.rep-card .ra{display:flex;gap:8px;margin-top:10px}
+.rep-card .ra button{padding:6px 14px;border-radius:8px;border:1px solid var(--glass-border);background:var(--bg2);color:var(--text2);font-size:11px;cursor:pointer;transition:.2s;font-family:'Tajawal',sans-serif;display:flex;align-items:center;gap:4px}
+.rep-card .ra button:active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* archive */
+.archive-list{display:flex;flex-direction:column;gap:10px;padding:0 20px 20px}
+.arch-card{background:var(--card);border-radius:var(--radius);padding:14px;border:1px solid var(--glass-border);display:flex;align-items:center;gap:12px}
+.arch-card .ainfo{flex:1;min-width:0}
+.arch-card .ainfo h4{font-size:14px;font-weight:700}
+.arch-card .ainfo p{font-size:12px;color:var(--text2)}
+.arch-card .aacts{display:flex;gap:6px}
+.arch-card .aacts button{width:36px;height:36px;border-radius:10px;border:1px solid var(--glass-border);background:var(--bg2);color:var(--text2);font-size:13px;cursor:pointer;transition:.2s;display:grid;place-items:center}
+.arch-card .aacts button:active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.arch-card .aacts button.rd:active{background:var(--danger);border-color:var(--danger)}
+
+/* notifications */
+.notif-list{display:flex;flex-direction:column;gap:8px;padding:8px 20px 20px}
+.notif-item{background:var(--card);border-radius:12px;padding:14px;display:flex;gap:12px;align-items:start;border:1px solid var(--glass-border)}
+.notif-item .nicon{width:38px;height:38px;border-radius:10px;background:var(--primary-light);display:grid;place-items:center;font-size:16px;color:var(--primary);flex-shrink:0}
+.notif-item .nicon.red{background:var(--danger-glow);color:var(--danger)}
+.notif-item .nicon.orange{background:var(--warning-glow);color:var(--warning)}
+.notif-item .nicon.green{background:var(--success-glow);color:var(--success)}
+.notif-item .ntext{flex:1}
+.notif-item .ntext p{font-size:13px}
+.notif-item .ntext .ntime{font-size:11px;color:var(--text3);margin-top:4px}
+
+/* settings */
+.settings-list{display:flex;flex-direction:column;gap:8px;padding:8px 20px 20px}
+.set-card{background:var(--card);border-radius:var(--radius);padding:14px;border:1px solid var(--glass-border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:.25s}
+.set-card:active{transform:scale(.99)}
+.set-card .sicon{width:40px;height:40px;border-radius:12px;background:var(--primary-light);display:grid;place-items:center;font-size:18px;color:var(--primary);flex-shrink:0}
+.set-card .sicon.green{background:var(--success-glow);color:var(--success)}
+.set-card .sicon.orange{background:var(--warning-glow);color:var(--warning)}
+.set-card .sicon.red{background:var(--danger-glow);color:var(--danger)}
+.set-card .sinfo{flex:1}
+.set-card .sinfo h4{font-size:14px;font-weight:700}
+.set-card .sinfo p{font-size:12px;color:var(--text2)}
+.set-card .sarrow{color:var(--text3);font-size:14px}
+
+/* bottom nav mobile */
+.bnav{position:fixed;bottom:0;left:0;right:0;display:none;height:var(--nav-h);background:var(--glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--glass-border);z-index:200;align-items:center;justify-content:space-around;padding:4px 0 8px}
+@media(max-width:768px){.bnav{display:flex}}
+.bnav-item{display:flex;flex-direction:column;align-items:center;gap:1px;background:none;border:none;color:var(--text3);font-size:10px;cursor:pointer;transition:.25s;padding:6px 10px;position:relative;font-weight:600;font-family:'Tajawal',sans-serif}
+.bnav-item i{font-size:20px;transition:.25s;margin-bottom:1px}
+.bnav-item.active{color:var(--primary)}
+.bnav-item.active i{transform:translateY(-2px)}
+.bnav-item .cbadge{position:absolute;top:-2px;right:-2px;background:var(--danger);color:#fff;font-size:8px;width:16px;height:16px;border-radius:50%;display:grid;place-items:center;font-weight:800;border:2px solid var(--bg)}
+
+/* modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;opacity:0;pointer-events:none;transition:.35s;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:600px;background:var(--bg2);z-index:700;border-radius:var(--radius-xl) var(--radius-xl) 0 0;box-shadow:0 -8px 40px rgba(0,0,0,.5);transition:transform .5s cubic-bezier(.22,.68,0,1);padding:24px;max-height:85vh;overflow-y:auto;border-top:1px solid var(--glass-border)}
+.modal.open{transform:translateX(-50%) translateY(0)}
+.modal .mhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal .mhead h3{font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px}
+.modal .mhead h3 i{color:var(--primary)}
+.modal .mhead button{background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;padding:4px}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ===== SIDEBAR OVERLAY ===== -->
+<div class="side-overlay" id="sideOverlay" onclick="toggleSidebar()"></div>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <div class="icon"><i class="fas fa-signal"></i></div>
+    <div class="info"><h4>NetTower Pro</h4><span>برج الاتحاد - بغداد</span></div>
+  </div>
+  <div class="side-user">
+    <img src="https://ui-avatars.com/api/?name=Admin&background=06B6D4&color=fff&size=64" alt="">
+    <div><h5>المدير العام</h5><p>admin@nettower.iq</p></div>
+  </div>
+  <nav class="side-nav">
+    <div class="nav-section">القائمة الرئيسية</div>
+    <a class="active" data-page="home" onclick="switchPage('home')"><i class="fas fa-chart-pie"></i> لوحة التحكم</a>
+    <a data-page="subscribers" onclick="switchPage('subscribers')"><i class="fas fa-users"></i> المشتركون <span class="sbadge">128</span></a>
+    <a data-page="add-sub" onclick="switchPage('add-sub')"><i class="fas fa-user-plus"></i> إضافة مشترك</a>
+    <a data-page="whatsapp" onclick="switchPage('whatsapp')"><i class="fab fa-whatsapp"></i> واتساب</a>
+    <div class="nav-section">المالية</div>
+    <a data-page="finance" onclick="switchPage('finance')"><i class="fas fa-coins"></i> الصندوق المالي</a>
+    <a data-page="reports" onclick="switchPage('reports')"><i class="fas fa-chart-bar"></i> التقارير</a>
+    <div class="nav-section">الإدارة</div>
+    <a data-page="archive" onclick="switchPage('archive')"><i class="fas fa-archive"></i> الأرشيف</a>
+    <a data-page="notifications" onclick="switchPage('notifications')"><i class="fas fa-bell"></i> الإشعارات <span class="sbadge">4</span></a>
+    <a data-page="settings" onclick="switchPage('settings')"><i class="fas fa-cog"></i> الإعدادات</a>
+  </nav>
+  <div class="side-foot">
+    <div class="theme-row">
+      <button class="active" id="themeDarkBtn" onclick="setTheme('dark')"><i class="fas fa-moon"></i> ليلي</button>
+      <button id="themeLightBtn" onclick="setTheme('light')"><i class="fas fa-sun"></i> نهاري</button>
+    </div>
+    <button onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+  </div>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+<header class="header">
+  <button class="menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+  <div class="page-title" id="pageTitle"><i class="fas fa-chart-pie"></i> لوحة التحكم</div>
+  <div class="h-search">
+    <i class="fas fa-search"></i>
+    <input type="text" placeholder="بحث سريع..." id="globalSearch" onkeydown="if(event.key==='Enter'&&this.value.trim()){showToast('🔍 البحث عن: '+this.value);this.value=''}">
+  </div>
+  <div class="h-actions">
+    <button onclick="switchPage('notifications')"><i class="fas fa-bell"></i><span class="badge">4</span></button>
+    <button onclick="switchPage('settings')" title="الإعدادات"><i class="fas fa-cog"></i></button>
+  </div>
+</header>
+
+<!-- PAGE: HOME -->
+<div class="page active" id="pageHome">
+  <div class="shead"><h2><i class="fas fa-chart-simple"></i> نظرة عامة</h2><a onclick="switchPage('subscribers')"><i class="fas fa-arrow-left"></i> عرض الكل</a></div>
+  <div class="stats">
+    <div class="stat-card"><div class="top"><div class="icon cyan"><i class="fas fa-users"></i></div><span class="trend up"><i class="fas fa-arrow-up"></i> +12%</span></div><div class="num" id="statTotal">128</div><div class="label">إجمالي المشتركين</div></div>
+    <div class="stat-card"><div class="top"><div class="icon green"><i class="fas fa-wifi"></i></div><span class="trend up"><i class="fas fa-arrow-up"></i> +5%</span></div><div class="num" id="statActive">94</div><div class="label">مشتركين فعالين</div></div>
+    <div class="stat-card"><div class="top"><div class="icon red"><i class="fas fa-ban"></i></div><span class="trend down"><i class="fas fa-arrow-down"></i> +3</span></div><div class="num" id="statExpired">18</div><div class="label">اشتراكات منتهية</div></div>
+    <div class="stat-card"><div class="top"><div class="icon orange"><i class="fas fa-user-clock"></i></div><span class="trend down"><i class="fas fa-arrow-down"></i> +2</span></div><div class="num" id="statInactive">16</div><div class="label">غير مفعلين</div></div>
+    <div class="stat-card"><div class="top"><div class="icon red"><i class="fas fa-coins"></i></div></div><div class="num" id="statDebts">$1,250</div><div class="label">الديون المستحقة</div></div>
+    <div class="stat-card"><div class="top"><div class="icon green"><i class="fas fa-wallet"></i></div></div><div class="num" id="statBalance">$4,580</div><div class="label">الرصيد الحالي</div></div>
+    <div class="stat-card" style="grid-column:span 2">
+      <div class="top"><div class="icon orange"><i class="fas fa-clock"></i></div><span class="trend down"><i class="fas fa-arrow-down"></i> 7 مشتركين</span></div>
+      <div class="num">7</div>
+      <div class="label">اشتراكات تنتهي قريباً (أقل من 3 أيام)</div>
+    </div>
+  </div>
+
+  <div class="shead"><h2><i class="fas fa-bolt"></i> العمليات السريعة</h2></div>
+  <div class="quick-acts">
+    <div class="qa" onclick="switchPage('add-sub')"><div class="qicon cyan"><i class="fas fa-user-plus"></i></div><span>إضافة مشترك</span></div>
+    <div class="qa" onclick="showToast('🔄 اختر مشتركاً من صفحة المشتركين للتجديد')"><div class="qicon green"><i class="fas fa-sync"></i></div><span>تجديد اشتراك</span></div>
+    <div class="qa" onclick="switchPage('whatsapp')"><div class="qicon green"><i class="fab fa-whatsapp"></i></div><span>إرسال واتساب</span></div>
+    <div class="qa" onclick="switchPage('finance')"><div class="qicon orange"><i class="fas fa-coins"></i></div><span>الصندوق المالي</span></div>
+    <div class="qa" onclick="switchPage('reports')"><div class="qicon purple"><i class="fas fa-chart-bar"></i></div><span>التقارير</span></div>
+    <div class="qa" onclick="switchPage('archive')"><div class="qicon red"><i class="fas fa-archive"></i></div><span>الأرشيف</span></div>
+  </div>
+
+  <div class="shead"><h2><i class="fas fa-clock"></i> اشتراكات تنتهي قريباً</h2><a onclick="switchPage('subscribers')">المزيد</a></div>
+  <div class="subs-list" id="expiringList"></div>
+</div>
+
+<!-- PAGE: SUBSCRIBERS -->
+<div class="page" id="pageSubscribers">
+  <div class="shead"><h2><i class="fas fa-users"></i> المشتركين</h2><a onclick="switchPage('add-sub')"><i class="fas fa-plus"></i> إضافة</a></div>
+  <div class="search-bar">
+    <div class="input-wrap"><i class="fas fa-search"></i><input type="text" placeholder="بحث بالاسم أو الهاتف..." id="subSearch" oninput="renderSubs()"></div>
+    <button class="filter-btn" onclick="toggleFilters()"><i class="fas fa-sliders-h"></i></button>
+  </div>
+  <div class="filter-row" id="filterRow" style="display:none">
+    <div class="filter-chip active" onclick="setFilter(this,'all')">الكل</div>
+    <div class="filter-chip" onclick="setFilter(this,'active')">فعال</div>
+    <div class="filter-chip" onclick="setFilter(this,'expired')">منتهي</div>
+    <div class="filter-chip" onclick="setFilter(this,'inactive')">غير مفعل</div>
+    <div class="filter-chip" onclick="setFilter(this,'paid')">مدفوع</div>
+    <div class="filter-chip" onclick="setFilter(this,'unpaid')">غير مدفوع</div>
+  </div>
+  <div class="subs-list" id="subsList"></div>
+</div>
+
+<!-- PAGE: ADD SUB -->
+<div class="page" id="pageAddSub">
+  <div class="shead"><h2><i class="fas fa-user-plus"></i> إضافة مشترك جديد</h2><a onclick="switchPage('subscribers')">رجوع</a></div>
+  <div class="form-wrap">
+    <div class="form-group"><label><i class="fas fa-user"></i> اسم المشترك</label><input type="text" placeholder="الاسم الكامل" id="addName"></div>
+    <div class="form-group"><label><i class="fas fa-phone"></i> رقم الهاتف</label><input type="text" placeholder="07xx xxx xxxx" id="addPhone"></div>
+    <div class="form-row">
+      <div class="form-group"><label><i class="fas fa-wifi"></i> اسم الشبكة (SSID)</label><input type="text" placeholder="اسم الشبكة" id="addSsid"></div>
+      <div class="form-group"><label><i class="fas fa-key"></i> كلمة مرور الشبكة</label><input type="text" placeholder="كلمة المرور" id="addPass"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label><i class="fas fa-map-marker-alt"></i> المنطقة</label>
+        <select id="addArea"><option>المنصور</option><option>الكريعات</option><option>الدورة</option><option>اليرموك</option><option>الجامعة</option><option>أخرى</option></select></div>
+      <div class="form-group"><label><i class="fas fa-tag"></i> نوع الاشتراك</label>
+        <select id="addType" onchange="calcEndDate()">
+          <option value="مجاني">مجاني</option><option value="أسبوعي">أسبوعي</option><option value="15 يوم" selected>15 يوم</option>
+          <option value="شهري">شهري</option><option value="60 يوم">60 يوم</option><option value="90 يوم">90 يوم</option><option value="مخصص">مخصص</option>
+        </select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label><i class="fas fa-dollar-sign"></i> مبلغ الاشتراك</label><input type="number" placeholder="0" id="addAmount" value="25000"></div>
+      <div class="form-group"><label><i class="fas fa-calendar"></i> تاريخ التفعيل</label><input type="date" id="addDate"></div>
+    </div>
+    <div class="form-group"><label><i class="fas fa-calendar-check"></i> تاريخ الانتهاء (تلقائي)</label><input type="date" id="addEndDate" readonly style="color:var(--primary);font-weight:800"><span class="hint" id="addEndHint">يتم احتساب تاريخ الانتهاء حسب نوع الباقة</span></div>
+    <div class="form-group"><label><i class="fas fa-sticky-note"></i> ملاحظات</label><textarea placeholder="أي ملاحظات إضافية..." id="addNotes"></textarea></div>
+    <div class="form-actions">
+      <button class="primary" onclick="saveSub(false)"><i class="fas fa-save"></i> حفظ</button>
+      <button class="primary" onclick="saveSub(true)"><i class="fas fa-plus-circle"></i> حفظ + إضافة جديد</button>
+      <button class="secondary" onclick="switchPage('subscribers')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: SUB DETAIL -->
+<div class="page" id="pageSubDetail">
+  <div class="shead"><h2><i class="fas fa-id-card"></i> تفاصيل المشترك</h2><a onclick="switchPage('subscribers')">رجوع</a></div>
+  <div class="detail-card" id="detailCard"></div>
+  <div class="detail-actions" id="detailActions"></div>
+</div>
+
+<!-- PAGE: WHATSAPP -->
+<div class="page" id="pageWhatsapp">
+  <div class="shead"><h2><i class="fab fa-whatsapp"></i> إرسال واتساب</h2></div>
+  <div class="search-bar"><div class="input-wrap"><i class="fas fa-search"></i><input type="text" placeholder="ابحث عن مشترك..." id="waSearch" oninput="renderWASubs()"></div></div>
+  <div class="shead" style="padding-bottom:6px"><h2><i class="fas fa-file-alt"></i> قوالب الرسائل</h2></div>
+  <div class="whatsapp-templates" id="waTemplates"></div>
+  <div class="shead" style="padding-bottom:6px"><h2><i class="fas fa-users"></i> اختر مشتركاً</h2></div>
+  <div class="subs-list" id="waSubsList"></div>
+</div>
+
+<!-- PAGE: FINANCE -->
+<div class="page" id="pageFinance">
+  <div class="shead"><h2><i class="fas fa-coins"></i> الصندوق المالي</h2></div>
+  <div class="fin-stats">
+    <div class="stat-card"><div class="top"><div class="icon green"><i class="fas fa-arrow-down"></i></div></div><div class="num" style="color:var(--success)" id="finIncome">$0</div><div class="label">إجمالي الإيرادات</div></div>
+    <div class="stat-card"><div class="top"><div class="icon red"><i class="fas fa-arrow-up"></i></div></div><div class="num" style="color:var(--danger)" id="finExpense">$0</div><div class="label">إجمالي المصروفات</div></div>
+    <div class="stat-card"><div class="top"><div class="icon cyan"><i class="fas fa-wallet"></i></div></div><div class="num" style="color:var(--primary)" id="finBalance">$0</div><div class="label">الرصيد الحالي</div></div>
+    <div class="stat-card"><div class="top"><div class="icon orange"><i class="fas fa-exclamation-triangle"></i></div></div><div class="num" style="color:var(--warning)" id="finDebts">$0</div><div class="label">الديون المستحقة</div></div>
+  </div>
+  <div class="fin-acts">
+    <button class="gr" onclick="showAddFinance('income')"><i class="fas fa-plus-circle"></i> إضافة إيراد</button>
+    <button class="rd" onclick="showAddFinance('expense')"><i class="fas fa-minus-circle"></i> إضافة مصروف</button>
+  </div>
+  <div class="shead"><h2><i class="fas fa-history"></i> سجل العمليات</h2></div>
+  <div class="fin-list" id="finList"></div>
+</div>
+
+<!-- PAGE: REPORTS -->
+<div class="page" id="pageReports">
+  <div class="shead"><h2><i class="fas fa-chart-bar"></i> التقارير</h2></div>
+  <div class="report-cards">
+    <div class="rep-card"><div class="rnum cyan" id="rActive">0</div><div class="rlabel">مشتركين فعالين</div><div class="ra"><button onclick="showToast('📄 تم تصدير PDF')"><i class="fas fa-file-pdf"></i> PDF</button><button onclick="showToast('🖨️ تم الإرسال للطباعة')"><i class="fas fa-print"></i> طباعة</button></div></div>
+    <div class="rep-card"><div class="rnum red" id="rExpired">0</div><div class="rlabel">اشتراكات منتهية</div><div class="ra"><button onclick="showToast('📄 تم تصدير PDF')"><i class="fas fa-file-pdf"></i> PDF</button><button onclick="showToast('🖨️ تم الإرسال للطباعة')"><i class="fas fa-print"></i> طباعة</button></div></div>
+    <div class="rep-card"><div class="rnum orange" id="rInactive">0</div><div class="rlabel">غير مفعلين</div><div class="ra"><button onclick="showToast('📄 تم تصدير PDF')"><i class="fas fa-file-pdf"></i> PDF</button><button onclick="showToast('🖨️ تم الإرسال للطباعة')"><i class="fas fa-print"></i> طباعة</button></div></div>
+    <div class="rep-card"><div class="rnum red" id="rDebts">$0</div><div class="rlabel">الديون المستحقة</div><div class="ra"><button onclick="showToast('📄 تم تصدير PDF')"><i class="fas fa-file-pdf"></i> PDF</button><button onclick="showToast('🖨️ تم الإرسال للطباعة')"><i class="fas fa-print"></i> طباعة</button></div></div>
+    <div class="rep-card"><div class="rnum green" id="rPayments">$0</div><div class="rlabel">إجمالي المدفوعات</div><div class="ra"><button onclick="showToast('📄 تم تصدير PDF')"><i class="fas fa-file-pdf"></i> PDF</button><button onclick="showToast('🖨️ تم الإرسال للطباعة')"><i class="fas fa-print"></i> طباعة</button></div></div>
+    <div class="rep-card"><div class="rnum cyan" id="rArchived">0</div><div class="rlabel">المؤرشفين</div><div class="ra"><button onclick="showToast('📄 تم تصدير PDF')"><i class="fas fa-file-pdf"></i> PDF</button><button onclick="showToast('🖨️ تم الإرسال للطباعة')"><i class="fas fa-print"></i> طباعة</button></div></div>
+  </div>
+</div>
+
+<!-- PAGE: ARCHIVE -->
+<div class="page" id="pageArchive">
+  <div class="shead"><h2><i class="fas fa-archive"></i> الأرشيف</h2></div>
+  <div class="archive-list" id="archiveList"></div>
+</div>
+
+<!-- PAGE: NOTIFICATIONS -->
+<div class="page" id="pageNotifications">
+  <div class="shead"><h2><i class="fas fa-bell"></i> الإشعارات</h2><a onclick="showToast('✅ تم تحديد الكل كمقروء')"><i class="fas fa-check-double"></i> تحديد الكل</a></div>
+  <div class="notif-list">
+    <div class="notif-item"><div class="nicon red"><i class="fas fa-exclamation-circle"></i></div><div class="ntext"><p><strong>انتهاء اشتراك:</strong> اشتراك أحمد علي (شهري) انتهى اليوم</p><div class="ntime">منذ 10 دقائق</div></div></div>
+    <div class="notif-item"><div class="nicon orange"><i class="fas fa-clock"></i></div><div class="ntext"><p><strong>اقتراب الانتهاء:</strong> 3 مشتركين ستنتهي اشتراكاتهم خلال 24 ساعة</p><div class="ntime">منذ ساعة</div></div></div>
+    <div class="notif-item"><div class="nicon red"><i class="fas fa-money-bill-wave"></i></div><div class="ntext"><p><strong>عدم دفع:</strong> محمد حسن لم يدفع اشتراكه منذ 15 يوماً</p><div class="ntime">منذ ساعتين</div></div></div>
+    <div class="notif-item"><div class="nicon green"><i class="fas fa-user-plus"></i></div><div class="ntext"><p><strong>اشتراك جديد:</strong> تم إضافة سارة خالد (شهري)</p><div class="ntime">منذ 3 ساعات</div></div></div>
+    <div class="notif-item"><div class="nicon orange"><i class="fas fa-clock"></i></div><div class="ntext"><p><strong>اقتراب الانتهاء:</strong> اشتراك علي كريم سينتهي بعد 5 أيام</p><div class="ntime">منذ 5 ساعات</div></div></div>
+    <div class="notif-item"><div class="nicon green"><i class="fas fa-sync"></i></div><div class="ntext"><p><strong>تجديد:</strong> تم تجديد اشتراك نور الهدى (60 يوم)</p><div class="ntime">منذ يوم</div></div></div>
+  </div>
+</div>
+
+<!-- PAGE: SETTINGS -->
+<div class="page" id="pageSettings">
+  <div class="shead"><h2><i class="fas fa-cog"></i> الإعدادات</h2></div>
+  <div class="settings-list">
+    <div class="set-card" onclick="showToast('⚙️ إدارة أنواع الاشتراك')"><div class="sicon"><i class="fas fa-tags"></i></div><div class="sinfo"><h4>أنواع الاشتراك</h4><p>إدارة الباقات والتسعير</p></div><i class="fas fa-chevron-left sarrow"></i></div>
+    <div class="set-card" onclick="showToast('📍 إدارة المناطق')"><div class="sicon green"><i class="fas fa-map-marker-alt"></i></div><div class="sinfo"><h4>المناطق</h4><p>إدارة المناطق والتغطية</p></div><i class="fas fa-chevron-left sarrow"></i></div>
+    <div class="set-card" onclick="showToast('💬 إدارة القوالب')"><div class="sicon orange"><i class="fab fa-whatsapp"></i></div><div class="sinfo"><h4>الرسائل الجاهزة</h4><p>تعديل قوالب واتساب</p></div><i class="fas fa-chevron-left sarrow"></i></div>
+    <div class="set-card" onclick="showToast('🔗 إعدادات واتساب API')"><div class="sicon green"><i class="fas fa-link"></i></div><div class="sinfo"><h4>إعدادات واتساب</h4><p>ربط API وإعدادات الإرسال</p></div><i class="fas fa-chevron-left sarrow"></i></div>
+    <div class="set-card" onclick="showToast('💾 تم إنشاء نسخة احتياطية')"><div class="sicon"><i class="fas fa-database"></i></div><div class="sinfo"><h4>النسخ الاحتياطي</h4><p>Backup واستعادة البيانات</p></div><i class="fas fa-chevron-left sarrow"></i></div>
+    <div class="set-card" onclick="showToast('👥 إدارة المستخدمين')"><div class="sicon red"><i class="fas fa-user-shield"></i></div><div class="sinfo"><h4>المستخدمين والصلاحيات</h4><p>إدارة حسابات الموظفين</p></div><i class="fas fa-chevron-left sarrow"></i></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="bnav-item active" data-page="home"><i class="fas fa-chart-pie"></i><span>الرئيسية</span></button>
+  <button class="bnav-item" data-page="subscribers"><i class="fas fa-users"></i><span>المشتركون</span></button>
+  <button class="bnav-item" data-page="whatsapp"><i class="fab fa-whatsapp"></i><span>واتساب</span></button>
+  <button class="bnav-item" data-page="finance"><i class="fas fa-coins"></i><span>الصندوق</span></button>
+  <button class="bnav-item" data-page="settings"><i class="fas fa-cog"></i><span>الإعدادات</span></button>
+</nav>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()"></div>
+<div class="modal" id="modal">
+  <div class="mhead"><h3 id="modalTitle">العنوان</h3><button onclick="closeModal()"><i class="fas fa-times"></i></button></div>
+  <div id="modalBody"></div>
+</div>
+
+<script>
+// ===== DATA =====
+let subs = [
+  {id:1,name:'أحمد علي',phone:'07701234567',ssid:'AL-Ahmed',pass:'12345678',area:'المنصور',type:'شهري',amount:35000,start:'2026-05-01',end:'2026-06-01',status:'active',paid:true,notes:'',archived:false},
+  {id:2,name:'سارة خالد',phone:'07807654321',ssid:'SaraNet',pass:'87654321',area:'الكريعات',type:'15 يوم',amount:15000,start:'2026-05-15',end:'2026-05-30',status:'active',paid:true,notes:'',archived:false},
+  {id:3,name:'محمد حسن',phone:'07901112233',ssid:'MH-Tower',pass:'mh12345',area:'الدورة',type:'شهري',amount:35000,start:'2026-04-01',end:'2026-05-01',status:'expired',paid:false,notes:'لم يدفع الشهر الماضي',archived:false},
+  {id:4,name:'نور الهدى',phone:'07705556677',ssid:'NoorNet',pass:'noor888',area:'اليرموك',type:'60 يوم',amount:55000,start:'2026-03-20',end:'2026-05-19',status:'active',paid:true,notes:'',archived:false},
+  {id:5,name:'علي كريم',phone:'07809876543',ssid:'AliNet',pass:'ali2026',area:'الجامعة',type:'أسبوعي',amount:10000,start:'2026-05-25',end:'2026-06-01',status:'active',paid:true,notes:'',archived:false},
+  {id:6,name:'مريم جاسم',phone:'07704443322',ssid:'MariamNet',pass:'mrm123',area:'المنصور',type:'شهري',amount:35000,start:'2026-05-10',end:'2026-06-10',status:'active',paid:false,notes:'',archived:false},
+  {id:7,name:'حسن عباس',phone:'07907778899',ssid:'Hasan-5G',pass:'hasan99',area:'الدورة',type:'مجاني',amount:0,start:'2026-05-01',end:'2026-06-01',status:'inactive',paid:true,notes:'تجربة مجانية',archived:false},
+  {id:8,name:'زينب أحمد',phone:'07706665544',ssid:'ZainabNet',pass:'zainab22',area:'الكريعات',type:'شهري',amount:35000,start:'2026-04-15',end:'2026-05-15',status:'expired',paid:false,notes:'',archived:false},
+  {id:9,name:'ياسر محمود',phone:'07803332211',ssid:'YasserNet',pass:'ysr2026',area:'اليرموك',type:'90 يوم',amount:80000,start:'2026-03-01',end:'2026-05-30',status:'active',paid:true,notes:'دفع كاش',archived:false},
+  {id:10,name:'فاطمة رضا',phone:'07905557788',ssid:'FatimaNet',pass:'ftm123',area:'الجامعة',type:'15 يوم',amount:15000,start:'2026-05-20',end:'2026-06-04',status:'active',paid:true,notes:'',archived:false},
+]
+let finRecords = [
+  {date:'2026-05-30',desc:'اشتراك أحمد علي - شهري',amount:35000,type:'income'},
+  {date:'2026-05-29',desc:'اشتراك سارة خالد - 15 يوم',amount:15000,type:'income'},
+  {date:'2026-05-28',desc:'فواتير كهرباء',amount:250000,type:'expense'},
+  {date:'2026-05-27',desc:'اشتراك نور الهدى - 60 يوم',amount:55000,type:'income'},
+  {date:'2026-05-25',desc:'صيانة جهاز إرسال',amount:175000,type:'expense'},
+]
+let waTemplates = [
+  {id:1,title:'تفعيل الاشتراك',icon:'fa-check-circle',msg:'مرحباً {name}،\nتم تفعيل اشتراكك في NetTower بنجاح ✅\nنوع الاشتراك: {type}\nتاريخ الانتهاء: {end}\nنتمنى لك تجربة إنترنت ممتعة 🌐'},
+  {id:2,title:'اقتراب انتهاء الاشتراك',icon:'fa-clock',msg:'عزيزي {name}،\nنذكرك بأن اشتراكك سينتهي بتاريخ {end} ⏰\nيرجى تجديد الاشتراك لضمان استمرارية الخدمة 🌐'},
+  {id:3,title:'انتهاء الاشتراك',icon:'fa-exclamation-circle',msg:'عزيزي {name}،\nانتهى اشتراكك بتاريخ {end} ❌\nيرجى التجديد فوراً لاستعادة الخدمة.\nللتواصل: 0770 000 0000'},
+  {id:4,title:'استلام المبلغ',icon:'fa-money-bill-wave',msg:'تم استلام مبلغ الاشتراك من {name} ✅\nالمبلغ: {amount} دينار\nنوع الاشتراك: {type}\nشكراً لثقتكم 🙏'},
+  {id:5,title:'رسالة مخصصة',icon:'fa-edit',msg:'اكتب رسالتك المخصصة هنا...\nالاسم: {name}\nرقم: {phone}'},
+]
+let archivedSubs = []
+let nextId = 11, finId = 6, currentFilter = 'all', currentDetailId = null, waSelectedSub = null, waSelectedTpl = 0
+
+// ===== HELPERS =====
+function daysBetween(d1,d2){const a=new Date(d1),b=new Date(d2);return Math.ceil((a-b)/(86400000))}
+function calcEndFromType(type,start){const s=new Date(start);const m={'مجاني':30,'أسبوعي':7,'15 يوم':15,'شهري':30,'60 يوم':60,'90 يوم':90};const d=m[type]||30;return new Date(s.getTime()+d*86400000)}
+function todayStr(){return new Date().toISOString().split('T')[0]}
+
+// ===== TOAST =====
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._);t._=setTimeout(()=>t.classList.remove('show'),2500)}
+
+// ===== SIDEBAR =====
+function toggleSidebar(){
+  const s=document.getElementById('sidebar'),o=document.getElementById('sideOverlay')
+  s.classList.toggle('open');o.classList.toggle('show')
+}
+
+// ===== LOGIN =====
+(function(){const s=document.createElement('div');s.innerHTML=`<div style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px" id="loginScreen2">
+  <div style="width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,var(--primary),#0891B2);display:grid;place-items:center;font-size:36px;color:#fff;margin-bottom:12px;box-shadow:0 8px 32px var(--primary-glow)"><i class="fas fa-signal"></i></div>
+  <h1 style="font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--primary),#67E8F9);-webkit-background-clip:text;-webkit-text-fill-color:transparent">NetTower Pro</h1>
+  <p style="color:var(--text2);font-size:13px;margin-bottom:28px;margin-top:2px">نظام إدارة مشتركي أبراج الإنترنت</p>
+  <form style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:14px" onsubmit="doLogin2(event)">
+    <div style="position:relative"><i class="fas fa-user" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--text3)"></i><input type="text" value="admin" style="width:100%;background:var(--card);border:1px solid rgba(255,255,255,.06);padding:14px 48px 14px 16px;border-radius:14px;font-size:15px;color:var(--text);outline:none;font-family:'Tajawal',sans-serif"></div>
+    <div style="position:relative"><i class="fas fa-lock" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--text3)"></i><input type="password" value="admin" style="width:100%;background:var(--card);border:1px solid rgba(255,255,255,.06);padding:14px 48px 14px 16px;border-radius:14px;font-size:15px;color:var(--text);outline:none;font-family:'Tajawal',sans-serif"></div>
+    <label style="display:flex;align-items:center;gap:8px;color:var(--text2);font-size:13px"><input type="checkbox" checked style="width:18px;height:18px;accent-color:var(--primary)"> تذكرني</label>
+    <button type="submit" style="width:100%;padding:16px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--primary),#0891B2);color:#fff;font-size:17px;font-weight:800;cursor:pointer;box-shadow:0 4px 24px var(--primary-glow);font-family:'Tajawal',sans-serif">دخول <i class="fas fa-arrow-left"></i></button>
+  </form></div>`;document.body.prepend(s.firstElementChild)
+})()
+function doLogin2(e){e.preventDefault();const el=document.getElementById('loginScreen2');if(el){el.style.opacity='0';el.style.transform='scale(1.05)';el.style.transition='.5s';setTimeout(()=>el.remove(),500)}renderAll()}
+
+// ===== PAGE SWITCH =====
+function switchPage(name){
+  const titles={home:'لوحة التحكم',subscribers:'المشتركين','add-sub':'إضافة مشترك','sub-detail':'تفاصيل المشترك',whatsapp:'واتساب',finance:'الصندوق المالي',reports:'التقارير',archive:'الأرشيف',notifications:'الإشعارات',settings:'الإعدادات'}
+  const icons={home:'fa-chart-pie',subscribers:'fa-users','add-sub':'fa-user-plus','sub-detail':'fa-id-card',whatsapp:'fa-whatsapp',finance:'fa-coins',reports:'fa-chart-bar',archive:'fa-archive',notifications:'fa-bell',settings:'fa-cog'}
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'))
+  const pg=document.getElementById('page'+name.charAt(0).toUpperCase()+name.slice(1))
+  if(pg)pg.classList.add('active')
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'))
+  const bn=document.querySelector(`.bnav-item[data-page="${name}"]`)
+  if(bn)bn.classList.add('active')
+  document.querySelectorAll('.side-nav a').forEach(a=>a.classList.remove('active'))
+  const sn=document.querySelector(`.side-nav a[data-page="${name}"]`)
+  if(sn)sn.classList.add('active')
+  const t=document.getElementById('pageTitle')
+  if(t)t.innerHTML=`<i class="fas ${icons[name]||'fa-circle'}"></i> ${titles[name]||'NetTower Pro'}`
+  if(window.innerWidth<=768){document.getElementById('sidebar').classList.remove('open');document.getElementById('sideOverlay').classList.remove('show')}
+  if(name==='subscribers')renderSubs()
+  if(name==='whatsapp'){renderWASubs();renderWATemplates()}
+  if(name==='finance')renderFinance()
+  if(name==='archive')renderArchive()
+  if(name==='home')renderAll()
+  if(name==='add-sub'){document.getElementById('addDate').value=todayStr();calcEndDate()}
+  window.scrollTo(0,0)
+}
+document.querySelectorAll('.bnav-item').forEach(item=>{item.addEventListener('click',function(){switchPage(this.getAttribute('data-page'))})})
+
+// ===== RENDER ALL =====
+function renderAll(){
+  const total=subs.length,active=subs.filter(s=>s.status==='active').length,expired=subs.filter(s=>s.status==='expired').length,inactive=subs.filter(s=>s.status==='inactive').length
+  const debts=subs.filter(s=>!s.paid).reduce((a,s)=>a+s.amount,0),income=finRecords.filter(f=>f.type==='income').reduce((a,f)=>a+f.amount,0),expense=finRecords.filter(f=>f.type==='expense').reduce((a,f)=>a+f.amount,0)
+  document.getElementById('statTotal').textContent=total;document.getElementById('statActive').textContent=active;document.getElementById('statExpired').textContent=expired;document.getElementById('statInactive').textContent=inactive
+  document.getElementById('statDebts').textContent='$'+(debts/1000).toFixed(1)+'K';document.getElementById('statBalance').textContent='$'+((income-expense)/1000).toFixed(1)+'K'
+  document.querySelector('.side-nav a[data-page="subscribers"] .sbadge').textContent=total
+  // reports
+  document.getElementById('rActive').textContent=active;document.getElementById('rExpired').textContent=expired;document.getElementById('rInactive').textContent=inactive
+  document.getElementById('rDebts').textContent='$'+(debts/1000).toFixed(1)+'K';document.getElementById('rPayments').textContent='$'+(income/1000).toFixed(1)+'K';document.getElementById('rArchived').textContent=archivedSubs.length
+  // finance
+  document.getElementById('finIncome').textContent='$'+(income/1000).toFixed(1)+'K';document.getElementById('finExpense').textContent='$'+(expense/1000).toFixed(1)+'K'
+  document.getElementById('finBalance').textContent='$'+((income-expense)/1000).toFixed(1)+'K';document.getElementById('finDebts').textContent='$'+(debts/1000).toFixed(1)+'K'
+  renderExpiring()
+}
+
+function renderExpiring(){
+  const soon=subs.filter(s=>{if(s.status!=='active')return false;const d=daysBetween(new Date(s.end),new Date());return d>=0&&d<=3}).slice(0,5)
+  const el=document.getElementById('expiringList')
+  if(!soon.length){el.innerHTML='<p style="color:var(--text3);padding:20px;text-align:center;font-size:14px">✅ لا توجد اشتراكات تنتهي قريباً</p>';return}
+  el.innerHTML=soon.map(s=>subCardHTML(s)).join('');attachSubEvents()
+}
+
+// ===== FILTERS =====
+function toggleFilters(){const f=document.getElementById('filterRow');f.style.display=f.style.display==='none'?'flex':'none'}
+function setFilter(el,val){document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');currentFilter=val;renderSubs()}
+
+// ===== SUBS =====
+function renderSubs(){
+  const q=document.getElementById('subSearch')?.value?.trim()?.toLowerCase()||''
+  let list=subs
+  if(q)list=list.filter(s=>s.name.includes(q)||s.phone.includes(q))
+  if(currentFilter==='active')list=list.filter(s=>s.status==='active')
+  else if(currentFilter==='expired')list=list.filter(s=>s.status==='expired')
+  else if(currentFilter==='inactive')list=list.filter(s=>s.status==='inactive')
+  else if(currentFilter==='paid')list=list.filter(s=>s.paid)
+  else if(currentFilter==='unpaid')list=list.filter(s=>!s.paid)
+  const el=document.getElementById('subsList')
+  if(!list.length){el.innerHTML='<p style="color:var(--text3);padding:30px;text-align:center;font-size:14px">🔍 لا توجد نتائج</p>';return}
+  el.innerHTML=list.map(s=>subCardHTML(s)).join('');attachSubEvents()
+}
+
+function subCardHTML(s){
+  const days=daysBetween(new Date(s.end),new Date()),active=s.status==='active',exp=s.status==='expired'
+  return `<div class="sub-card" data-id="${s.id}">
+    <div class="avatar ${!active?'off':''}">${s.name.charAt(0)}</div>
+    <div class="info">
+      <div class="name">${s.name} <span class="dot ${active?'on':exp?'off':'wait'}"></span></div>
+      <div class="phone"><i class="fas fa-phone" style="font-size:10px;color:var(--text3)"></i> ${s.phone}</div>
+      <div class="meta">
+        <span class="type">${s.type}</span>
+        <span class="${s.paid?'paid':'unpaid'}">${s.paid?'مدفوع':'غير مدفوع'}</span>
+        ${(days>=0&&days<=3&&active)?'<span class="expiring">'+days+' أيام</span>':''}
+        ${exp?'<span style="background:var(--danger-glow);color:var(--danger)">منتهي</span>':''}
+      </div>
+    </div>
+    <div class="actions">
+      <button onclick="event.stopPropagation();showEditSub(${s.id})" title="تعديل"><i class="fas fa-edit"></i></button>
+      <button class="gr" onclick="event.stopPropagation();showRenewModal(${s.id})" title="تجديد"><i class="fas fa-sync"></i></button>
+      <button class="gr" onclick="event.stopPropagation();sendWA(${s.id})" title="واتساب" style="color:var(--success)"><i class="fab fa-whatsapp"></i></button>
+      <button onclick="event.stopPropagation();viewDetail(${s.id})" title="تفاصيل"><i class="fas fa-info-circle"></i></button>
+    </div>
+  </div>`
+}
+function attachSubEvents(){document.querySelectorAll('#subsList .sub-card, #expiringList .sub-card').forEach(c=>{c.addEventListener('click',function(){viewDetail(parseInt(this.getAttribute('data-id')))})})}
+
+// ===== DETAIL =====
+function viewDetail(id){
+  currentDetailId=id;const s=subs.find(x=>x.id===id);if(!s){showToast('المشترك غير موجود');return}
+  const days=daysBetween(new Date(s.end),new Date())
+  document.getElementById('detailCard').innerHTML=`
+    <div class="dhead"><h3><i class="fas fa-user-circle" style="color:var(--primary)"></i> ${s.name}</h3><span class="sbadge ${s.status==='active'?'active':s.status==='expired'?'inactive':'pending'}">${s.status==='active'?'فعال':s.status==='expired'?'منتهي':'غير مفعل'}</span></div>
+    <div class="dbody">
+      <div class="row"><span class="label"><i class="fas fa-phone"></i> الهاتف</span><span class="value">${s.phone}</span></div>
+      <div class="row"><span class="label"><i class="fas fa-wifi"></i> اسم الشبكة</span><span class="value">${s.ssid}</span></div>
+      <div class="row"><span class="label"><i class="fas fa-key"></i> كلمة المرور</span><span class="value">${s.pass}</span></div>
+      <div class="row"><span class="label"><i class="fas fa-map-marker-alt"></i> المنطقة</span><span class="value">${s.area}</span></div>
+      <div class="row"><span class="label"><i class="fas fa-tag"></i> نوع الاشتراك</span><span class="value primary">${s.type}</span></div>
+      <div class="row"><span class="label"><i class="fas fa-calendar-plus"></i> تاريخ التفعيل</span><span class="value">${s.start}</span></div>
+      <div class="row"><span class="label"><i class="fas fa-calendar-times"></i> تاريخ الانتهاء</span><span class="value ${days<0?'danger':'success'}">${s.end}</span></div>
+      <div class="row"><span class="label"><i class="fas fa-hourglass-half"></i> الأيام المتبقية</span><span class="value ${days<0?'danger':days<=3?'warning':'success'}">${days<0?'انتهى':days+' يوم'}</span></div>
+      <div class="row"><span class="label"><i class="fas fa-dollar-sign"></i> حالة الدفع</span><span class="value ${s.paid?'success':'danger'}">${s.paid?'مدفوع':'غير مدفوع'}</span></div>
+      ${s.notes?`<div class="row"><span class="label"><i class="fas fa-sticky-note"></i> ملاحظات</span><span class="value">${s.notes}</span></div>`:''}
+    </div>`
+  document.getElementById('detailActions').innerHTML=`
+    <button class="cy" onclick="showRenewModal(${s.id})"><i class="fas fa-sync"></i> تجديد</button>
+    <button class="gr" onclick="activateFree(${s.id})"><i class="fas fa-gift"></i> تفعيل مجاني</button>
+    <button class="rd" onclick="toggleStatus(${s.id})"><i class="fas fa-${s.status==='active'?'pause':'play'}"></i> ${s.status==='active'?'إيقاف':'تشغيل'}</button>
+    <button class="gr" onclick="sendWA(${s.id})"><i class="fab fa-whatsapp"></i> واتساب</button>
+    <button class="ow" onclick="archiveSub(${s.id})"><i class="fas fa-archive"></i> أرشفة</button>
+    <button class="rd" onclick="deleteSub(${s.id})"><i class="fas fa-trash"></i> حذف</button>`
+  switchPage('sub-detail');window.scrollTo(0,0)
+}
+
+// ===== SUB OPERATIONS =====
+function showEditSub(id){
+  const s=subs.find(x=>x.id===id);if(!s)return
+  document.getElementById('modalTitle').innerHTML='<i class="fas fa-edit" style="color:var(--primary)"></i> تعديل مشترك'
+  document.getElementById('modalBody').innerHTML=`
+    <div class="form-wrap" style="padding:0">
+      <div class="form-group"><label>الاسم</label><input type="text" id="mName" value="${s.name}"></div>
+      <div class="form-group"><label>الهاتف</label><input type="text" id="mPhone" value="${s.phone}"></div>
+      <div class="form-row"><div class="form-group"><label>النوع</label><select id="mType">${['مجاني','أسبوعي','15 يوم','شهري','60 يوم','90 يوم'].map(t=>`<option value="${t}" ${s.type===t?'selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="form-group"><label>المبلغ</label><input type="number" id="mAmount" value="${s.amount}"></div></div>
+      <div class="form-row"><div class="form-group"><label>تاريخ الانتهاء</label><input type="date" id="mEnd" value="${s.end}"></div>
+      <div class="form-group"><label>الدفع</label><select id="mPaid"><option value="1" ${s.paid?'selected':''}>مدفوع</option><option value="0" ${!s.paid?'selected':''}>غير مدفوع</option></select></div></div>
+      <div class="form-actions"><button class="primary" onclick="saveEditSub(${id})">💾 حفظ</button><button class="secondary" onclick="closeModal()">إلغاء</button></div>
+    </div>`
+  document.getElementById('modal').classList.add('open');document.getElementById('modalOverlay').classList.add('show')
+}
+function saveEditSub(id){const s=subs.find(x=>x.id===id);if(!s)return;s.name=document.getElementById('mName').value;s.phone=document.getElementById('mPhone').value;s.type=document.getElementById('mType').value;s.amount=parseInt(document.getElementById('mAmount').value)||0;s.end=document.getElementById('mEnd').value;s.paid=document.getElementById('mPaid').value==='1';closeModal();showToast('✅ تم حفظ التعديلات');renderAll();renderSubs();if(currentDetailId===id)viewDetail(id)}
+
+function showRenewModal(id){
+  const s=subs.find(x=>x.id===id);if(!s)return
+  document.getElementById('modalTitle').innerHTML='<i class="fas fa-sync" style="color:var(--primary)"></i> تجديد اشتراك'
+  document.getElementById('modalBody').innerHTML=`
+    <div class="form-wrap" style="padding:0">
+      <div style="background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:14px"><p style="font-size:15px;font-weight:700">${s.name}</p><p style="font-size:12px;color:var(--text2)">الاشتراك الحالي: ${s.type} · ينتهي: ${s.end}</p></div>
+      <div class="form-group"><label>نوع الاشتراك الجديد</label><select id="rType" onchange="calcRenew()">${['أسبوعي-10000-7','15 يوم-15000-15','شهري-35000-30','60 يوم-55000-60','90 يوم-80000-90'].map(t=>{const[a,b,c]=t.split('-');return `<option value="${a}|${b}|${c}">${a} - $${(parseInt(b)/1000).toFixed(1)}K</option>`}).join('')}</select></div>
+      <div class="form-group"><label>تاريخ الانتهاء الجديد</label><input type="date" id="rEnd" readonly style="color:var(--primary);font-weight:800"></div>
+      <div class="form-group"><label>المبلغ</label><input type="text" id="rAmount" readonly style="color:var(--primary);font-weight:800;font-size:18px"></div>
+      <div class="form-group"><label><input type="checkbox" id="rPaid" checked style="width:18px;height:18px;accent-color:var(--primary);margin-left:8px"> تم الدفع</label></div>
+      <div class="form-actions"><button class="success" onclick="confirmRenew(${id})">✅ تأكيد التجديد</button><button class="secondary" onclick="closeModal()">إلغاء</button></div>
+    </div>`
+  document.getElementById('modal').classList.add('open');document.getElementById('modalOverlay').classList.add('show');calcRenew()
+}
+function calcRenew(){const v=document.getElementById('rType').value;const[type,amt,days]=v.split('|');document.getElementById('rAmount').value='$'+(parseInt(amt)/1000).toFixed(1)+'K';const d=new Date();d.setDate(d.getDate()+parseInt(days));document.getElementById('rEnd').value=d.toISOString().split('T')[0]}
+function confirmRenew(id){const s=subs.find(x=>x.id===id);if(!s)return;const v=document.getElementById('rType').value;const[type,amt]=v.split('|');s.type=type;s.amount=parseInt(amt);s.end=document.getElementById('rEnd').value;s.status='active';if(document.getElementById('rPaid').checked)s.paid=true;closeModal();showToast('✅ تم تجديد الاشتراك بنجاح');renderAll();renderSubs();if(currentDetailId===id)viewDetail(id)}
+
+function activateFree(id){const s=subs.find(x=>x.id===id);if(!s)return;s.type='مجاني';s.amount=0;const d=new Date();d.setDate(d.getDate()+30);s.end=d.toISOString().split('T')[0];s.status='active';s.paid=true;showToast('🎁 تم تفعيل اشتراك مجاني لمدة 30 يوماً');renderAll();renderSubs();if(currentDetailId===id)viewDetail(id)}
+function toggleStatus(id){const s=subs.find(x=>x.id===id);if(!s)return;s.status=s.status==='active'?'inactive':'active';showToast(s.status==='active'?'▶️ تم التشغيل':'⏸️ تم الإيقاف');renderAll();renderSubs();if(currentDetailId===id)viewDetail(id)}
+function archiveSub(id){const idx=subs.findIndex(x=>x.id===id);if(idx===-1)return;const s=subs.splice(idx,1)[0];s.archived=true;archivedSubs.push(s);showToast('📦 تم أرشفة المشترك');renderAll();renderSubs();switchPage('subscribers')}
+function deleteSub(id){if(!confirm('⚠️ هل أنت متأكد من حذف هذا المشترك؟'))return;subs=subs.filter(x=>x.id!==id);showToast('🗑️ تم حذف المشترك');renderAll();renderSubs();switchPage('subscribers')}
+
+// ===== ADD SUB =====
+function calcEndDate(){const type=document.getElementById('addType').value,date=document.getElementById('addDate').value;if(!date)return;const end=calcEndFromType(type,date);document.getElementById('addEndDate').value=end.toISOString().split('T')[0];const h={'مجاني':'30 يوم تجربة','أسبوعي':'7 أيام','15 يوم':'15 يوماً',شهري:'30 يوماً','60 يوم':'60 يوماً','90 يوم':'90 يوماً',مخصص:'حدد تاريخ الانتهاء يدوياً'};document.getElementById('addEndHint').textContent='⏳ '+(h[type]||'')}
+function saveSub(addAnother){
+  const name=document.getElementById('addName').value.trim()
+  if(!name){showToast('⚠️ الرجاء إدخال اسم المشترك');document.getElementById('addName').focus();return}
+  const phone=document.getElementById('addPhone').value.trim()
+  if(!phone){showToast('⚠️ الرجاء إدخال رقم الهاتف');document.getElementById('addPhone').focus();return}
+  if(phone.length<10){showToast('⚠️ رقم الهاتف غير صحيح (10 أرقام على الأقل)');document.getElementById('addPhone').focus();return}
+  const ssid=document.getElementById('addSsid').value.trim()||'NetTower-'+name
+  const pass=document.getElementById('addPass').value.trim()||'12345678'
+  const area=document.getElementById('addArea').value
+  const type=document.getElementById('addType').value
+  const amount=parseInt(document.getElementById('addAmount').value)||0
+  const start=document.getElementById('addDate').value||todayStr()
+  const end=document.getElementById('addEndDate').value||todayStr()
+  const notes=document.getElementById('addNotes').value.trim()
+  subs.push({id:nextId++,name,phone,ssid,pass,area,type,amount,start,end,status:'active',paid:false,notes,archived:false})
+  showToast('✅ تم إضافة المشترك '+name+' بنجاح')
+  if(addAnother){
+    document.getElementById('addName').value='';document.getElementById('addPhone').value=''
+    document.getElementById('addSsid').value='';document.getElementById('addPass').value=''
+    document.getElementById('addNotes').value='';document.getElementById('addDate').value=todayStr()
+    document.getElementById('addName').focus()
+    calcEndDate()
+  }else{renderAll();renderSubs();switchPage('subscribers')}
+}
+
+// ===== WHATSAPP =====
+function renderWATemplates(){const el=document.getElementById('waTemplates');el.innerHTML=waTemplates.map((t,i)=>`<div class="wa-tpl ${i===waSelectedTpl?'active':''}" onclick="selectWATpl(${i})"><div class="tpl-title"><i class="fas ${t.icon}" style="color:var(--success)"></i> ${t.title}</div><div class="tpl-preview">${t.msg.substring(0,70)}...</div></div>`).join('')}
+function selectWATpl(i){waSelectedTpl=i;renderWATemplates();updateWAPreview()}
+function renderWASubs(){const q=document.getElementById('waSearch')?.value?.trim()?.toLowerCase()||'';let list=subs;if(q)list=list.filter(s=>s.name.includes(q)||s.phone.includes(q));const el=document.getElementById('waSubsList');if(!list.length){el.innerHTML='<p style="color:var(--text3);padding:20px;text-align:center">لا يوجد مشتركين</p>';return}el.innerHTML=list.map(s=>{const sel=waSelectedSub?.id===s.id;return `<div class="sub-card" onclick="selectWASub(${s.id})" style="${sel?'border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-glow)':''}"><div class="avatar">${s.name.charAt(0)}</div><div class="info"><div class="name">${s.name}</div><div class="phone">${s.phone}</div></div><div style="font-size:14px;color:${sel?'var(--success)':'var(--text3)'}"><i class="fas ${sel?'fa-check-circle':'fa-circle'}"></i></div></div>`}).join('')}
+function selectWASub(id){waSelectedSub=subs.find(s=>s.id===id)||null;renderWASubs();updateWAPreview()}
+function updateWAPreview(){const tpl=waTemplates[waSelectedTpl];if(!tpl)return;let msg=tpl.msg;if(waSelectedSub){msg=msg.replace(/{name}/g,waSelectedSub.name).replace(/{phone}/g,waSelectedSub.phone).replace(/{type}/g,waSelectedSub.type).replace(/{end}/g,waSelectedSub.end).replace(/{amount}/g,waSelectedSub.amount)}
+  const existing=document.querySelector('.wa-preview');if(existing)existing.remove();const btn=document.querySelector('.wa-send-btn');if(btn)btn.remove()
+  const wrap=document.getElementById('waSubsList');wrap.insertAdjacentHTML('afterend',`<div class="wa-preview"><div class="label"><i class="fas fa-eye" style="color:var(--primary)"></i> معاينة الرسالة</div><div class="msg">${msg.replace(/\n/g,'<br>')}</div></div><button class="wa-send-btn" onclick="sendWAMessage()"><i class="fab fa-whatsapp"></i> إرسال عبر واتساب</button>`)
+}
+function sendWAMessage(){if(!waSelectedSub){showToast('⚠️ اختر مشتركاً أولاً');return}const tpl=waTemplates[waSelectedTpl];let msg=tpl.msg.replace(/{name}/g,waSelectedSub.name).replace(/{phone}/g,waSelectedSub.phone).replace(/{type}/g,waSelectedSub.type).replace(/{end}/g,waSelectedSub.end).replace(/{amount}/g,waSelectedSub.amount);window.open('https://wa.me/'+waSelectedSub.phone+'?text='+encodeURIComponent(msg),'_blank');showToast('✅ تم فتح واتساب')}
+function sendWA(id){
+  waSelectedSub=subs.find(s=>s.id===id)||null
+  waSelectedTpl=0
+  switchPage('whatsapp')
+  renderWATemplates()
+  renderWASubs()
+  setTimeout(()=>{updateWAPreview();window.scrollTo(0,0);showToast('💬 تم اختيار '+waSelectedSub?.name+' - اختر قالباً')},150)
+}
+
+// ===== FINANCE =====
+function renderFinance(){const el=document.getElementById('finList');if(!finRecords.length){el.innerHTML='<p style="color:var(--text3);padding:20px;text-align:center">لا توجد عمليات مالية</p>';return}el.innerHTML=finRecords.map(f=>`<div class="fin-item"><div class="fleft"><div class="fdate">${f.date}</div><div class="fdesc">${f.desc}</div></div><div style="text-align:left"><div class="famount ${f.type}">${f.type==='income'?'+':'-'} $${(f.amount/1000).toFixed(1)}K</div><span class="ftype">${f.type==='income'?'إيراد':'مصروف'}</span></div></div>`).join('');renderAll()}
+function showAddFinance(type){document.getElementById('modalTitle').innerHTML=`<i class="fas ${type==='income'?'fa-plus-circle':'fa-minus-circle'}" style="color:${type==='income'?'var(--success)':'var(--danger)'}"></i> ${type==='income'?'إضافة إيراد':'إضافة مصروف'}`;document.getElementById('modalBody').innerHTML=`<div class="form-wrap" style="padding:0"><div class="form-group"><label>الوصف</label><input type="text" id="fDesc" placeholder="${type==='income'?'اشتراك شهري':'فاتورة كهرباء'}"></div><div class="form-group"><label>المبلغ (دينار)</label><input type="number" id="fAmount" placeholder="0"></div><div class="form-actions"><button class="${type==='income'?'primary':'danger'}" onclick="saveFinance('${type}')">حفظ</button><button class="secondary" onclick="closeModal()">إلغاء</button></div></div>`;document.getElementById('modal').classList.add('open');document.getElementById('modalOverlay').classList.add('show')}
+function saveFinance(type){const desc=document.getElementById('fDesc').value.trim(),amount=parseInt(document.getElementById('fAmount').value);if(!desc||!amount){showToast('⚠️ املأ جميع الحقول');return}finRecords.unshift({date:todayStr(),desc,amount,type});closeModal();renderFinance();showToast('✅ تمت الإضافة')}
+
+// ===== ARCHIVE =====
+function renderArchive(){const el=document.getElementById('archiveList');if(!archivedSubs.length){el.innerHTML='<p style="color:var(--text3);padding:40px;text-align:center;font-size:14px"><i class="fas fa-box-open" style="font-size:48px;display:block;margin-bottom:14px;opacity:.2"></i>الأرشيف فارغ</p>';return}el.innerHTML=archivedSubs.map(s=>`<div class="arch-card"><div style="width:42px;height:42px;border-radius:12px;background:var(--bg2);display:grid;place-items:center;font-size:18px;font-weight:800;color:var(--text3);flex-shrink:0">${s.name.charAt(0)}</div><div class="ainfo"><h4>${s.name}</h4><p>${s.phone} · ${s.type} · ${s.area}</p></div><div class="aacts"><button onclick="restoreSub(${s.id})" title="استعادة"><i class="fas fa-undo"></i></button><button class="rd" onclick="permaDelete(${s.id})" title="حذف نهائي"><i class="fas fa-trash"></i></button></div></div>`).join('')}
+function restoreSub(id){const idx=archivedSubs.findIndex(s=>s.id===id);if(idx===-1)return;const s=archivedSubs.splice(idx,1)[0];s.archived=false;subs.push(s);showToast('🔄 تم استعادة المشترك');renderArchive();renderAll()}
+function permaDelete(id){if(!confirm('⚠️ الحذف النهائي لا يمكن التراجع عنه. هل أنت متأكد؟'))return;archivedSubs=archivedSubs.filter(s=>s.id!==id);showToast('🗑️ تم الحذف النهائي');renderArchive()}
+
+// ===== THEME TOGGLE =====
+function setTheme(mode){
+  const html=document.documentElement
+  if(mode==='light'){html.setAttribute('data-theme','light')}else{html.removeAttribute('data-theme')}
+  localStorage.setItem('nettower-theme',mode)
+  document.getElementById('themeDarkBtn').classList.toggle('active',mode==='dark')
+  document.getElementById('themeLightBtn').classList.toggle('active',mode==='light')
+}
+(function(){const saved=localStorage.getItem('nettower-theme');if(saved==='light')setTheme('light')})()
+
+// ===== MODAL =====
+function closeModal(){document.getElementById('modal').classList.remove('open');document.getElementById('modalOverlay').classList.remove('show')}
+function doLogout(){location.reload()}
+
+// ===== INIT =====
+document.getElementById('addDate').value=todayStr();calcEndDate();renderAll()
+</script>
+</body>
+</html>

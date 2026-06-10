@@ -1,0 +1,657 @@
+/* ============================================================
+   ملف التنسيقات الأساسي - NetTower Pro
+   جميع الألوان والتنسيقات منقولة من التصميم الأصلي بدون تغيير
+   ============================================================ */
+
+/* ===== متغيرات الألوان (الوضع الليلي) ===== */
+:root {
+  --bg: #0B1120;           /* خلفية الصفحة الرئيسية - أزرق غامق جداً */
+  --bg2: #111827;          /* خلفية ثانوية (سايدبار) - أزرق داكن */
+  --card: #1F2937;         /* خلفية البطاقات - رمادي غامق */
+  --card-hover: #2A3A4E;  /* لون البطاقة عند المرور عليها */
+  --primary: #06B6D4;     /* اللون الأساسي - سماوي */
+  --primary-glow: rgba(6,182,212,.15);  /* توهج خفيف للسماوي */
+  --primary-light: rgba(6,182,212,.1);  /* نسخة شفافة من السماوي للخلفيات */
+  --success: #22C55E;     /* أخضر - للعمليات الناجحة والمدفوع */
+  --success-glow: rgba(34,197,94,.15);  /* توهج أخضر */
+  --warning: #F59E0B;     /* برتقالي - للتحذيرات والتنبيهات */
+  --warning-glow: rgba(245,158,11,.15); /* توهج برتقالي */
+  --danger: #EF4444;      /* أحمر - للأخطاء والمنتهي */
+  --danger-glow: rgba(239,68,68,.15);   /* توهج أحمر */
+  --text: #F9FAFB;        /* النص الرئيسي - أبيض */
+  --text2: #94A3B8;       /* النص الثانوي - رمادي فاتح */
+  --text3: #64748B;       /* النص المساعد - رمادي متوسط */
+  --radius: 16px;         /* نصف قطر الزوايا الأساسي */
+  --radius-sm: 10px;      /* زوايا صغيرة */
+  --radius-xl: 24px;      /* زوايا كبيرة */
+  --shadow: 0 1px 3px rgba(0,0,0,.3);       /* ظل خفيف */
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.5);   /* ظل كبير */
+  --nav-h: 68px;          /* ارتفاع شريط التنقل السفلي */
+  --sidebar-w: 260px;     /* عرض القائمة الجانبية */
+  --glass: rgba(31,41,55,.6);               /* خلفية زجاجية داكنة */
+  --glass-border: rgba(255,255,255,.04);     /* حدود زجاجية */
+  --header-bg: rgba(11,17,32,.85);          /* خلفية الهيدر مع شفافية */
+}
+
+/* ===== متغيرات الألوان (الوضع النهاري) ===== */
+[data-theme=light] {
+  --bg: #F0F2F5;          /* خلفية الصفحة - رمادي فاتح */
+  --bg2: #FFFFFF;         /* خلفية ثانوية - أبيض */
+  --card: #FFFFFF;        /* البطاقات - أبيض */
+  --card-hover: #F0F2F5;  /* لون البطاقة عند المرور - رمادي فاتح */
+  --primary: #0891B2;     /* سماوي غامق (للتباين مع الخلفية البيضاء) */
+  --primary-glow: rgba(8,145,178,.12);
+  --primary-light: rgba(8,145,178,.08);
+  --success: #16A34A;     /* أخضر غامق */
+  --success-glow: rgba(22,163,74,.12);
+  --warning: #D97706;     /* برتقالي غامق */
+  --warning-glow: rgba(217,119,6,.12);
+  --danger: #DC2626;      /* أحمر غامق */
+  --danger-glow: rgba(220,38,38,.12);
+  --text: #0F172A;        /* النص الرئيسي - كحلي غامق */
+  --text2: #475569;       /* النص الثانوي - رمادي داكن */
+  --text3: #94A3B8;       /* النص المساعد - رمادي */
+  --shadow: 0 1px 3px rgba(0,0,0,.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+  --glass: rgba(255,255,255,.7);             /* زجاجي أبيض */
+  --glass-border: rgba(0,0,0,.06);           /* حدود شفافة داكنة */
+  --header-bg: rgba(255,255,255,.85);
+}
+
+/* ===== إعادة تعيين الهوامش والحواف ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+
+/* ===== تنسيق الجسم الأساسي ===== */
+body{
+  background:var(--bg);           /* خلفية ديناميكية حسب الثيم */
+  color:var(--text);              /* لون النص حسب الثيم */
+  font-family:'Tajawal',sans-serif; /* خط عربي مدعم */
+  min-height:100vh;               /* يغطي كامل الشاشة */
+  overflow-x:hidden;              /* يمنع التمرير الأفقي */
+  line-height:1.6;                /* تباعد الأسطر */
+  display:flex;                   /* استخدام Flexbox للتخطيط */
+}
+
+/* ===== شريط التمرير - تصميم مخصص ===== */
+::-webkit-scrollbar{width:4px}                    /* عرض الشريط */
+::-webkit-scrollbar-track{background:transparent}  /* مسار الشريط شفاف */
+::-webkit-scrollbar-thumb{background:var(--text3);border-radius:4px}  /* مقبض الشريط */
+::selection{background:var(--primary);color:#fff}  /* لون التحديد */
+
+/* ================================================================
+   TOAST - رسالة منبثقة تظهر في أعلى الشاشة
+   ================================================================ */
+.toast{
+  position:fixed;top:20px;left:50%;                  /* في منتصف الشاشة أفقياً */
+  transform:translateX(-50%) translateY(-80px);      /* تبدأ مخفية للأعلى */
+  background:var(--card);border:1px solid var(--glass-border);
+  color:var(--text);padding:14px 32px;
+  border-radius:14px;font-size:14px;font-weight:600;
+  box-shadow:var(--shadow-lg);z-index:9999;           /* أعلى طبقة */
+  opacity:0;                                          /* شفافة تماماً */
+  transition:.5s cubic-bezier(.22,.68,0,1);           /* حركة أنيقة */
+  pointer-events:none;                                 /* لا تمنع الضغط */
+  white-space:nowrap;max-width:92%;text-align:center
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}  /* تظهر عند التفعيل */
+
+/* ================================================================
+   SIDEBAR - القائمة الجانبية
+   ================================================================ */
+.sidebar{
+  position:fixed;top:0;right:0;          /* مثبتة على اليمين (لأن الواجهة RTL) */
+  width:var(--sidebar-w);height:100vh;   /* عرض ثابت وطول كامل */
+  background:var(--bg2);                 /* خلفية حسب الثيم */
+  border-left:1px solid var(--glass-border);
+  z-index:500;display:flex;flex-direction:column;  /* عناصر رأسية */
+  transition:transform .4s cubic-bezier(.22,.68,0,1);  /* حركة سلسة */
+  overflow-y:auto                        /* تمرير عمودي إذا لزم */
+}
+
+/* الشعار في السايدبار */
+.sidebar .logo{
+  display:flex;align-items:center;gap:10px;
+  padding:20px 18px;
+  border-bottom:1px solid var(--glass-border)
+}
+/* أيقونة الشعار */
+.sidebar .logo .icon{
+  width:42px;height:42px;border-radius:14px;
+  background:linear-gradient(135deg,var(--primary),#0891B2); /* تدرج لوني */
+  display:grid;place-items:center;font-size:20px;color:#fff;
+  flex-shrink:0;box-shadow:0 4px 16px var(--primary-glow)    /* توهج خارجي */
+}
+.sidebar .logo .info h4{font-size:16px;font-weight:900}
+.sidebar .logo .info span{font-size:11px;color:var(--text3)}
+
+/* معلومات المستخدم في السايدبار */
+.sidebar .side-user{
+  display:flex;align-items:center;gap:10px;
+  padding:16px 18px;
+  border-bottom:1px solid var(--glass-border)
+}
+/* الصورة الرمزية للمستخدم */
+.sidebar .side-user .u-avatar{
+  width:40px;height:40px;border-radius:12px;
+  background:linear-gradient(135deg,var(--primary),#0891B2);
+  display:grid;place-items:center;font-size:18px;color:#fff;font-weight:800;flex-shrink:0
+}
+.sidebar .side-user div{flex:1}
+.sidebar .side-user div h5{font-size:14px;font-weight:700}
+.sidebar .side-user div p{font-size:11px;color:var(--text3)}
+
+/* القوائم في السايدبار */
+.sidebar .side-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+/* عنوان القسم في السايدبار */
+.sidebar .side-nav .nav-section{
+  font-size:10px;color:var(--text3);text-transform:uppercase;
+  letter-spacing:1px;padding:12px 8px 4px;font-weight:700
+}
+/* روابط السايدبار */
+.sidebar .side-nav a{
+  display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;
+  color:var(--text2);text-decoration:none;font-size:13px;font-weight:600;
+  cursor:pointer;transition:.25s;position:relative
+}
+.sidebar .side-nav a:hover{background:var(--card);color:var(--text)}
+/* الرابط النشط - يظهر بشريط سماوي على اليمين */
+.sidebar .side-nav a.router-link-exact-active{
+  background:var(--primary-light);color:var(--primary);
+  box-shadow:inset 3px 0 0 var(--primary)
+}
+.sidebar .side-nav a i{width:20px;text-align:center;font-size:16px}
+/* العلامة (البادج) على الرابط */
+.sidebar .side-nav a .sbadge{
+  background:var(--danger);color:#fff;font-size:9px;
+  padding:2px 8px;border-radius:20px;font-weight:800;margin-right:auto
+}
+
+/* الجزء السفلي من السايدبار (الأزرار) */
+.sidebar .side-foot{padding:14px;border-top:1px solid var(--glass-border);display:flex;flex-direction:column;gap:8px}
+.sidebar .side-foot button{
+  width:100%;padding:12px;border-radius:12px;border:1px solid var(--glass-border);
+  background:var(--card);color:var(--text2);font-size:13px;font-weight:700;
+  cursor:pointer;transition:.25s;display:flex;align-items:center;gap:8px;
+  justify-content:center;font-family:'Tajawal',sans-serif
+}
+.sidebar .side-foot button:active{background:var(--danger);color:#fff;border-color:var(--danger)}
+/* أزرار الثيم (ليلي/نهاري) */
+.sidebar .side-foot .theme-row{display:flex;gap:6px}
+.sidebar .side-foot .theme-row button{flex:1;padding:10px;border-radius:10px}
+.sidebar .side-foot .theme-row button:active{transform:scale(.97)}
+.sidebar .side-foot .theme-row button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* ===== SIDE OVERLAY - طبقة شفافة فوق المحتوى عند فتح السايدبار في الموبايل ===== */
+.side-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:499;
+  opacity:0;pointer-events:none;transition:.35s;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)  /* تأثير ضبابي */
+}
+.side-overlay.show{opacity:1;pointer-events:auto}
+
+/* ================================================================
+   MAIN - المحتوى الرئيسي
+   ================================================================ */
+.main{
+  flex:1;margin-right:var(--sidebar-w);      /* مساحة للسايدبار على اليمين */
+  max-width:calc(100% - var(--sidebar-w));
+  padding-bottom:20px;position:relative
+}
+
+/* في الموبايل: إخفاء مساحة السايدبار وإظهار الشريط السفلي */
+@media(max-width:768px){
+  .main{margin-right:0;max-width:100%;padding-bottom:calc(var(--nav-h) + 16px)}
+  .sidebar{transform:translateX(var(--sidebar-w))}     /* إخفاء السايدبار خارج الشاشة */
+  .sidebar.open{transform:translateX(0)}                /* إظهاره عند الفتح */
+}
+
+/* أنيميشن دخول الصفحات */
+.page{animation:pageIn .35s ease}
+@keyframes pageIn{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ================================================================
+   HEADER - الشريط العلوي
+   ================================================================ */
+.header{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 20px;
+  background:var(--header-bg);                 /* خلفية شفافة زجاجية */
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);  /* تأثير زجاجي */
+  border-bottom:1px solid var(--glass-border);
+  position:sticky;top:0;z-index:100            /* يبقى ثابتاً في الأعلى */
+}
+/* زر القائمة في الموبايل */
+.header .menu-btn{
+  width:38px;height:38px;border-radius:12px;border:1px solid var(--glass-border);
+  background:var(--card);color:var(--text2);font-size:16px;
+  cursor:pointer;display:none;place-items:center;transition:.25s;flex-shrink:0
+}
+.header .menu-btn:active{background:var(--primary);color:#fff;border-color:var(--primary)}
+@media(max-width:768px){.header .menu-btn{display:grid}}  /* يظهر فقط في الموبايل */
+
+/* عنوان الصفحة */
+.header .page-title{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px;flex:1}
+.header .page-title i{color:var(--primary)}
+
+/* أزرار الإجراءات في الهيدر */
+.header .h-actions{display:flex;gap:8px}
+.header .h-actions button{
+  width:36px;height:36px;border-radius:50%;border:1px solid var(--glass-border);
+  background:var(--card);color:var(--text2);font-size:15px;
+  cursor:pointer;transition:.25s;display:grid;place-items:center;position:relative
+}
+.header .h-actions button:active{background:var(--primary);color:#fff;border-color:var(--primary)}
+/* البادج على الأزرار (عدد الإشعارات) */
+.header .h-actions button .badge{
+  position:absolute;top:-2px;right:-2px;background:var(--danger);
+  color:#fff;font-size:8px;width:16px;height:16px;border-radius:50%;
+  display:grid;place-items:center;font-weight:800;border:2px solid var(--bg)
+}
+
+/* مربع البحث في الهيدر */
+.header .h-search{position:relative;width:200px}
+.header .h-search input{
+  width:100%;background:var(--card);border:1px solid var(--glass-border);
+  padding:9px 36px 9px 12px;border-radius:30px;font-size:13px;
+  color:var(--text);outline:none;transition:.3s;font-family:'Tajawal',sans-serif
+}
+.header .h-search input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow)}
+.header .h-search input::placeholder{color:var(--text3)}
+.header .h-search i{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px}
+
+/* ================================================================
+   SECTION HEADER - عنوان القسم (يظهر قبل كل مجموعة)
+   ================================================================ */
+.shead{display:flex;justify-content:space-between;align-items:center;padding:16px 20px 8px}
+.shead h2{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+.shead h2 i{color:var(--primary);font-size:15px}
+/* رابط في عنوان القسم (مثل "عرض الكل" أو "إضافة") */
+.shead a{
+  color:var(--primary);font-size:12px;text-decoration:none;font-weight:700;
+  cursor:pointer;padding:6px 14px;border-radius:20px;background:var(--primary-light);
+  transition:.25s;display:flex;align-items:center;gap:4px
+}
+.shead a:active{background:var(--primary);color:#fff}
+
+/* ================================================================
+   STATS CARDS - بطاقات الإحصائيات
+   الألوان: cyan = سماوي | green = أخضر | orange = برتقالي | red = أحمر
+   ================================================================ */
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:8px 20px}
+.stat-card{
+  background:var(--card);border-radius:var(--radius);
+  padding:18px;border:1px solid var(--glass-border);
+  transition:.25s;cursor:pointer;position:relative;overflow:hidden
+}
+.stat-card:active{transform:scale(.98)}
+.stat-card .top{display:flex;justify-content:space-between;align-items:flex-start}
+/* أيقونة البطاقة - تأخذ لونها حسب الكلاس المضاف */
+.stat-card .top .icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:18px;flex-shrink:0}
+.stat-card .top .icon.cyan{background:var(--primary-light);color:var(--primary)}     /* سماوي - للمعلومات العامة */
+.stat-card .top .icon.green{background:var(--success-glow);color:var(--success)}     /* أخضر - للإيجابي */
+.stat-card .top .icon.orange{background:var(--warning-glow);color:var(--warning)}    /* برتقالي - للتحذير */
+.stat-card .top .icon.red{background:var(--danger-glow);color:var(--danger)}         /* أحمر - للخطورة */
+.stat-card .num{font-size:24px;font-weight:900;margin-top:10px;line-height:1.2}
+.stat-card .label{font-size:12px;color:var(--text2);margin-top:2px}
+/* اتجاه التغيير (ارتفاع أو انخفاض) */
+.stat-card .trend{font-size:11px;margin-top:6px;display:flex;align-items:center;gap:4px}
+.stat-card .trend.up{color:var(--success)}      /* ارتفاع - أخضر */
+.stat-card .trend.down{color:var(--danger)}     /* انخفاض - أحمر */
+
+/* ================================================================
+   QUICK ACTIONS - أزرار العمليات السريعة
+   ================================================================ */
+.quick-acts{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;padding:8px 20px}
+.qa{
+  background:var(--card);border-radius:var(--radius);
+  padding:18px 10px;display:flex;flex-direction:column;
+  align-items:center;gap:10px;border:1px solid var(--glass-border);
+  cursor:pointer;transition:.25s;text-align:center
+}
+.qa:active{transform:scale(.95)}
+.qa .qicon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:20px}
+/* ألوان أيقونات العمليات السريعة */
+.qa .qicon.cyan{background:linear-gradient(135deg,var(--primary),rgba(6,182,212,.2));color:var(--primary)}
+.qa .qicon.green{background:linear-gradient(135deg,var(--success),rgba(34,197,94,.2));color:var(--success)}
+.qa .qicon.orange{background:linear-gradient(135deg,var(--warning),rgba(245,158,11,.2));color:var(--warning)}
+.qa .qicon.red{background:linear-gradient(135deg,var(--danger),rgba(239,68,68,.2));color:var(--danger)}
+.qa .qicon.purple{background:linear-gradient(135deg,#8B5CF6,rgba(139,92,246,.2));color:#8B5CF6}  /* بنفسجي */
+.qa span{font-size:12px;font-weight:700}
+
+/* ================================================================
+   SUBSCRIBER CARDS - بطاقة المشترك
+   ================================================================ */
+.subs-list{display:flex;flex-direction:column;gap:10px;padding:0 20px 16px}
+.sub-card{
+  background:var(--card);border-radius:var(--radius);
+  padding:14px;border:1px solid var(--glass-border);
+  transition:.25s;cursor:pointer;display:flex;gap:12px;align-items:center
+}
+.sub-card:active{transform:scale(.99)}
+/* الصورة الرمزية */
+.sub-card .avatar{
+  width:48px;height:48px;border-radius:14px;
+  background:linear-gradient(135deg,var(--primary),rgba(6,182,212,.2));
+  display:grid;place-items:center;font-size:18px;color:var(--primary);
+  font-weight:800;flex-shrink:0
+}
+.sub-card .avatar.off{color:var(--text3);background:var(--bg2)}  /* غير نشط */
+.sub-card .info{flex:1;min-width:0}
+.sub-card .info .name{font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px}
+/* النقطة الملونة بجانب الاسم - حالة المشترك */
+.sub-card .info .name .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.sub-card .info .name .dot.on{background:var(--success);box-shadow:0 0 8px var(--success-glow)}    /* أخضر = نشط */
+.sub-card .info .name .dot.off{background:var(--danger);box-shadow:0 0 8px var(--danger-glow)}     /* أحمر = منتهي */
+.sub-card .info .name .dot.wait{background:var(--warning);box-shadow:0 0 8px var(--warning-glow)}  /* برتقالي = غير مفعل */
+.sub-card .info .phone{font-size:12px;color:var(--text2);margin-top:2px}
+.sub-card .info .meta{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+.sub-card .info .meta span{font-size:11px;padding:2px 10px;border-radius:20px;background:var(--bg2);color:var(--text2)}
+.sub-card .info .meta span.type{background:var(--primary-light);color:var(--primary)}      /* نوع الباقة */
+.sub-card .info .meta span.paid{background:var(--success-glow);color:var(--success)}         /* مدفوع */
+.sub-card .info .meta span.debt{background:var(--warning-glow);color:var(--warning)}         /* عليه دين */
+.sub-card .info .meta span.unpaid{background:var(--danger-glow);color:var(--danger)}         /* غير مدفوع */
+.sub-card .info .meta span.expiring{background:var(--warning-glow);color:var(--warning)}     /* وشك على الانتهاء */
+
+/* أزرار الإجراءات في بطاقة المشترك */
+.sub-card .actions{display:flex;gap:6px;flex-shrink:0}
+.sub-card .actions button{
+  width:32px;height:32px;border-radius:10px;border:1px solid var(--glass-border);
+  background:var(--bg2);color:var(--text2);font-size:13px;
+  cursor:pointer;transition:.2s;display:grid;place-items:center
+}
+.sub-card .actions button:active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.sub-card .actions button.gr:active{background:var(--success);border-color:var(--success)}  /* أخضر عند الضغط */
+.sub-card .actions button.rd:active{background:var(--danger);border-color:var(--danger)}    /* أحمر عند الضغط */
+
+/* ================================================================
+   DETAIL CARD - بطاقة تفاصيل المشترك
+   ================================================================ */
+.detail-card{
+  background:var(--card);border-radius:var(--radius);
+  padding:18px;margin:8px 20px;border:1px solid var(--glass-border)
+}
+.detail-card .dhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.detail-card .dhead h3{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+/* شارة الحالة في رأس البطاقة */
+.detail-card .dhead .sbadge{padding:4px 16px;border-radius:20px;font-size:11px;font-weight:700}
+.detail-card .dhead .sbadge.active{background:var(--success-glow);color:var(--success)}      /* فعال */
+.detail-card .dhead .sbadge.inactive{background:var(--danger-glow);color:var(--danger)}      /* منتهي */
+.detail-card .dhead .sbadge.pending{background:var(--warning-glow);color:var(--warning)}     /* غير مفعل */
+.detail-card .dbody{display:flex;flex-direction:column;gap:8px}
+.detail-card .dbody .row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 0;border-bottom:1px solid var(--glass-border)
+}
+.detail-card .dbody .row:last-child{border:none}
+.detail-card .dbody .row .label{font-size:13px;color:var(--text2);display:flex;align-items:center;gap:6px}
+.detail-card .dbody .row .value{font-size:14px;font-weight:700;text-align:left}
+/* ألوان القيم في التفاصيل */
+.detail-card .dbody .row .value.primary{color:var(--primary)}   /* سماوي */
+.detail-card .dbody .row .value.success{color:var(--success)}   /* أخضر */
+.detail-card .dbody .row .value.danger{color:var(--danger)}     /* أحمر */
+.detail-card .dbody .row .value.warning{color:var(--warning)}   /* برتقالي */
+
+/* أزرار الإجراءات في صفحة التفاصيل */
+.detail-actions{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
+  gap:8px;margin:8px 20px 20px
+}
+.detail-actions button{
+  padding:12px 6px;border-radius:12px;border:1px solid var(--glass-border);
+  background:var(--card);color:var(--text2);font-size:11px;font-weight:700;
+  cursor:pointer;transition:.25s;display:flex;flex-direction:column;
+  align-items:center;gap:6px;font-family:'Tajawal',sans-serif
+}
+.detail-actions button i{font-size:18px}
+.detail-actions button:active{transform:scale(.95)}
+/* ألوان أزرار التفاصيل */
+.detail-actions button.cy{color:var(--primary);border-color:rgba(6,182,212,.2)}         /* سماوي */
+.detail-actions button.gr{color:var(--success);border-color:rgba(34,197,94,.2)}         /* أخضر */
+.detail-actions button.rd{color:var(--danger);border-color:rgba(239,68,68,.2)}          /* أحمر */
+.detail-actions button.ow{color:var(--warning);border-color:rgba(245,158,11,.2)}        /* برتقالي */
+
+/* ================================================================
+   WHATSAPP - صفحة الواتساب
+   ================================================================ */
+.whatsapp-templates{display:flex;flex-direction:column;gap:10px;padding:8px 20px 16px}
+.wa-tpl{
+  background:var(--card);border-radius:var(--radius);
+  padding:16px;border:1px solid var(--glass-border);cursor:pointer;transition:.25s
+}
+.wa-tpl:active{transform:scale(.99)}
+.wa-tpl.active{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-glow)}  /* القالب المختار */
+.wa-tpl .tpl-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.wa-tpl .tpl-title i{font-size:16px}
+.wa-tpl .tpl-preview{font-size:12px;color:var(--text2);margin-top:6px;padding:10px 14px;background:var(--bg2);border-radius:8px;line-height:1.5}
+/* معاينة الرسالة قبل الإرسال */
+.wa-preview{background:var(--card);border-radius:var(--radius);padding:16px;margin:8px 20px;border:1px solid var(--glass-border)}
+.wa-preview .label{font-size:12px;color:var(--text2);margin-bottom:6px}
+.wa-preview .msg{background:var(--bg2);padding:14px;border-radius:12px;font-size:13px;line-height:1.7;color:var(--text)}
+/* زر إرسال الواتساب - بتدرج أخضر */
+.wa-send-btn{
+  display:block;width:calc(100% - 40px);margin:8px 20px;padding:16px;border-radius:14px;
+  border:none;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;
+  font-size:16px;font-weight:800;cursor:pointer;transition:.25s;
+  box-shadow:0 4px 24px rgba(37,211,102,.3);font-family:'Tajawal',sans-serif
+}
+.wa-send-btn:active{transform:scale(.98)}
+
+/* ================================================================
+   FORMS - الفورم والنماذج
+   ================================================================ */
+.form-wrap{padding:8px 20px 20px;display:flex;flex-direction:column;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:13px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:6px}
+.form-group label i{color:var(--primary);font-size:13px}
+/* حقول الإدخال */
+.form-group input,.form-group select,.form-group textarea{
+  background:var(--card);border:1px solid var(--glass-border);
+  padding:12px 16px;border-radius:12px;font-size:14px;
+  color:var(--text);outline:none;transition:.25s;font-family:'Tajawal',sans-serif
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+  border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow)  /* توهج سماوي عند التركيز */
+}
+.form-group input::placeholder,.form-group textarea::placeholder{color:var(--text3)}
+.form-group textarea{resize:vertical;min-height:70px}
+/* تخصيص عنصر select ليعمل كقائمة منسدلة أنيقة */
+.form-group select{
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394A3B8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:left 14px center;padding-left:36px
+}
+.form-group .hint{font-size:12px;color:var(--text3);margin-top:2px}
+/* صفوف متعددة الأعمدة في الفورم */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.form-row{grid-template-columns:1fr}}  /* عمود واحد في الشاشات الصغيرة */
+.form-actions{display:flex;gap:10px;padding-top:4px;flex-wrap:wrap}
+.form-actions button{flex:1;min-width:100px;padding:14px;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;transition:.25s;font-family:'Tajawal',sans-serif}
+/* أنواع الأزرار في الفورم */
+.form-actions .primary{border:none;background:linear-gradient(135deg,var(--primary),#0891B2);color:#fff;box-shadow:0 4px 16px var(--primary-glow)}  /* رئيسي - سماوي */
+.form-actions .primary:active{transform:scale(.98)}
+.form-actions .secondary{border:1px solid var(--glass-border);background:var(--card);color:var(--text2)}  /* ثانوي - عادي */
+.form-actions .secondary:active{background:var(--bg2)}
+.form-actions .danger{border:none;background:var(--danger);color:#fff}  /* خطر - أحمر */
+.form-actions .danger:active{transform:scale(.98)}
+.form-actions .success{border:none;background:var(--success);color:#fff}  /* نجاح - أخضر */
+.form-actions .success:active{transform:scale(.98)}
+
+/* ================================================================
+   SEARCH & FILTER - البحث والفلترة
+   ================================================================ */
+.search-bar{display:flex;gap:8px;padding:8px 20px}
+.search-bar .input-wrap{flex:1;position:relative}
+.search-bar .input-wrap i{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  color:var(--text3);font-size:14px
+}
+.search-bar .input-wrap input{
+  width:100%;background:var(--card);border:1px solid var(--glass-border);
+  padding:11px 40px 11px 12px;border-radius:12px;font-size:14px;
+  color:var(--text);outline:none;transition:.3s;font-family:'Tajawal',sans-serif
+}
+.search-bar .input-wrap input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow)}
+.search-bar .input-wrap input::placeholder{color:var(--text3)}
+/* أزرار الفلترة */
+.filter-row{display:flex;gap:8px;padding:0 20px 10px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.filter-row::-webkit-scrollbar{display:none}  /* إخفاء شريط التمرير */
+.filter-chip{
+  padding:8px 18px;border-radius:30px;background:var(--card);
+  border:1px solid var(--glass-border);color:var(--text2);
+  font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;
+  transition:.25s;flex-shrink:0
+}
+.filter-chip:active{transform:scale(.95)}
+.filter-chip.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 16px var(--primary-glow)}  /* شريحة نشطة */
+
+/* ================================================================
+   FINANCE - الصندوق المالي
+   ================================================================ */
+.fin-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:8px 20px}
+.fin-acts{display:flex;gap:10px;padding:8px 20px;flex-wrap:wrap}
+.fin-acts button{
+  padding:14px 24px;border-radius:12px;border:1px solid var(--glass-border);
+  background:var(--card);color:var(--text2);font-size:13px;font-weight:700;
+  cursor:pointer;transition:.25s;display:flex;align-items:center;gap:8px;font-family:'Tajawal',sans-serif
+}
+.fin-acts button:active{transform:scale(.97)}
+.fin-acts button i{font-size:18px}
+.fin-acts button.gr i{color:var(--success)}  /* أخضر للإيرادات */
+.fin-acts button.rd i{color:var(--danger)}    /* أحمر للمصروفات */
+.fin-list{display:flex;flex-direction:column;gap:6px;padding:0 20px 20px}
+.fin-item{
+  background:var(--card);border-radius:12px;padding:14px;
+  display:flex;justify-content:space-between;align-items:center;
+  border:1px solid var(--glass-border)
+}
+.fin-item .fleft .fdate{font-size:11px;color:var(--text3)}
+.fin-item .fleft .fdesc{font-size:13px;font-weight:600}
+.fin-item .famount{font-size:16px;font-weight:800}
+.fin-item .famount.income{color:var(--success)}   /* إيراد - أخضر */
+.fin-item .famount.expense{color:var(--danger)}   /* مصروف - أحمر */
+.fin-item .ftype{font-size:11px;padding:2px 10px;border-radius:20px;background:var(--bg2);color:var(--text2)}
+
+/* ================================================================
+   ARCHIVE - الأرشيف
+   ================================================================ */
+.archive-list{display:flex;flex-direction:column;gap:10px;padding:0 20px 20px}
+.arch-card{
+  background:var(--card);border-radius:var(--radius);
+  padding:14px;border:1px solid var(--glass-border);
+  display:flex;align-items:center;gap:12px
+}
+.arch-card .ainfo{flex:1;min-width:0}
+.arch-card .ainfo h4{font-size:14px;font-weight:700}
+.arch-card .ainfo p{font-size:12px;color:var(--text2)}
+.arch-card .aacts{display:flex;gap:6px}
+.arch-card .aacts button{
+  width:36px;height:36px;border-radius:10px;border:1px solid var(--glass-border);
+  background:var(--bg2);color:var(--text2);font-size:13px;
+  cursor:pointer;transition:.2s;display:grid;place-items:center
+}
+.arch-card .aacts button:active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.arch-card .aacts button.rd:active{background:var(--danger);border-color:var(--danger)}
+
+/* ================================================================
+   NOTIFICATIONS - صفحة الإشعارات
+   ================================================================ */
+.notif-list{display:flex;flex-direction:column;gap:8px;padding:8px 20px 20px}
+.notif-item{
+  background:var(--card);border-radius:12px;padding:14px;
+  display:flex;gap:12px;align-items:start;border:1px solid var(--glass-border)
+}
+/* أيقونة الإشعار */
+.notif-item .nicon{width:38px;height:38px;border-radius:10px;background:var(--primary-light);display:grid;place-items:center;font-size:16px;color:var(--primary);flex-shrink:0}
+.notif-item .nicon.red{background:var(--danger-glow);color:var(--danger)}       /* أحمر = خطأ */
+.notif-item .nicon.orange{background:var(--warning-glow);color:var(--warning)}   /* برتقالي = تحذير */
+.notif-item .nicon.green{background:var(--success-glow);color:var(--success)}    /* أخضر = نجاح */
+.notif-item .ntext{flex:1}
+.notif-item .ntext p{font-size:13px}
+.notif-item .ntext .ntime{font-size:11px;color:var(--text3);margin-top:4px}
+
+/* ================================================================
+   SETTINGS - صفحة الإعدادات
+   ================================================================ */
+.settings-list{display:flex;flex-direction:column;gap:8px;padding:8px 20px 20px}
+.set-card{
+  background:var(--card);border-radius:var(--radius);
+  padding:14px;border:1px solid var(--glass-border);
+  display:flex;align-items:center;gap:12px;cursor:pointer;transition:.25s
+}
+.set-card:active{transform:scale(.99)}
+.set-card .sicon{width:40px;height:40px;border-radius:12px;background:var(--primary-light);display:grid;place-items:center;font-size:18px;color:var(--primary);flex-shrink:0}
+.set-card .sicon.green{background:var(--success-glow);color:var(--success)}
+.set-card .sicon.orange{background:var(--warning-glow);color:var(--warning)}
+.set-card .sicon.red{background:var(--danger-glow);color:var(--danger)}
+.set-card .sinfo{flex:1}
+.set-card .sinfo h4{font-size:14px;font-weight:700}
+.set-card .sinfo p{font-size:12px;color:var(--text2)}
+.set-card .sarrow{color:var(--text3);font-size:14px}  /* سهم التنقل */
+
+/* ================================================================
+   BOTTOM NAV - شريط التنقل السفلي (للموبايل)
+   ================================================================ */
+.bnav{
+  position:fixed;bottom:0;left:0;right:0;display:none;height:var(--nav-h);
+  background:var(--glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-top:1px solid var(--glass-border);z-index:200;
+  align-items:center;justify-content:space-around;padding:4px 0 8px
+}
+@media(max-width:768px){.bnav{display:flex}}  /* يظهر فقط في الموبايل */
+.bnav-item{
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  background:none;border:none;color:var(--text3);font-size:10px;
+  cursor:pointer;transition:.25s;padding:6px 10px;position:relative;
+  font-weight:600;font-family:'Tajawal',sans-serif
+}
+.bnav-item i{font-size:20px;transition:.25s;margin-bottom:1px}
+.bnav-item.active{color:var(--primary)}                                /* نشط - سماوي */
+.bnav-item.active i{transform:translateY(-2px)}                        /* الأيقونة تتحرك لأعلى قليلاً */
+.bnav-item .cbadge{
+  position:absolute;top:-2px;right:-2px;background:var(--danger);
+  color:#fff;font-size:8px;width:16px;height:16px;border-radius:50%;
+  display:grid;place-items:center;font-weight:800;border:2px solid var(--bg)
+}
+
+/* ================================================================
+   MODAL - النافذة المنبثقة
+   ================================================================ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;
+  opacity:0;pointer-events:none;transition:.35s;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)
+}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);
+  width:100%;max-width:600px;background:var(--bg2);z-index:700;
+  border-radius:var(--radius-xl) var(--radius-xl) 0 0;   /* زوايا دائرية من الأعلى */
+  box-shadow:0 -8px 40px rgba(0,0,0,.5);
+  transition:transform .5s cubic-bezier(.22,.68,0,1);     /* حركة من الأسفل */
+  padding:24px;max-height:85vh;overflow-y:auto;
+  border-top:1px solid var(--glass-border)
+}
+.modal.open{transform:translateX(-50%) translateY(0)}     /* تظهر عند الفتح */
+.modal .mhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal .mhead h3{font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px}
+.modal .mhead h3 i{color:var(--primary)}
+.modal .mhead button{background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;padding:4px}
+
+/* ================================================================
+   REPORTS - صفحة التقارير
+   ================================================================ */
+.report-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;padding:8px 20px}
+.rep-card{
+  background:var(--card);border-radius:var(--radius);
+  padding:18px;border:1px solid var(--glass-border);cursor:pointer;transition:.25s
+}
+.rep-card:active{transform:scale(.98)}
+.rep-card .rnum{font-size:30px;font-weight:900}
+.rep-card .rnum.cyan{color:var(--primary)}
+.rep-card .rnum.green{color:var(--success)}
+.rep-card .rnum.red{color:var(--danger)}
+.rep-card .rnum.orange{color:var(--warning)}
+.rep-card .rlabel{font-size:12px;color:var(--text2);margin-top:2px}

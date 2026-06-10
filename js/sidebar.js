@@ -34,10 +34,6 @@ var SidebarComponent = {
         <router-link to="/settings"><i class="fas fa-cog"></i> الإعدادات</router-link>
       </nav>
       <div class="side-foot">
-        <div class="theme-row">
-          <button :class="{ active: currentTheme==='dark' }" @click="setTheme('dark')"><i class="fas fa-moon"></i> ليلي</button>
-          <button :class="{ active: currentTheme==='light' }" @click="setTheme('light')"><i class="fas fa-sun"></i> نهاري</button>
-        </div>
         <button @click="doLogout"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
       </div>
     </aside>
@@ -45,7 +41,6 @@ var SidebarComponent = {
   setup() {
     const route = useRoute();
     const sidebarOpen = inject('sidebarOpen');
-    const currentTheme = ref(localStorage.getItem('nettower-theme') || 'dark');
 
     const subsCount = computed(() => subs.length);
     const notifCount = computed(() => {
@@ -59,14 +54,6 @@ var SidebarComponent = {
       return n;
     });
 
-    function setTheme(mode) {
-      currentTheme.value = mode;
-      const html = document.documentElement;
-      if (mode === 'light') html.setAttribute('data-theme', 'light');
-      else html.removeAttribute('data-theme');
-      localStorage.setItem('nettower-theme', mode);
-    }
-
     function doLogout() {
       window.location.href = 'login.html';
     }
@@ -75,11 +62,6 @@ var SidebarComponent = {
       if (window.innerWidth <= 768) sidebarOpen.value = false;
     });
 
-    onMounted(() => {
-      const saved = localStorage.getItem('nettower-theme');
-      if (saved === 'light') setTheme('light');
-    });
-
-    return { sidebarOpen, towerInfo, subsCount, notifCount, currentTheme, setTheme, doLogout };
+    return { sidebarOpen, towerInfo, subsCount, notifCount, doLogout };
   }
 };

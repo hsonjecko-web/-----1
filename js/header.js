@@ -20,19 +20,24 @@ var HeaderComponent = {
       <div class="page-title"><i :class="'fas ' + currentIcon"></i> {{ currentTitle }}</div>
       <div class="h-search">
         <i class="fas fa-search"></i>
-        <input type="text" placeholder="بحث سريع..." @keydown.enter="quickSearch">
+        <input type="text" placeholder="بحث عن مشترك..." v-model="searchQ" @keydown.enter="doSearch" @input="doSearch">
       </div>
       <div class="h-actions">
+        <button @click="toggleTheme" title="تغيير المود">
+          <i class="fas" :class="isDark?'fa-moon':'fa-sun'"></i>
+        </button>
         <button @click="$router.push('/notifications')" title="الإشعارات">
           <i class="fas fa-bell"></i><span class="badge">{{ notifBadge }}</span>
         </button>
-        <button @click="$router.push('/settings')" title="الإعدادات"><i class="fas fa-cog"></i></button>
       </div>
     </header>
   `,
   setup() {
     const route = useRoute();
+    const router = useRouter();
     const sidebarOpen = inject('sidebarOpen');
+    const searchQ = ref('');
+    const isDark = ref(localStorage.getItem('nettower-theme') !== 'light');
 
     const currentTitle = computed(() => {
       const name = route.name || 'home';
@@ -57,13 +62,26 @@ var HeaderComponent = {
       sidebarOpen.value = !sidebarOpen.value;
     }
 
-    function quickSearch(e) {
-      const q = e.target.value.trim();
-      if (!q) return;
-      showToast('🔍 البحث عن: ' + q);
-      e.target.value = '';
+    function toggleTheme() {
+      isDark.value = !isDark.value;
+      const html = document.documentElement;
+      if (isDark.value) html.removeAttribute('data-theme');
+      else html.setAttribute('data-theme', 'light');
+      localStorage.setItem('nettower-theme', isDark.value ? 'dark' : 'light');
     }
 
-    return { currentTitle, currentIcon, notifBadge, toggleSidebar, quickSearch };
+    function doSearch() {
+      const q = searchQ.value.trim().toLowerCase();
+      if (!q) return;
+      const found = subs.find(s => s.name.toLowerCase().includes(q) || s.phone.includes(q));
+      if (found) {
+        router.push('/sub-detail/' + found.id);
+        searchQ.value = '';
+      } else {
+        showToast('🔍 لا توجد نتائج لـ "' + q + '"');
+      }
+    }
+
+    return { currentTitle, currentIcon, notifBadge, toggleSidebar, toggleTheme, searchQ, doSearch, isDark };
   }
 };

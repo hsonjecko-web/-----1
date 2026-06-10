@@ -5,9 +5,9 @@
 
 /* ===== متغيرات الألوان (الوضع الليلي) ===== */
 :root {
-  --bg: #0B1120;           /* خلفية الصفحة الرئيسية - أزرق غامق جداً */
+  --bg: #0b1120ec;           /* خلفية الصفحة الرئيسية - أزرق غامق جداً */
   --bg2: #111827;          /* خلفية ثانوية (سايدبار) - أزرق داكن */
-  --card: #1F2937;         /* خلفية البطاقات - رمادي غامق */
+  --card: #1f2937e1;         /* خلفية البطاقات - رمادي غامق */
   --card-hover: #2A3A4E;  /* لون البطاقة عند المرور عليها */
   --primary: #06B6D4;     /* اللون الأساسي - سماوي */
   --primary-glow: rgba(6,182,212,.15);  /* توهج خفيف للسماوي */
@@ -37,7 +37,7 @@
 [data-theme=light] {
   --bg: #F0F2F5;          /* خلفية الصفحة - رمادي فاتح */
   --bg2: #FFFFFF;         /* خلفية ثانوية - أبيض */
-  --card: #FFFFFF;        /* البطاقات - أبيض */
+  --card: #fcfefe;        /* البطاقات - أبيض */
   --card-hover: #F0F2F5;  /* لون البطاقة عند المرور - رمادي فاتح */
   --primary: #0891B2;     /* سماوي غامق (للتباين مع الخلفية البيضاء) */
   --primary-glow: rgba(8,145,178,.12);
@@ -334,6 +334,7 @@ body{
    الألوان: cyan = سماوي | green = أخضر | orange = برتقالي | red = أحمر
    ================================================================ */
 .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:8px 20px}
+.home-stats{grid-template-columns:repeat(2,1fr)}
 .stat-card{
   background:var(--card);border-radius:var(--radius);
   padding:18px;border:1px solid var(--glass-border);
@@ -376,49 +377,121 @@ body{
 .qa span{font-size:12px;font-weight:700}
 
 /* ================================================================
-   SUBSCRIBER CARDS - بطاقة المشترك
+   SUBSCRIBER CARDS - بطاقة المشترك (تصميم احترافي Premium)
    ================================================================ */
-.subs-list{display:flex;flex-direction:column;gap:10px;padding:0 20px 16px}
+.subs-list{display:flex;flex-direction:column;gap:8px;padding:0 20px 16px}
 .sub-card{
   background:var(--card);border-radius:var(--radius);
-  padding:14px;border:1px solid var(--glass-border);
-  transition:.25s;cursor:pointer;display:flex;gap:12px;align-items:center
+  padding:14px 16px;border:1px solid var(--glass-border);
+  transition:all .35s cubic-bezier(.22,.68,0,1);
+  cursor:pointer;display:flex;gap:14px;align-items:center;
+  position:relative;overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,.08)
+}
+.sub-card:hover{
+  border-color:var(--primary-light);
+  box-shadow:0 4px 20px var(--primary-glow);
+  transform:translateY(-1px)
 }
 .sub-card:active{transform:scale(.99)}
-/* الصورة الرمزية */
+/* الشريط الجانبي الأيسر - حسب الحالة */
+.sub-card::before{
+  content:'';position:absolute;top:0;right:0;width:4px;
+  height:100%;border-radius:0 3px 3px 0;transition:.35s
+}
+.sub-card.active::before{background:var(--success);box-shadow:0 0 12px var(--success-glow)}
+.sub-card.expired::before{background:var(--danger);box-shadow:0 0 12px var(--danger-glow)}
+.sub-card.disabled::before{background:var(--text3)}
+.sub-card.inactive::before{background:var(--warning);box-shadow:0 0 12px var(--warning-glow)}
+/* الصورة الرمزية - تصميم دائري أنيق */
 .sub-card .avatar{
-  width:48px;height:48px;border-radius:14px;
-  background:linear-gradient(135deg,var(--primary),rgba(6,182,212,.2));
-  display:grid;place-items:center;font-size:18px;color:var(--primary);
-  font-weight:800;flex-shrink:0
+  width:46px;height:46px;border-radius:50%;
+  display:grid;place-items:center;font-size:18px;color:#fff;
+  font-weight:900;flex-shrink:0;
+  position:relative;z-index:1;
+  border:2px solid transparent;transition:.35s
 }
-.sub-card .avatar.off{color:var(--text3);background:var(--bg2)}  /* غير نشط */
+.sub-card:hover .avatar{transform:scale(1.05)}
+.sub-card .avatar.on{
+  background:linear-gradient(135deg,#06B6D4,#0E7490);
+  border-color:rgba(6,182,212,.3);
+  box-shadow:0 4px 16px rgba(6,182,212,.25)
+}
+.sub-card .avatar.off{
+  background:linear-gradient(135deg,#64748B,#475569);
+  border-color:rgba(100,116,139,.3);color:var(--bg2);box-shadow:none
+}
+.sub-card .avatar.wait{
+  background:linear-gradient(135deg,#F59E0B,#D97706);
+  border-color:rgba(245,158,11,.3);
+  box-shadow:0 4px 16px rgba(245,158,11,.25)
+}
+.sub-card .avatar.disabled{
+  background:linear-gradient(135deg,#94A3B8,#64748B);
+  border-color:rgba(148,163,184,.2);color:var(--bg2)
+}
 .sub-card .info{flex:1;min-width:0}
-.sub-card .info .name{font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px}
-/* النقطة الملونة بجانب الاسم - حالة المشترك */
-.sub-card .info .name .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
-.sub-card .info .name .dot.on{background:var(--success);box-shadow:0 0 8px var(--success-glow)}    /* أخضر = نشط */
-.sub-card .info .name .dot.off{background:var(--danger);box-shadow:0 0 8px var(--danger-glow)}     /* أحمر = منتهي */
-.sub-card .info .name .dot.wait{background:var(--warning);box-shadow:0 0 8px var(--warning-glow)}  /* برتقالي = غير مفعل */
-.sub-card .info .phone{font-size:12px;color:var(--text2);margin-top:2px}
-.sub-card .info .meta{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
-.sub-card .info .meta span{font-size:11px;padding:2px 10px;border-radius:20px;background:var(--bg2);color:var(--text2)}
-.sub-card .info .meta span.type{background:var(--primary-light);color:var(--primary)}      /* نوع الباقة */
-.sub-card .info .meta span.paid{background:var(--success-glow);color:var(--success)}         /* مدفوع */
-.sub-card .info .meta span.debt{background:var(--warning-glow);color:var(--warning)}         /* عليه دين */
-.sub-card .info .meta span.unpaid{background:var(--danger-glow);color:var(--danger)}         /* غير مدفوع */
-.sub-card .info .meta span.expiring{background:var(--warning-glow);color:var(--warning)}     /* وشك على الانتهاء */
-
-/* أزرار الإجراءات في بطاقة المشترك */
-.sub-card .actions{display:flex;gap:6px;flex-shrink:0}
-.sub-card .actions button{
-  width:32px;height:32px;border-radius:10px;border:1px solid var(--glass-border);
-  background:var(--bg2);color:var(--text2);font-size:13px;
-  cursor:pointer;transition:.2s;display:grid;place-items:center
+.sub-card .info .name{
+  font-size:15px;font-weight:800;display:flex;align-items:center;
+  gap:6px;margin-bottom:1px;line-height:1.3
 }
-.sub-card .actions button:active{background:var(--primary);color:#fff;border-color:var(--primary)}
-.sub-card .actions button.gr:active{background:var(--success);border-color:var(--success)}  /* أخضر عند الضغط */
-.sub-card .actions button.rd:active{background:var(--danger);border-color:var(--danger)}    /* أحمر عند الضغط */
+/* أيقونة الحالة بدلاً من النقطة */
+.sub-card .info .name .status-icon{
+  font-size:11px;display:inline-flex;align-items:center
+}
+.sub-card .info .name .status-icon.on{color:var(--success)}
+.sub-card .info .name .status-icon.off{color:var(--danger)}
+.sub-card .info .name .status-icon.wait{color:var(--warning)}
+.sub-card .info .name .status-icon.disabled{color:var(--text3)}
+.sub-card .info .phone{
+  font-size:12px;color:var(--text3);display:flex;
+  align-items:center;gap:4px;margin-bottom:4px;direction:ltr;
+  justify-content:flex-start
+}
+.sub-card .info .phone i{font-size:10px;opacity:.5;color:var(--text3)}
+.sub-card .info .meta{display:flex;gap:4px;flex-wrap:wrap}
+.sub-card .info .meta span{
+  font-size:10px;padding:2px 10px;border-radius:20px;
+  font-weight:700;letter-spacing:.3px;
+  display:inline-flex;align-items:center;gap:3px
+}
+.sub-card .info .meta span.type{
+  background:linear-gradient(135deg,rgba(6,182,212,.12),rgba(6,182,212,.06));
+  color:#22D3EE
+}
+.sub-card .info .meta span.paid{
+  background:linear-gradient(135deg,rgba(34,197,94,.12),rgba(34,197,94,.06));
+  color:#4ADE80
+}
+.sub-card .info .meta span.debt{
+  background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.06));
+  color:#FBBF24
+}
+.sub-card .info .meta span.unpaid{
+  background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(239,68,68,.06));
+  color:#F87171
+}
+.sub-card .info .meta span.expiring{
+  background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.06));
+  color:#FBBF24
+}
+.sub-card .info .meta span.remaining{
+  background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(99,102,241,.06));
+  color:#818CF8
+}
+.sub-card .info .meta span.disabled-badge{
+  background:linear-gradient(135deg,rgba(148,163,184,.12),rgba(148,163,184,.06));
+  color:#94A3B8
+}
+/* الخط السفلي المتدرج حسب الحالة */
+.sub-card .status-bar{
+  position:absolute;bottom:0;left:0;right:0;height:3px;
+  border-radius:0 0 16px 16px;transition:.35s
+}
+.sub-card .status-bar.active{background:linear-gradient(90deg,var(--success),rgba(34,197,94,.3))}
+.sub-card .status-bar.expired{background:linear-gradient(90deg,var(--danger),rgba(239,68,68,.3))}
+.sub-card .status-bar.disabled{background:linear-gradient(90deg,var(--text3),rgba(100,116,139,.3))}
+.sub-card .status-bar.inactive{background:linear-gradient(90deg,var(--warning),rgba(245,158,11,.3))}
 
 /* ================================================================
    DETAIL CARD - بطاقة تفاصيل المشترك
@@ -447,6 +520,7 @@ body{
 .detail-card .dbody .row .value.success{color:var(--success)}   /* أخضر */
 .detail-card .dbody .row .value.danger{color:var(--danger)}     /* أحمر */
 .detail-card .dbody .row .value.warning{color:var(--warning)}   /* برتقالي */
+.detail-card .dbody .row .value.ltr{direction:ltr;text-align:left}
 
 /* أزرار الإجراءات في صفحة التفاصيل */
 .detail-actions{
@@ -532,6 +606,8 @@ body{
 .form-actions .danger:active{transform:scale(.98)}
 .form-actions .success{border:none;background:var(--success);color:#fff}  /* نجاح - أخضر */
 .form-actions .success:active{transform:scale(.98)}
+.form-actions .warning{border:none;background:var(--warning);color:#fff}  /* تحذير - برتقالي */
+.form-actions .warning:active{transform:scale(.98)}
 
 /* ================================================================
    SEARCH & FILTER - البحث والفلترة
@@ -733,7 +809,203 @@ body{
 .detail-card .dhead .sbadge.disabled{background:var(--text3);color:#fff}
 .sub-card .info .name .dot.disabled{background:var(--text3);box-shadow:0 0 8px rgba(100,116,139,.3)}
 
-/* ===== مؤشر التحميل ===== */
+/* ================================================================
+   WHATSAPP STEPS - خطوات إرسال واتساب
+   ================================================================ */
+.wa-steps{display:flex;align-items:center;justify-content:center;gap:0;padding:12px 20px 4px;direction:rtl}
+.wa-step{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:default;opacity:.4;transition:.4s;min-width:60px}
+.wa-step.active{opacity:1}
+.wa-step.done{opacity:.7;cursor:pointer}
+.wa-step.done:hover{opacity:1}
+.wa-step-num{width:32px;height:32px;border-radius:50%;background:var(--card);border:2px solid var(--text3);display:grid;place-items:center;font-size:13px;font-weight:800;color:var(--text3);transition:.4s}
+.wa-step.active .wa-step-num{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 0 0 4px var(--primary-glow)}
+.wa-step.done .wa-step-num{background:var(--success);border-color:var(--success);color:#fff}
+.wa-step span{font-size:10px;font-weight:700;color:var(--text2);white-space:nowrap}
+.wa-step.active span{color:var(--primary)}
+.wa-step.done span{color:var(--success)}
+.wa-step-line{width:40px;height:2px;background:var(--text3);opacity:.3;transition:.4s;margin:0 4px;margin-bottom:18px}
+.wa-step-line.done{background:var(--success);opacity:.7}
+
+/* شارة المشترك والقالب المختار */
+.selected-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:30px;background:var(--primary-light);color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;transition:.25s;margin:0 20px 8px}
+.selected-badge:active{transform:scale(.95)}
+
+/* علامة الاختيار في بطاقة المشترك */
+.wa-check{font-size:16px;color:var(--text3);flex-shrink:0;transition:.3s}
+.wa-check.checked{color:var(--success);transform:scale(1.2)}
+.wa-subs .sub-card.selected{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-glow)}
+
+/* ===== أنيميشن التنقل بين الخطوات (wa-slide) ===== */
+.wa-slide-enter-active{animation:waIn .35s ease}
+.wa-slide-leave-active{animation:waOut .25s ease}
+@keyframes waIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes waOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-30px)}}
+
+/* ================================================================
+   ADD-SUB STEPS - خطوات إضافة مشترك
+   ================================================================ */
+.as-steps{display:flex;align-items:center;justify-content:center;gap:0;padding:12px 20px 4px;direction:rtl}
+.as-step{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:default;opacity:.4;transition:.4s;min-width:50px}
+.as-step.active{opacity:1}
+.as-step.done{opacity:.7;cursor:pointer}
+.as-step.done:hover{opacity:1}
+.as-step-num{width:30px;height:30px;border-radius:50%;background:var(--card);border:2px solid var(--text3);display:grid;place-items:center;font-size:12px;font-weight:800;color:var(--text3);transition:.4s}
+.as-step.active .as-step-num{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 0 0 4px var(--primary-glow)}
+.as-step.done .as-step-num{background:var(--success);border-color:var(--success);color:#fff}
+.as-step span{font-size:10px;font-weight:700;color:var(--text2);white-space:nowrap}
+.as-step.active span{color:var(--primary)}
+.as-step.done span{color:var(--success)}
+.as-step-line{width:30px;height:2px;background:var(--text3);opacity:.3;transition:.4s;margin:0 3px;margin-bottom:18px}
+.as-step-line.done{background:var(--success);opacity:.7}
+
+/* ===== أزرار مدفوع/آجل ===== */
+.as-paid-btn{flex:1;padding:12px;border-radius:12px;border:1px solid var(--glass-border);background:var(--card);color:var(--text2);font-size:14px;font-weight:700;cursor:pointer;transition:.25s;display:flex;align-items:center;justify-content:center;gap:6px;font-family:'Tajawal',sans-serif}
+.as-paid-btn:active{transform:scale(.97)}
+.as-paid-btn.active{background:var(--success-glow);color:var(--success);border-color:var(--success)}
+.as-paid-btn:first-child.active{background:var(--success-glow);color:var(--success);border-color:var(--success)}
+.as-paid-btn:last-child.active{background:var(--warning-glow);color:var(--warning);border-color:var(--warning)}
+
+/* ================================================================
+   SETTINGS MODAL - تصميم احترافي لمودالات الإعدادات
+   ================================================================ */
+.set-modal-desc{font-size:13px;color:var(--text3);margin-bottom:14px;padding:10px 14px;background:var(--bg2);border-radius:10px;line-height:1.7}
+.set-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;background:var(--card);border:1px solid var(--glass-border);margin-bottom:6px;transition:.2s}
+.set-item:hover{border-color:var(--primary-light)}
+.set-item-icon{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;font-size:14px;flex-shrink:0;background:var(--bg2);color:var(--primary)}
+.set-item .field{flex:1;min-width:0}
+.set-item .field input,.set-item .field select{width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--bg2);color:var(--text);font-size:13px;font-family:'Tajawal',sans-serif;outline:none;transition:.2s}
+.set-item .field input:focus,.set-item .field select:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-glow)}
+.set-item .field input.small{width:70px;text-align:center}
+.set-item-acts{display:flex;gap:4px;flex-shrink:0}
+.set-item-acts button{width:30px;height:30px;border-radius:7px;border:none;display:grid;place-items:center;cursor:pointer;font-size:12px;transition:.2s}
+.set-item-acts button:active{transform:scale(.9)}
+.set-item-acts .save-btn{background:var(--success-glow);color:var(--success)}
+.set-item-acts .del-btn{background:var(--danger-glow);color:var(--danger)}
+.set-add-section{border-top:1px solid var(--glass-border);padding:14px 0 4px;margin-top:8px}
+.set-add-title{font-size:12px;font-weight:700;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.set-add-title i{color:var(--primary)}
+.set-add-row{display:flex;gap:6px;align-items:center}
+.set-add-row input,.set-add-row select{flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-size:13px;font-family:'Tajawal',sans-serif;outline:none;transition:.2s}
+.set-add-row input:focus,.set-add-row select:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-glow)}
+.set-add-row input.small{width:70px;flex:none}
+.set-add-row button{padding:8px 14px;border-radius:8px;border:none;background:var(--primary);color:#fff;cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap;transition:.2s;font-family:'Tajawal',sans-serif}
+.set-add-row button:active{transform:scale(.95)}
+.point-item{display:flex;align-items:center;gap:4px;padding:4px 8px;margin-bottom:4px;background:var(--bg2);border-radius:6px;margin-right:24px}
+.point-item span{flex:1;font-size:12px;color:var(--text2)}
+.point-item button{width:24px;height:24px;border-radius:5px;border:none;background:var(--danger-glow);color:var(--danger);cursor:pointer;font-size:9px;display:grid;place-items:center}
+.point-input-row{display:flex;gap:4px;align-items:center;margin-right:24px;margin-top:4px}
+.point-input-row input{flex:1;padding:5px 8px;border-radius:6px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-size:12px;font-family:'Tajawal',sans-serif;outline:none}
+.point-input-row input:focus{border-color:var(--primary)}
+.point-input-row button{padding:5px 10px;border-radius:6px;border:none;background:var(--primary);color:#fff;cursor:pointer;font-size:11px}
+
+/* ================================================================
+   RENEWAL MODAL - مودال التجديد مع إدارة الديون
+   ================================================================ */
+/* صندوق الدين المتراكم */
+.debt-box{
+  background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(245,158,11,.02));
+  border:1px solid rgba(245,158,11,.15);border-radius:14px;
+  padding:16px;margin-bottom:16px
+}
+.debt-box-title{
+  font-size:14px;font-weight:800;color:var(--warning);
+  display:flex;align-items:center;gap:8px;margin-bottom:12px
+}
+.debt-grid{display:flex;flex-direction:column;gap:6px}
+.debt-grid-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 12px;border-radius:8px;background:rgba(0,0,0,.15)
+}
+.debt-grid-item .dgi-label{font-size:12px;color:var(--text2)}
+.debt-grid-item .dgi-value{font-size:15px;font-weight:800;color:var(--text)}
+.debt-grid-item .dgi-value.warn{color:var(--warning)}
+.debt-grid-item.total{background:rgba(245,158,11,.1);margin-top:2px}
+.debt-grid-item.total .dgi-value{color:var(--warning);font-size:17px}
+/* ===== خيارات التسديد - كروت احترافية ===== */
+.debt-options{display:flex;flex-direction:column;gap:8px;margin:14px 0}
+.debt-opt{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 16px;border-radius:12px;
+  border:1px solid var(--glass-border);
+  background:var(--card);cursor:pointer;
+  transition:all .3s cubic-bezier(.22,.68,0,1);
+  position:relative;overflow:hidden
+}
+.debt-opt::before{
+  content:'';position:absolute;top:0;right:0;
+  width:4px;height:100%;border-radius:0 4px 4px 0;
+  transition:.3s
+}
+.debt-opt[data-opt="0"]::before{background:var(--danger)}
+.debt-opt[data-opt="1"]::before{background:var(--warning)}
+.debt-opt[data-opt="2"]::before{background:var(--success)}
+.debt-opt:hover{transform:translateX(-2px)}
+.debt-opt[data-opt="0"]:hover{border-color:rgba(239,68,68,.2)}
+.debt-opt[data-opt="1"]:hover{border-color:rgba(245,158,11,.2)}
+.debt-opt[data-opt="2"]:hover{border-color:rgba(34,197,94,.2)}
+.debt-opt.selected{
+  transform:translateX(-2px);
+  box-shadow:0 4px 16px rgba(0,0,0,.15)
+}
+.debt-opt[data-opt="0"].selected{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.04)}
+.debt-opt[data-opt="1"].selected{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.04)}
+.debt-opt[data-opt="2"].selected{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.04)}
+/* الراديو المخصص */
+.debt-opt input[type=radio]{
+  appearance:none;-webkit-appearance:none;
+  width:20px;height:20px;border-radius:50%;
+  border:2px solid var(--text3);flex-shrink:0;
+  position:relative;transition:.25s
+}
+.debt-opt input[type=radio]::after{
+  content:'';position:absolute;inset:3px;border-radius:50%;
+  background:var(--primary);opacity:0;transform:scale(0);
+  transition:.25s cubic-bezier(.22,.68,0,1)
+}
+.debt-opt input[type=radio]:checked{border-color:var(--primary)}
+.debt-opt input[type=radio]:checked::after{opacity:1;transform:scale(1)}
+.debt-opt .dopt-content{flex:1;min-width:0}
+.debt-opt .dopt-label{
+  font-size:13px;font-weight:800;display:flex;
+  align-items:center;gap:6px;margin-bottom:2px
+}
+.debt-opt .dopt-label i{font-size:13px}
+.debt-opt[data-opt="0"] .dopt-label i{color:var(--danger)}
+.debt-opt[data-opt="1"] .dopt-label i{color:var(--warning)}
+.debt-opt[data-opt="2"] .dopt-label i{color:var(--success)}
+.debt-opt .dopt-desc{font-size:11px;color:var(--text3);line-height:1.5}
+/* أيقونة الاختيار على اليمين */
+.debt-opt .dopt-check{
+  width:28px;height:28px;border-radius:50%;
+  display:grid;place-items:center;font-size:14px;
+  flex-shrink:0;transition:.3s
+}
+.debt-opt.selected .dopt-check{transform:scale(1.1)}
+.debt-opt[data-opt="0"].selected .dopt-check i{color:var(--danger)}
+.debt-opt[data-opt="1"].selected .dopt-check i{color:var(--warning)}
+.debt-opt[data-opt="2"].selected .dopt-check i{color:var(--success)}
+/* ملخص التسديد */
+.pay-summary{background:var(--bg2);border-radius:10px;padding:14px;margin-top:4px}
+.pay-summary .ps-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:5px 0;font-size:12px;color:var(--text2)
+}
+.pay-summary .ps-row .ps-green{color:var(--success);font-weight:800;font-size:14px}
+.pay-summary .ps-row .ps-red{color:var(--danger);font-weight:800;font-size:14px}
+.pay-summary .ps-divider{height:1px;background:var(--glass-border);margin:6px 0}
+.renew-summary{font-size:12px;color:var(--text2);line-height:1.7;margin-top:12px}
+
+/* ================================================================
+   FREE ACTIVATION MODAL
+   ================================================================ */
+.free-day-input{display:flex;gap:10px;align-items:center;margin:14px 0}
+.free-day-input label{font-size:13px;font-weight:700;color:var(--text2);white-space:nowrap}
+.free-day-input input{flex:1;padding:10px 14px;border-radius:10px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-size:16px;font-weight:800;text-align:center;font-family:'Tajawal',sans-serif;outline:none}
+.free-day-input input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow)}
+
+/* ================================================================
+   مؤشر التحميل
+   ================================================================ */
 .loading-dots{display:flex;gap:4px;justify-content:center;padding:20px}
 .loading-dots span{width:8px;height:8px;border-radius:50%;background:var(--primary);animation:dotPulse .8s infinite alternate}
 .loading-dots span:nth-child(2){animation-delay:.2s}

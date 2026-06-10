@@ -35,7 +35,8 @@ function saveAllData() {
     nextId: nextId,
     finId: finId,
     subscriptionTypes: subscriptionTypes,
-    areas: areas
+    areas: areas,
+    towers: towers
   };
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -51,7 +52,11 @@ function loadAllData() {
     if(saved) {
       const data = JSON.parse(saved);
       // نستخدم splice لاستبدال محتويات المصفوفات التفاعلية
-      _store.subs.splice(0, _store.subs.length, ...(data.subs || []));
+      _store.subs.splice(0, _store.subs.length, ...(data.subs || []).map(s => ({
+        ...s,
+        prevDebt: s.prevDebt || 0,
+        debtHistory: s.debtHistory || []
+      })));
       _store.finRecords.splice(0, _store.finRecords.length, ...(data.finRecords || []));
       _store.archivedSubs.splice(0, _store.archivedSubs.length, ...(data.archivedSubs || []));
       // المتغيرات غير التفاعلية نستبدلها مباشرة
@@ -63,6 +68,7 @@ function loadAllData() {
       finId = data.finId || finId;
       subscriptionTypes = data.subscriptionTypes || subscriptionTypes;
       areas = data.areas || areas;
+      towers = (data.towers || towers).map(t => ({ ...t, points: Array.isArray(t.points) ? t.points : [] }));
       return true;
     } else {
       // أول مرة: تعبئة البيانات الافتراضية في المصفوفات التفاعلية
@@ -78,17 +84,17 @@ function loadAllData() {
 function initDefaultData() {
   // إضافة كل مشترك افتراضي
   const defaultSubs = [
-    {id:1,name:'أحمد علي',phone:'07701234567',ssid:'AL-Ahmed',pass:'12345678',area:'المنصور',type:'شهري',amount:35000,start:'2026-05-01',end:'2026-06-01',status:'active',paid:true,notes:'',archived:false,freeCount:0,freeDates:[]},
-    {id:2,name:'سارة خالد',phone:'07807654321',ssid:'SaraNet',pass:'87654321',area:'الكريعات',type:'15 يوم',amount:15000,start:'2026-05-15',end:'2026-05-30',status:'active',paid:true,notes:'',archived:false,freeCount:0,freeDates:[]},
-    {id:3,name:'محمد حسن',phone:'07901112233',ssid:'MH-Tower',pass:'mh12345',area:'الدورة',type:'شهري',amount:35000,start:'2026-04-01',end:'2026-05-01',status:'expired',paid:false,notes:'لم يدفع الشهر الماضي',archived:false,freeCount:0,freeDates:[]},
-    {id:4,name:'نور الهدى',phone:'07705556677',ssid:'NoorNet',pass:'noor888',area:'اليرموك',type:'60 يوم',amount:55000,start:'2026-03-20',end:'2026-05-19',status:'active',paid:true,notes:'',archived:false,freeCount:0,freeDates:[]},
-    {id:5,name:'علي كريم',phone:'07809876543',ssid:'AliNet',pass:'ali2026',area:'الجامعة',type:'أسبوعي',amount:10000,start:'2026-05-25',end:'2026-06-01',status:'active',paid:true,notes:'',archived:false,freeCount:0,freeDates:[]},
-    {id:6,name:'مريم جاسم',phone:'07704443322',ssid:'MariamNet',pass:'mrm123',area:'المنصور',type:'شهري',amount:35000,start:'2026-05-10',end:'2026-06-10',status:'active',paid:false,notes:'',archived:false,freeCount:0,freeDates:[]},
-    {id:7,name:'حسن عباس',phone:'07907778899',ssid:'Hasan-5G',pass:'hasan99',area:'الدورة',type:'مجاني',amount:0,start:'2026-05-01',end:'2026-06-01',status:'inactive',paid:true,notes:'تجربة مجانية',archived:false,freeCount:0,freeDates:[]},
-    {id:8,name:'زينب أحمد',phone:'07706665544',ssid:'ZainabNet',pass:'zainab22',area:'الكريعات',type:'شهري',amount:35000,start:'2026-04-15',end:'2026-05-15',status:'expired',paid:false,notes:'',archived:false,freeCount:0,freeDates:[]},
-    {id:9,name:'ياسر محمود',phone:'07803332211',ssid:'YasserNet',pass:'ysr2026',area:'اليرموك',type:'90 يوم',amount:80000,start:'2026-03-01',end:'2026-05-30',status:'active',paid:true,notes:'دفع كاش',archived:false,freeCount:0,freeDates:[]},
-    {id:10,name:'فاطمة رضا',phone:'07905557788',ssid:'FatimaNet',pass:'ftm123',area:'الجامعة',type:'15 يوم',amount:15000,start:'2026-05-20',end:'2026-06-04',status:'active',paid:true,notes:'',archived:false,freeCount:0,freeDates:[]},
-    {id:11,name:'عباس كاظم',phone:'07801112244',ssid:'AbbasNet',pass:'abbas77',area:'المنصور',type:'شهري',amount:35000,start:'2026-04-01',end:'2026-05-01',status:'disabled',paid:false,notes:'تم التعطيل لعدم الدفع',archived:false,freeCount:0,freeDates:[]},
+    {id:1,name:'أحمد علي',phone:'07701234567',ssid:'AL-Ahmed',pass:'12345678',area:'المنصور',tower:'برج الاتحاد',point:'',type:'شهري',amount:35000,start:'2026-05-01',end:'2026-06-01',status:'active',paid:true,notes:'',archived:false,freeCount:0,freeDates:[],prevDebt:0,debtHistory:[]},
+    {id:2,name:'سارة خالد',phone:'07807654321',ssid:'SaraNet',pass:'87654321',area:'الكريعات',tower:'برج الاتحاد',point:'',type:'15 يوم',amount:15000,start:'2026-05-15',end:'2026-05-30',status:'active',paid:true,notes:'',archived:false,freeCount:0,freeDates:[],prevDebt:0,debtHistory:[]},
+    {id:3,name:'محمد حسن',phone:'07901112233',ssid:'MH-Tower',pass:'mh12345',area:'الدورة',tower:'برج الاتحاد',point:'',type:'شهري',amount:35000,start:'2026-04-01',end:'2026-05-01',status:'expired',paid:false,notes:'لم يدفع الشهر الماضي',archived:false,freeCount:0,freeDates:[],prevDebt:35000,debtHistory:[{amount:35000,date:'2026-04-01',note:'اشتراك سابق غير مدفوع'}]},
+    {id:4,name:'نور الهدى',phone:'07705556677',ssid:'NoorNet',pass:'noor888',area:'اليرموك',tower:'برج الاتحاد',point:'',type:'60 يوم',amount:55000,start:'2026-03-20',end:'2026-05-19',status:'active',paid:true,notes:'',archived:false,freeCount:0,freeDates:[],prevDebt:0,debtHistory:[]},
+    {id:5,name:'علي كريم',phone:'07809876543',ssid:'AliNet',pass:'ali2026',area:'الجامعة',tower:'برج الاتحاد',point:'',type:'أسبوعي',amount:10000,start:'2026-05-25',end:'2026-06-01',status:'active',paid:true,notes:'',archived:false,freeCount:0,freeDates:[],prevDebt:0,debtHistory:[]},
+    {id:6,name:'مريم جاسم',phone:'07704443322',ssid:'MariamNet',pass:'mrm123',area:'المنصور',tower:'برج الاتحاد',point:'',type:'شهري',amount:35000,start:'2026-05-10',end:'2026-06-10',status:'active',paid:false,notes:'',archived:false,freeCount:0,freeDates:[],prevDebt:0,debtHistory:[]},
+    {id:7,name:'حسن عباس',phone:'07907778899',ssid:'Hasan-5G',pass:'hasan99',area:'الدورة',tower:'برج الاتحاد',point:'',type:'مجاني',amount:0,start:'2026-05-01',end:'2026-06-01',status:'inactive',paid:true,notes:'تجربة مجانية',archived:false,freeCount:0,freeDates:[],prevDebt:0,debtHistory:[]},
+    {id:8,name:'زينب أحمد',phone:'07706665544',ssid:'ZainabNet',pass:'zainab22',area:'الكريعات',tower:'برج الاتحاد',point:'',type:'شهري',amount:35000,start:'2026-04-15',end:'2026-05-15',status:'expired',paid:false,notes:'',archived:false,freeCount:0,freeDates:[],prevDebt:35000,debtHistory:[{amount:35000,date:'2026-04-15',note:'اشتراك سابق غير مدفوع'}]},
+    {id:9,name:'ياسر محمود',phone:'07803332211',ssid:'YasserNet',pass:'ysr2026',area:'اليرموك',tower:'برج الاتحاد',point:'',type:'90 يوم',amount:80000,start:'2026-03-01',end:'2026-05-30',status:'active',paid:true,notes:'دفع كاش',archived:false,freeCount:0,freeDates:[],prevDebt:0,debtHistory:[]},
+    {id:10,name:'فاطمة رضا',phone:'07905557788',ssid:'FatimaNet',pass:'ftm123',area:'الجامعة',tower:'برج الاتحاد',point:'',type:'15 يوم',amount:15000,start:'2026-05-20',end:'2026-06-04',status:'active',paid:true,notes:'',archived:false,freeCount:0,freeDates:[],prevDebt:0,debtHistory:[]},
+    {id:11,name:'عباس كاظم',phone:'07801112244',ssid:'AbbasNet',pass:'abbas77',area:'المنصور',tower:'برج الاتحاد',point:'',type:'شهري',amount:35000,start:'2026-04-01',end:'2026-05-01',status:'disabled',paid:false,notes:'تم التعطيل لعدم الدفع',archived:false,freeCount:0,freeDates:[],prevDebt:0,debtHistory:[]},
   ];
   defaultSubs.forEach(s => _store.subs.push(s));
 
@@ -148,6 +154,11 @@ let subscriptionTypes = [
 // ===== المناطق - يمكن إدارتها من الإعدادات =====
 let areas = [
   'المنصور', 'الكريعات', 'الدورة', 'اليرموك', 'الجامعة', 'أخرى'
+];
+
+// ===== الأبراج - يمكن إدارتها من الإعدادات =====
+let towers = [
+  { id: 1, name: 'برج الاتحاد', points: [] }
 ];
 
 // ===== المشتركين (Subscribers) =====

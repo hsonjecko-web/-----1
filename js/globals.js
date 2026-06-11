@@ -251,14 +251,14 @@ window.openRenewModal = function(subId) {
   const s = subs.find(x => x.id === subId);
   if (!s) return;
 
-  // نتحقق إذا المشترك عليه دين (آجل) سواء كان نشط أو منتهي
   const unpaidAmount = !s.paid ? s.amount : 0;
   const totalDebt = s.prevDebt + unpaidAmount;
+  const isExpired = s.status === 'expired';
   const hasDebt = totalDebt > 0;
 
   let html = '<div class="form-wrap" style="padding:0">';
 
-  if (hasDebt) {
+  if (hasDebt && isExpired) {
     html += '<div class="debt-box">' +
       '<div class="debt-box-title"><i class="fas fa-exclamation-triangle"></i> عليه دين سابق</div>' +
       '<div class="debt-grid">' +
@@ -298,6 +298,10 @@ window.openRenewModal = function(subId) {
     '<div class="form-row">' +
     '<div class="form-group"><label><i class="fas fa-calendar-check"></i> ينتهي في</label>' +
     '<input type="date" id="renewEnd" readonly style="color:var(--primary);font-weight:800;cursor:default"></div></div>' +
+    '<div class="form-group"><label><i class="fas fa-money-bill-wave"></i> حالة الدفع</label>' +
+    '<div style="display:flex;gap:8px">' +
+    '<button type="button" class="as-paid-btn active" id="renewPaidBtn" onclick="window._renewPaid=true;document.getElementById(\'renewPaidBtn\').classList.add(\'active\');document.getElementById(\'renewDebtBtn\').classList.remove(\'active\');renewOnTypeChange(' + subId + ')"><i class="fas fa-check-circle"></i> مدفوع</button>' +
+    '<button type="button" class="as-paid-btn" id="renewDebtBtn" onclick="window._renewPaid=false;document.getElementById(\'renewDebtBtn\').classList.add(\'active\');document.getElementById(\'renewPaidBtn\').classList.remove(\'active\');renewOnTypeChange(' + subId + ')"><i class="fas fa-clock"></i> آجل</button></div></div>' +
     '<div class="form-group"><label><i class="fas fa-sticky-note"></i> ملاحظات</label>' +
     '<textarea id="renewNotes" placeholder="ملاحظات التجديد..." style="min-height:50px"></textarea></div>' +
     '<div class="renew-summary" id="renewSummary"></div>' +
@@ -309,6 +313,7 @@ window.openRenewModal = function(subId) {
   document.getElementById('modalBody').innerHTML = html;
 
   window._selectedDebtOpt = 0;
+  window._renewPaid = true;
   renewOnTypeChange(subId);
   openModal();
 };
@@ -354,13 +359,24 @@ window.updateRenewSummary = function(s, tpl) {
   summary += '<div class="ps-row"><span>المبلغ</span><span class="ps-green">' + formatMoney(tpl.price) + '</span></div>';
   summary += '<div class="ps-row"><span>من</span><span>' + start + '</span></div>';
   summary += '<div class="ps-row"><span>إلى</span><span>' + end + '</span></div>';
+  summary += '<div class="ps-divider"></div>';
+  summary += '<div class="ps-row"><span>حالة الدفع</span><span>' + (window._renewPaid !== false ? 'مدفوع' : 'آجل') + '</span></div>';
   if (totalDebt > 0) {
     summary += '<div class="ps-divider"></div>';
-    summary += '<div class="ps-row"><span>الدين السابق</span><span class="ps-red">' + formatMoney(totalDebt) + '</span></div>';
+    if (unpaidAmount > 0) {
+      summary += '<div class="ps-row"><span>غير مدفوعة (الحالية)</span><span class="ps-red">' + formatMoney(unpaidAmount) + '</span></div>';
+    }
+    if (s.prevDebt > 0) {
+      summary += '<div class="ps-row"><span>الدين السابق</span><span class="ps-red">' + formatMoney(s.prevDebt) + '</span></div>';
+    }
     summary += '<div class="ps-row" style="margin-top:4px;font-size:11px">';
-    if (opt === 0) summary += '<span style="color:var(--warning)"><i class="fas fa-arrow-left"></i> يضاف الجديد (' + formatMoney(tpl.price) + ') إلى الدين</span>';
-    else if (opt === 1) summary += '<span style="color:var(--success)"><i class="fas fa-arrow-left"></i> يسدد السابق، ويبقى الجديد (' + formatMoney(tpl.price) + ') دين</span>';
-    else if (opt === 2) summary += '<span style="color:var(--success)"><i class="fas fa-arrow-left"></i> يسدد السابق والجديد بالكامل</span>';
+    if (window._renewPaid !== false) {
+      summary += '<span style="color:var(--success)"><i class="fas fa-check-circle"></i> الكل مدفوع</span>';
+    } else {
+      if (opt === 0) summary += '<span style="color:var(--warning)"><i class="fas fa-arrow-left"></i> يضاف الجديد (' + formatMoney(tpl.price) + ') إلى الدين</span>';
+      else if (opt === 1) summary += '<span style="color:var(--success)"><i class="fas fa-arrow-left"></i> يسدد السابق، ويبقى الجديد (' + formatMoney(tpl.price) + ') دين</span>';
+      else if (opt === 2) summary += '<span style="color:var(--success)"><i class="fas fa-arrow-left"></i> يسدد السابق والجديد بالكامل</span>';
+    }
     summary += '</div>';
   }
   summary += '</div>';
@@ -382,8 +398,8 @@ window.confirmRenewal = function(subId) {
   const end = document.getElementById('renewEnd').value;
   const notes = document.getElementById('renewNotes').value.trim();
   const opt = window._selectedDebtOpt || 0;
-  const unpaidAmount = !s.paid ? s.amount : 0;
-  const currentDebt = s.prevDebt + unpaidAmount;
+  const currentDebt = s.prevDebt + (!s.paid ? s.amount : 0);
+  const wasExpired = s.status === 'expired';
 
   s.type = tpl.name;
   s.amount = tpl.price;
@@ -392,32 +408,88 @@ window.confirmRenewal = function(subId) {
   s.status = 'active';
   s.notes = notes;
 
-  if (currentDebt > 0) {
-    if (opt === 0) {
-      s.prevDebt = currentDebt + tpl.price;
-      s.paid = false;
-      s.debtHistory.push({ amount: tpl.price, date: todayStr(), note: 'إضافة من تجديد (' + tpl.name + ')' });
-      showToast('✅ تم تجديد اشتراك ' + s.name + ' مع إضافة دين جديد');
-    } else if (opt === 1) {
+  if (window._renewPaid !== false) {
+    // مدفوع: تسجيل كل شيء كـ income
+    if (currentDebt > 0) {
       finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تسديد دين سابق - ' + s.name, amount: currentDebt, type: 'income' });
-      s.prevDebt = tpl.price;
-      s.paid = false;
-      s.debtHistory.push({ amount: tpl.price, date: todayStr(), note: 'إضافة من تجديد (' + tpl.name + ')' });
-      showToast('✅ تم تسديد الدين السابق (' + formatMoney(currentDebt) + ') وتجديد اشتراك ' + s.name);
-    } else if (opt === 2) {
-      finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تسديد دين سابق - ' + s.name, amount: currentDebt, type: 'income' });
-      finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تجديد اشتراك - ' + s.name + ' (' + tpl.name + ')', amount: tpl.price, type: 'income' });
-      s.prevDebt = 0;
-      s.paid = true;
-      showToast('✅ تم تسديد الدين السابق (' + formatMoney(currentDebt) + ') وتجديد اشتراك ' + s.name);
     }
+    finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تجديد اشتراك - ' + s.name + ' (' + tpl.name + ')', amount: tpl.price, type: 'income' });
+    s.paid = true;
+    s.prevDebt = 0;
+    s.debtHistory = [];
+    showToast('✅ تم تجديد اشتراك ' + s.name + ' (مدفوع)');
   } else {
-    s.paid = false;
-    showToast('✅ تم تجديد اشتراك ' + s.name);
+    // آجل
+    if (currentDebt > 0 && wasExpired) {
+      // منتهي: خيارات الديون الثلاث
+      if (opt === 0) {
+        s.paid = false;
+        s.prevDebt = currentDebt + tpl.price;
+        s.debtHistory.push({ amount: tpl.price, date: todayStr(), note: 'إضافة من تجديد (' + tpl.name + ')' });
+        showToast('✅ تم تجديد اشتراك ' + s.name + ' مع إضافة دين جديد');
+      } else if (opt === 1) {
+        s.paid = false;
+        finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تسديد دين سابق - ' + s.name, amount: currentDebt, type: 'income' });
+        s.prevDebt = tpl.price;
+        s.debtHistory = [{ amount: tpl.price, date: todayStr(), note: 'إضافة من تجديد (' + tpl.name + ')' }];
+        showToast('✅ تم تسديد الدين السابق (' + formatMoney(currentDebt) + ') وتجديد اشتراك ' + s.name);
+      } else {
+        s.paid = true;
+        finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تسديد دين سابق - ' + s.name, amount: currentDebt, type: 'income' });
+        finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تجديد اشتراك - ' + s.name + ' (' + tpl.name + ')', amount: tpl.price, type: 'income' });
+        s.prevDebt = 0;
+        s.debtHistory = [];
+        showToast('✅ تم تسديد الدين السابق (' + formatMoney(currentDebt) + ') وتجديد اشتراك ' + s.name);
+      }
+    } else if (currentDebt > 0) {
+      // نشط عليه دين بدون خيارات: يترحل الكل كدين
+      s.paid = false;
+      s.prevDebt = currentDebt + tpl.price;
+      s.debtHistory.push({ amount: tpl.price, date: todayStr(), note: 'إضافة من تجديد (' + tpl.name + ')' });
+      showToast('✅ تم تجديد اشتراك ' + s.name + ' (آجل)');
+    } else {
+      // لا دين سابق، تجديد آجل
+      s.paid = false;
+      s.prevDebt = tpl.price;
+      s.debtHistory.push({ amount: tpl.price, date: todayStr(), note: 'إضافة من تجديد (' + tpl.name + ')' });
+      showToast('✅ تم تجديد اشتراك ' + s.name + ' (آجل)');
+    }
   }
 
   saveAllData();
   closeModal();
+};
+
+// ===== دوال إعادة التفعيل (Reactivate) =====
+window.reactOnTypeChange = function(subId) {
+  const s = subs.find(x => x.id === subId);
+  if (!s) return;
+  const sel = document.getElementById('reactType');
+  const tpl = subscriptionTypes.find(t => t.id === parseInt(sel.value));
+  if (!tpl) return;
+  const start = document.getElementById('reactStart').value || todayStr();
+  const end = calcEndFromType(tpl.name, start);
+  document.getElementById('reactEnd').value = end.toISOString().split('T')[0];
+};
+
+window.confirmReactivate = function(subId) {
+  const s = subs.find(x => x.id === subId);
+  if (!s) return;
+  const sel = document.getElementById('reactType');
+  const tpl = subscriptionTypes.find(t => t.id === parseInt(sel.value));
+  if (!tpl) { showToast('⚠️ الرجاء اختيار باقة'); return; }
+  const start = document.getElementById('reactStart').value;
+  if (!start) { showToast('⚠️ الرجاء تحديد تاريخ التفعيل'); return; }
+  const end = document.getElementById('reactEnd').value;
+  s.type = tpl.name;
+  s.amount = tpl.price;
+  s.start = start;
+  s.end = end;
+  s.status = 'active';
+  s.paid = window._reactPaid !== false;
+  saveAllData();
+  closeModal();
+  showToast('✅ تم إعادة تفعيل ' + s.name);
 };
 
 // ===== دوال التفعيل المجاني (Free Activation) =====
@@ -478,4 +550,116 @@ window.confirmFreeActivation = function(subId) {
   saveAllData();
   closeModal();
   showToast('🎁 تم تفعيل ' + days + ' يوم مجاني لـ ' + s.name);
+};
+
+// ===== مودال تسديد المستحقات (Settle) =====
+window.openSettleModal = function(subId) {
+  const s = subs.find(x => x.id === subId);
+  if (!s) return;
+
+  const unpaidAmount = !s.paid ? s.amount : 0;
+  const totalDebt = s.prevDebt + unpaidAmount;
+
+  if (totalDebt <= 0) {
+    showToast('⚠️ لا يوجد ديون مستحقة');
+    return;
+  }
+
+  let historyHtml = '';
+  if (s.debtHistory && s.debtHistory.length) {
+    historyHtml = '<div style="margin:10px 0;padding:10px;background:var(--bg2);border-radius:10px">' +
+      '<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px"><i class="fas fa-list"></i> سجل الديون</div>';
+    s.debtHistory.forEach(function(d) {
+      historyHtml += '<div style="font-size:11px;color:var(--text3);padding:3px 0;display:flex;justify-content:space-between">' +
+        '<span><i class="fas fa-circle" style="font-size:6px;color:var(--danger);margin-left:4px"></i> ' + d.note + '</span>' +
+        '<span style="font-weight:700;color:var(--danger)">' + formatMoney(d.amount) + ' | ' + d.date + '</span></div>';
+    });
+    historyHtml += '</div>';
+  }
+
+  const html =
+    '<div class="form-wrap" style="padding:0">' +
+    '<div class="debt-box">' +
+    '<div class="debt-box-title"><i class="fas fa-exclamation-triangle"></i> الملخص المالي</div>' +
+    '<div class="debt-grid">' +
+    (s.prevDebt > 0 ? '<div class="debt-grid-item"><span class="dgi-label">دين سابق</span><span class="dgi-value warn">' + formatMoney(s.prevDebt) + '</span></div>' : '') +
+    (unpaidAmount > 0 ? '<div class="debt-grid-item"><span class="dgi-label">الاشتراك الحالي (غير مدفوع)</span><span class="dgi-value warn">' + formatMoney(unpaidAmount) + '</span></div>' : '') +
+    '<div class="debt-grid-item total"><span class="dgi-label">الإجمالي</span><span class="dgi-value" id="dgiTotalSettle">' + formatMoney(totalDebt) + '</span></div>' +
+    '</div></div>' +
+    historyHtml +
+    '<div class="form-group"><label><i class="fas fa-dollar-sign"></i> المبلغ المراد تسديده</label>' +
+    '<div style="display:flex;gap:8px">' +
+    '<input type="number" id="settleAmount" value="' + totalDebt + '" min="1" max="' + totalDebt + '" style="flex:1;font-size:16px;font-weight:800">' +
+    '<button type="button" class="as-paid-btn" onclick="document.getElementById(\'settleAmount\').value=' + totalDebt + '" style="flex:0;padding:12px 24px;white-space:nowrap"><i class="fas fa-check-double"></i> الكل</button>' +
+    '</div></div>' +
+    '<div class="form-group"><label><i class="fas fa-sticky-note"></i> ملاحظات <span style="color:var(--text3);font-weight:400">(اختياري)</span></label>' +
+    '<textarea id="settleNotes" placeholder="ملاحظات عملية الدفع..." style="min-height:50px"></textarea></div>' +
+    '<div class="form-actions" style="margin-top:10px">' +
+    '<button class="success" onclick="confirmSettle(' + subId + ')"><i class="fas fa-check"></i> تأكيد التسديد</button>' +
+    '<button class="secondary" onclick="closeModal()">إلغاء</button></div></div>';
+
+  document.getElementById('modalTitle').innerHTML = '<i class="fas fa-hand-holding-usd" style="color:var(--success)"></i> تسديد المستحقات - ' + s.name;
+  document.getElementById('modalBody').innerHTML = html;
+  openModal();
+};
+
+window.confirmSettle = function(subId) {
+  const s = subs.find(x => x.id === subId);
+  if (!s) return;
+
+  const amount = parseInt(document.getElementById('settleAmount').value);
+  if (!amount || amount <= 0) { showToast('⚠️ الرجاء إدخال مبلغ صحيح'); return; }
+
+  const unpaidAmount = !s.paid ? s.amount : 0;
+  const totalDebt = s.prevDebt + unpaidAmount;
+  if (amount > totalDebt) { showToast('⚠️ المبلغ أكبر من إجمالي الدين (' + formatMoney(totalDebt) + ')'); return; }
+
+  const notes = document.getElementById('settleNotes').value.trim();
+
+  // تسجيل في الصندوق
+  finRecords.unshift({
+    id: finId++,
+    date: todayStr(),
+    desc: 'تسديد مستحقات - ' + s.name + (notes ? ' (' + notes + ')' : ''),
+    amount: amount,
+    type: 'income'
+  });
+
+  // توزيع المبلغ: أولاً الدين السابق، ثم الاشتراك الحالي
+  let remaining = amount;
+
+  // 1. تسديد الدين السابق
+  if (remaining > 0 && s.prevDebt > 0) {
+    if (remaining >= s.prevDebt) {
+      remaining -= s.prevDebt;
+      s.prevDebt = 0;
+    } else {
+      s.prevDebt -= remaining;
+      remaining = 0;
+    }
+  }
+
+  // 2. تسديد الاشتراك الحالي (غير المدفوع)
+  if (remaining > 0 && !s.paid) {
+    if (remaining >= s.amount) {
+      remaining -= s.amount;
+      s.paid = true;
+    } else {
+      // دفع جزء من الاشتراك الحالي - نتركه غير مدفوع مع تقليل المبلغ
+      // لا نغير s.amount لأنه يمثل قيمة الاشتراك
+      remaining = 0;
+    }
+  }
+
+  // الباقي (لا يجب أن يتبقى شيء لأننا نمنع إدخال مبلغ أكبر من الإجمالي)
+  // لكن لو بقي بسبب الدقة، يتجاهل
+
+  // تحديث سجل الديون: إذا تم تسديد كل شيء، إفراغ السجل
+  if (s.paid && s.prevDebt === 0 && amount >= totalDebt) {
+    s.debtHistory = [];
+  }
+
+  saveAllData();
+  closeModal();
+  showToast('✅ تم تسديد مبلغ ' + formatMoney(amount) + ' من مستحقات ' + s.name);
 };

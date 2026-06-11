@@ -131,7 +131,7 @@ var HomePage = {
       inactiveSubs: computed(() => subs.filter(s => s.status === 'inactive').length),
       disabledSubs: computed(() => subs.filter(s => s.status === 'disabled').length),
       debtsTotal: computed(() => {
-        const d = subs.filter(s => !s.paid).reduce((a, s) => a + s.amount, 0);
+        const d = subs.reduce((a, s) => a + calcTotalDebt(s), 0);
         return formatMoney(d);
       }),
       balanceTotal: computed(() => {
@@ -475,6 +475,7 @@ var AddSubPage = {
           s.amount = form.amount || 0;
           s.start = form.start || todayStr();
           s.end = form.end || todayStr();
+          s.paid = form.paid;
           s.notes = form.notes.trim();
         }
         saveAllData();
@@ -571,6 +572,10 @@ var SubDetailPage = {
             <span class="label"><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i> دين سابق</span>
             <span class="value danger" style="font-weight:900;font-size:16px">{{ formatMoney(sub.prevDebt) }}</span>
           </div>
+          <div class="row" v-if="(sub.prevDebt||0) + (sub.paid?0:sub.amount) > 0" style="cursor:pointer;background:var(--warning-glow);border-radius:8px;padding:4px 8px;margin-top:2px" @click="settleSub" title="اضغط لتسديد المستحقات">
+            <span class="label"><i class="fas fa-hand-holding-usd" style="color:var(--success)"></i> إجمالي المستحقات <small style="color:var(--text3);font-weight:400">(اضغط للدفع)</small></span>
+            <span class="value success" style="font-weight:900;font-size:16px">{{ formatMoney((sub.prevDebt||0) + (sub.paid?0:sub.amount)) }}</span>
+          </div>
           <div v-if="sub.debtHistory && sub.debtHistory.length" style="margin-top:4px">
             <div style="font-size:12px;font-weight:700;color:var(--text2);padding:6px 0 4px;display:flex;align-items:center;gap:6px">
               <i class="fas fa-list" style="font-size:11px"></i> سجل الديون
@@ -604,12 +609,19 @@ var SubDetailPage = {
       <div v-if="sub" class="detail-actions">
         <button class="cy" @click="editSub"><i class="fas fa-edit"></i> تعديل</button>
         <button class="gr" @click="renewSub"><i class="fas fa-sync"></i> تجديد</button>
+        <button v-if="(sub.prevDebt||0) + (sub.paid?0:sub.amount) > 0" class="cy" @click="settleSub"><i class="fas fa-hand-holding-usd"></i> تسديد</button>
         <button class="gr" @click="openFreeModal(sub.id)"><i class="fas fa-gift"></i> مجاني</button>
         <button class="gr" @click="sendWA"><i class="fab fa-whatsapp"></i> واتساب</button>
+        <button v-if="sub.status==='expired'" class="gr" @click="reactivateSub">
+          <i class="fas fa-play-circle"></i> إعادة تفعيل
+        </button>
         <button v-if="sub.status==='active'||sub.status==='expired'" class="ow" @click="disableSub">
           <i class="fas fa-pause-circle"></i> تعطيل
         </button>
         <button v-if="sub.status==='disabled'" class="gr" @click="enableSub">
+          <i class="fas fa-play-circle"></i> تفعيل
+        </button>
+        <button v-if="sub.status==='inactive'" class="gr" @click="reactivateSub">
           <i class="fas fa-play-circle"></i> تفعيل
         </button>
         <button v-if="sub.status==='inactive'" class="rd" @click="deleteSub">
@@ -643,6 +655,37 @@ var SubDetailPage = {
       if (sub.value) window.openRenewModal(sub.value.id);
     }
 
+    function settleSub() {
+      if (sub.value) window.openSettleModal(sub.value.id);
+    }
+
+    function reactivateSub() {
+      const s = sub.value;
+      if (!s) return;
+      const now = todayStr();
+      const end = calcEndFromType(s.type, now).toISOString().split('T')[0];
+      document.getElementById('modalTitle').innerHTML = '<i class="fas fa-play-circle" style="color:var(--success)"></i> إعادة تفعيل ' + s.name;
+      document.getElementById('modalBody').innerHTML =
+        '<div class="form-wrap" style="padding:0">' +
+        '<div class="form-group"><label><i class="fas fa-tag"></i> الباقة</label>' +
+        '<select id="reactType" onchange="reactOnTypeChange(' + s.id + ')">' +
+        subscriptionTypes.filter(t => t.name !== 'مجاني').map(t =>
+          '<option value="' + t.id + '" ' + (t.name === s.type ? 'selected' : '') + '>' + t.name + ' - ' + formatMoney(t.price) + '</option>'
+        ).join('') + '</select></div>' +
+        '<div class="form-row"><div class="form-group"><label><i class="fas fa-calendar"></i> تاريخ التفعيل</label>' +
+        '<input type="date" id="reactStart" value="' + now + '" onchange="reactOnTypeChange(' + s.id + ')"></div>' +
+        '<div class="form-group"><label><i class="fas fa-calendar-check"></i> ينتهي</label>' +
+        '<input type="date" id="reactEnd" value="' + end + '" readonly style="color:var(--primary);font-weight:800"></div></div>' +
+        '<div class="form-group"><label><i class="fas fa-money-bill-wave"></i> حالة الدفع</label>' +
+        '<div style="display:flex;gap:8px">' +
+        '<button type="button" class="as-paid-btn active" id="reactPaidBtn" onclick="window._reactPaid=true;document.getElementById(\'reactPaidBtn\').classList.add(\'active\');document.getElementById(\'reactDebtBtn\').classList.remove(\'active\')"><i class="fas fa-check-circle"></i> مدفوع</button>' +
+        '<button type="button" class="as-paid-btn" id="reactDebtBtn" onclick="window._reactPaid=false;document.getElementById(\'reactDebtBtn\').classList.add(\'active\');document.getElementById(\'reactPaidBtn\').classList.remove(\'active\')"><i class="fas fa-clock"></i> آجل</button></div></div>' +
+        '<div class="form-actions"><button class="success" onclick="confirmReactivate(' + s.id + ')"><i class="fas fa-check"></i> تفعيل</button>' +
+        '<button class="secondary" onclick="closeModal()">إلغاء</button></div></div>';
+      window._reactPaid = true;
+      openModal();
+    }
+
     function disableSub() {
       if (!sub.value) return;
       sub.value.status = 'disabled';
@@ -672,7 +715,7 @@ var SubDetailPage = {
       router.push('/subscribers');
     }
 
-    return { sub, subDays, statusLabel, statusClass, editSub, renewSub, disableSub, enableSub, sendWA, deleteSub, formatMoney, openFreeModal };
+    return { sub, subDays, statusLabel, statusClass, editSub, renewSub, settleSub, reactivateSub, disableSub, enableSub, sendWA, deleteSub, formatMoney, openFreeModal };
   }
 };
 
@@ -932,7 +975,7 @@ var FinancePage = {
       finIncome: computed(() => formatMoney(totalIncome.value)),
       finExpense: computed(() => formatMoney(totalExpense.value)),
       finBalance: computed(() => formatMoney(totalIncome.value - totalExpense.value)),
-      finDebts: computed(() => formatMoney(subs.filter(s => !s.paid).reduce((a, s) => a + s.amount, 0))),
+      finDebts: computed(() => formatMoney(subs.reduce((a, s) => a + calcTotalDebt(s), 0))),
       addFinance,
       formatMoney
     };
@@ -1100,7 +1143,7 @@ var ReportsPage = {
     const expiredCount = subs.filter(s => s.status === 'expired').length;
     const inactiveCount = subs.filter(s => s.status === 'inactive').length;
     const disabledCount = subs.filter(s => s.status === 'disabled').length;
-    const debts = formatMoney(subs.filter(s => !s.paid).reduce((a, s) => a + s.amount, 0));
+    const debts = formatMoney(subs.reduce((a, s) => a + calcTotalDebt(s), 0));
     const payments = formatMoney(finRecords.filter(f => f.type === 'income').reduce((a, f) => a + f.amount, 0));
     const archivedCount = archivedSubs.length;
 

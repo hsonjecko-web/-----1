@@ -14,11 +14,17 @@ window.showToast = function(msg) {
 };
 
 window.openModal = function() {
+  document.body.classList.add('modal-open');
   document.getElementById('modalOverlay')?.classList.add('show');
-  document.getElementById('modal')?.classList.add('open');
+  const modal = document.getElementById('modal');
+  if (modal) {
+    modal.scrollTop = 0;
+    modal.classList.add('open');
+  }
 };
 
 window.closeModal = function() {
+  document.body.classList.remove('modal-open');
   document.getElementById('modalOverlay')?.classList.remove('show');
   document.getElementById('modal')?.classList.remove('open');
 };
@@ -41,6 +47,9 @@ const routes = [
 const router = createRouter({
   history: createWebHashHistory(),
   routes,
+  scrollBehavior() {
+    return { top: 0, behavior: 'smooth' };
+  }
 });
 
 // ===== المكون الرئيسي للتطبيق =====

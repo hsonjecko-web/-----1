@@ -133,7 +133,12 @@ function todayStr() {
 
 // تنسيق المبلغ (دينار عراقي → عرض)
 function formatMoney(amount) {
-  return amount.toLocaleString() + ' د.ع';
+  return (amount || 0).toLocaleString() + ' د.ع';
+}
+
+// حساب إجمالي الدين المستحق على مشترك (يشمل prevDebt)
+function calcTotalDebt(sub) {
+  return (sub.paid ? 0 : sub.amount) + (sub.prevDebt || 0);
 }
 
 // ================================================================

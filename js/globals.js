@@ -31,7 +31,11 @@ window.saveFinance = function(type) {
     desc: desc,
     amount: amount,
     type: type,
-    category: type === 'expense' ? document.getElementById('fCategory')?.value : undefined
+    category: type === 'expense' ? document.getElementById('fCategory')?.value : undefined,
+    subId: null,
+    area: document.getElementById('fArea')?.value || '',
+    tower: document.getElementById('fTower')?.value || '',
+    point: document.getElementById('fPoint')?.value || ''
   });
   saveAllData();
   closeModal();
@@ -245,8 +249,6 @@ window.deleteTowerPoint = function(towerId, idx) {
 };
 
 // ===== دوال التجديد (Renewal) =====
-window._selectedDebtOpt = 0;
-
 window.openRenewModal = function(subId) {
   const s = subs.find(x => x.id === subId);
   if (!s) return;
@@ -260,28 +262,12 @@ window.openRenewModal = function(subId) {
 
   if (hasDebt && isExpired) {
     html += '<div class="debt-box">' +
-      '<div class="debt-box-title"><i class="fas fa-exclamation-triangle"></i> عليه دين سابق</div>' +
+      '<div class="debt-box-title"><i class="fas fa-exclamation-triangle"></i> ⚠️ عليه دين سابق</div>' +
       '<div class="debt-grid">' +
       (unpaidAmount > 0 ? '<div class="debt-grid-item"><span class="dgi-label">غير مدفوعة (الحالية)</span><span class="dgi-value warn">' + formatMoney(unpaidAmount) + '</span></div>' : '') +
-      '<div class="debt-grid-item"><span class="dgi-label">الدين السابق</span><span class="dgi-value warn">' + formatMoney(s.prevDebt) + '</span></div>' +
-      '<div class="debt-grid-item total"><span class="dgi-label">المجموع</span><span class="dgi-value" id="dgiTotal">' + formatMoney(totalDebt) + '</span></div>' +
-      '</div></div>' +
-      '<div class="debt-options">' +
-      '<div class="debt-opt selected" onclick="selectDebtOption(0, this)" data-opt="0">' +
-      '<input type="radio" name="debtOpt" checked>' +
-      '<div class="dopt-check"><i class="fas fa-circle"></i></div>' +
-      '<div class="dopt-content"><div class="dopt-label"><i class="fas fa-plus-circle"></i> تجديد + إضافة دين جديد</div>' +
-      '<div class="dopt-desc">يبقى الدين السابق كاملاً ويضاف الاشتراك الجديد كدين إضافي</div></div></div>' +
-      '<div class="debt-opt" onclick="selectDebtOption(1, this)" data-opt="1">' +
-      '<input type="radio" name="debtOpt">' +
-      '<div class="dopt-check"><i class="fas fa-circle"></i></div>' +
-      '<div class="dopt-content"><div class="dopt-label"><i class="fas fa-check-double"></i> تسديد السابق + إضافة دين جديد</div>' +
-      '<div class="dopt-desc">يتم تسديد الدين السابق كاملاً ويبقى الاشتراك الجديد كدين</div></div></div>' +
-      '<div class="debt-opt" onclick="selectDebtOption(2, this)" data-opt="2">' +
-      '<input type="radio" name="debtOpt">' +
-      '<div class="dopt-check"><i class="fas fa-circle"></i></div>' +
-      '<div class="dopt-content"><div class="dopt-label"><i class="fas fa-check-circle"></i> تسديد السابق + دفع الحالي</div>' +
-      '<div class="dopt-desc">يتم تسديد الدين السابق والاشتراك الجديد مدفوع بالكامل</div></div></div></div>';
+      (s.prevDebt > 0 ? '<div class="debt-grid-item"><span class="dgi-label">الدين السابق</span><span class="dgi-value warn">' + formatMoney(s.prevDebt) + '</span></div>' : '') +
+      '<div class="debt-grid-item total"><span class="dgi-label">الإجمالي</span><span class="dgi-value" id="dgiTotal">' + formatMoney(totalDebt) + '</span></div>' +
+      '</div></div>';
   }
 
   const typeOpts = subscriptionTypes.filter(t => t.name !== 'مجاني').map(t =>
@@ -312,22 +298,9 @@ window.openRenewModal = function(subId) {
   document.getElementById('modalTitle').innerHTML = '<i class="fas fa-sync" style="color:var(--success)"></i> تجديد اشتراك ' + s.name;
   document.getElementById('modalBody').innerHTML = html;
 
-  window._selectedDebtOpt = 0;
   window._renewPaid = true;
   renewOnTypeChange(subId);
   openModal();
-};
-
-window.selectDebtOption = function(idx, el) {
-  window._selectedDebtOpt = idx;
-  document.querySelectorAll('.debt-opt').forEach(o => o.classList.remove('selected'));
-  if (el) el.classList.add('selected');
-  const sel = document.getElementById('renewType');
-  if (sel) {
-    const s = subs.find(x => x.id === parseInt(document.querySelector('[onclick*="confirmRenewal"]')?.getAttribute('onclick')?.match(/\d+/)?.[0] || '0'));
-    const tpl = subscriptionTypes.find(t => t.id === parseInt(sel.value));
-    if (tpl && s) updateRenewSummary(s, tpl);
-  }
 };
 
 window.renewOnTypeChange = function(subId) {
@@ -352,7 +325,6 @@ window.updateRenewSummary = function(s, tpl) {
   const totalDebt = s.prevDebt + unpaidAmount;
   const start = document.getElementById('renewStart').value || todayStr();
   const end = document.getElementById('renewEnd').value;
-  const opt = window._selectedDebtOpt;
 
   let summary = '<div class="pay-summary">';
   summary += '<div class="ps-row"><span>الباقة</span><span>' + tpl.name + '</span></div>';
@@ -373,9 +345,7 @@ window.updateRenewSummary = function(s, tpl) {
     if (window._renewPaid !== false) {
       summary += '<span style="color:var(--success)"><i class="fas fa-check-circle"></i> الكل مدفوع</span>';
     } else {
-      if (opt === 0) summary += '<span style="color:var(--warning)"><i class="fas fa-arrow-left"></i> يضاف الجديد (' + formatMoney(tpl.price) + ') إلى الدين</span>';
-      else if (opt === 1) summary += '<span style="color:var(--success)"><i class="fas fa-arrow-left"></i> يسدد السابق، ويبقى الجديد (' + formatMoney(tpl.price) + ') دين</span>';
-      else if (opt === 2) summary += '<span style="color:var(--success)"><i class="fas fa-arrow-left"></i> يسدد السابق والجديد بالكامل</span>';
+      summary += '<span style="color:var(--warning)"><i class="fas fa-arrow-left"></i> يبقى الدين السابق ويضاف الجديد كدين</span>';
     }
     summary += '</div>';
   }
@@ -397,7 +367,6 @@ window.confirmRenewal = function(subId) {
   if (!start) { showToast('⚠️ الرجاء تحديد تاريخ التفعيل'); return; }
   const end = document.getElementById('renewEnd').value;
   const notes = document.getElementById('renewNotes').value.trim();
-  const opt = window._selectedDebtOpt || 0;
   const currentDebt = s.prevDebt + (!s.paid ? s.amount : 0);
   const wasExpired = s.status === 'expired';
 
@@ -411,49 +380,26 @@ window.confirmRenewal = function(subId) {
   if (window._renewPaid !== false) {
     // مدفوع: تسجيل كل شيء كـ income
     if (currentDebt > 0) {
-      finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تسديد دين سابق - ' + s.name, amount: currentDebt, type: 'income' });
+      finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تسديد دين سابق - ' + s.name, amount: currentDebt, type: 'income', subId: s.id, area: s.area, tower: s.tower || '', point: s.point || '' });
     }
-    finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تجديد اشتراك - ' + s.name + ' (' + tpl.name + ')', amount: tpl.price, type: 'income' });
+    finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تجديد اشتراك - ' + s.name + ' (' + tpl.name + ')', amount: tpl.price, type: 'income', subId: s.id, area: s.area, tower: s.tower || '', point: s.point || '' });
     s.paid = true;
     s.prevDebt = 0;
     s.debtHistory = [];
     showToast('✅ تم تجديد اشتراك ' + s.name + ' (مدفوع)');
-  } else {
-    // آجل
-    if (currentDebt > 0 && wasExpired) {
-      // منتهي: خيارات الديون الثلاث
-      if (opt === 0) {
+    } else {
+      // آجل: يترحل الدين القديم + الاشتراك الجديد غير مدفوع
+      if (currentDebt > 0) {
         s.paid = false;
-        s.prevDebt = currentDebt + tpl.price;
+        s.prevDebt = currentDebt;
         s.debtHistory.push({ amount: tpl.price, date: todayStr(), note: 'إضافة من تجديد (' + tpl.name + ')' });
         showToast('✅ تم تجديد اشتراك ' + s.name + ' مع إضافة دين جديد');
-      } else if (opt === 1) {
-        s.paid = false;
-        finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تسديد دين سابق - ' + s.name, amount: currentDebt, type: 'income' });
-        s.prevDebt = tpl.price;
-        s.debtHistory = [{ amount: tpl.price, date: todayStr(), note: 'إضافة من تجديد (' + tpl.name + ')' }];
-        showToast('✅ تم تسديد الدين السابق (' + formatMoney(currentDebt) + ') وتجديد اشتراك ' + s.name);
       } else {
-        s.paid = true;
-        finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تسديد دين سابق - ' + s.name, amount: currentDebt, type: 'income' });
-        finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تجديد اشتراك - ' + s.name + ' (' + tpl.name + ')', amount: tpl.price, type: 'income' });
+        s.paid = false;
         s.prevDebt = 0;
-        s.debtHistory = [];
-        showToast('✅ تم تسديد الدين السابق (' + formatMoney(currentDebt) + ') وتجديد اشتراك ' + s.name);
+        s.debtHistory.push({ amount: tpl.price, date: todayStr(), note: 'إضافة من تجديد (' + tpl.name + ')' });
+        showToast('✅ تم تجديد اشتراك ' + s.name + ' (آجل)');
       }
-    } else if (currentDebt > 0) {
-      // نشط عليه دين بدون خيارات: يترحل الكل كدين
-      s.paid = false;
-      s.prevDebt = currentDebt + tpl.price;
-      s.debtHistory.push({ amount: tpl.price, date: todayStr(), note: 'إضافة من تجديد (' + tpl.name + ')' });
-      showToast('✅ تم تجديد اشتراك ' + s.name + ' (آجل)');
-    } else {
-      // لا دين سابق، تجديد آجل
-      s.paid = false;
-      s.prevDebt = tpl.price;
-      s.debtHistory.push({ amount: tpl.price, date: todayStr(), note: 'إضافة من تجديد (' + tpl.name + ')' });
-      showToast('✅ تم تجديد اشتراك ' + s.name + ' (آجل)');
-    }
   }
 
   saveAllData();
@@ -622,7 +568,11 @@ window.confirmSettle = function(subId) {
     date: todayStr(),
     desc: 'تسديد مستحقات - ' + s.name + (notes ? ' (' + notes + ')' : ''),
     amount: amount,
-    type: 'income'
+    type: 'income',
+    subId: s.id,
+    area: s.area,
+    tower: s.tower || '',
+    point: s.point || ''
   });
 
   // توزيع المبلغ: أولاً الدين السابق، ثم الاشتراك الحالي
@@ -662,4 +612,118 @@ window.confirmSettle = function(subId) {
   saveAllData();
   closeModal();
   showToast('✅ تم تسديد مبلغ ' + formatMoney(amount) + ' من مستحقات ' + s.name);
+};
+
+// ===== مودال تعديل سريع لكل شيء =====
+window.openQuickEditModal = function(subId) {
+  const s = subs.find(x => x.id === subId);
+  if (!s) return;
+
+  const statusMap = { active: 'فعال', expired: 'منتهي', disabled: 'معطل', inactive: 'غير مفعل' };
+  const areaOpts = areas.map(a => '<option value="' + a + '" ' + (s.area === a ? 'selected' : '') + '>' + a + '</option>').join('');
+  const towerOpts = towers.map(t => '<option value="' + t.name + '" ' + (s.tower === t.name ? 'selected' : '') + '>' + t.name + '</option>').join('');
+  const typeOpts = subscriptionTypes.filter(t => t.name !== 'مجاني').map(t =>
+    '<option value="' + t.id + '" ' + (t.name === s.type ? 'selected' : '') + '>' + t.name + ' - ' + formatMoney(t.price) + '</option>'
+  ).join('');
+  const statusOpts = Object.entries(statusMap).map(([k, v]) =>
+    '<option value="' + k + '" ' + (s.status === k ? 'selected' : '') + '>' + v + '</option>'
+  ).join('');
+
+  const html =
+    '<div class="form-wrap" style="padding:0">' +
+
+    // Row 1: name + phone
+    '<div class="form-row">' +
+    '<div class="form-group"><label><i class="fas fa-user"></i> الاسم</label><input type="text" id="eq_name" value="' + s.name + '"></div>' +
+    '<div class="form-group"><label><i class="fas fa-phone"></i> الهاتف</label><input type="text" id="eq_phone" value="' + s.phone + '" maxlength="11"></div></div>' +
+
+    // Row 2: ssid + pass
+    '<div class="form-row">' +
+    '<div class="form-group"><label><i class="fas fa-wifi"></i> SSID</label><input type="text" id="eq_ssid" value="' + (s.ssid||'') + '"></div>' +
+    '<div class="form-group"><label><i class="fas fa-key"></i> كلمة المرور</label><input type="text" id="eq_pass" value="' + (s.pass||'') + '"></div></div>' +
+
+    // Row 3: area + tower
+    '<div class="form-row">' +
+    '<div class="form-group"><label><i class="fas fa-map-marker-alt"></i> المنطقة</label><select id="eq_area">' + areaOpts + '</select></div>' +
+    '<div class="form-group"><label><i class="fas fa-broadcast-tower"></i> البرج</label><select id="eq_tower" onchange="window._editUpdatePoints(' + subId + ')">' + towerOpts + '</select></div></div>' +
+
+    // Row 4: point
+    '<div class="form-group"><label><i class="fas fa-map-pin"></i> النقطة</label><select id="eq_point">' +
+    '<option value="">بدون نقطة</option>' +
+    (s.tower && towers.find(t => t.name === s.tower) ? towers.find(t => t.name === s.tower).points.map(p => '<option value="' + p + '" ' + (s.point === p ? 'selected' : '') + '>' + p + '</option>').join('') : '') +
+    '</select></div>' +
+
+    // Row 5: type + amount
+    '<div class="form-row">' +
+    '<div class="form-group"><label><i class="fas fa-tag"></i> الباقة</label><select id="eq_type" onchange="window._editTypeChange(' + subId + ')">' + typeOpts + '</select></div>' +
+    '<div class="form-group"><label><i class="fas fa-dollar-sign"></i> المبلغ</label><input type="number" id="eq_amount" value="' + s.amount + '"></div></div>' +
+
+    // Row 6: start + end
+    '<div class="form-row">' +
+    '<div class="form-group"><label><i class="fas fa-calendar-plus"></i> تاريخ التفعيل</label><input type="date" id="eq_start" value="' + s.start + '"></div>' +
+    '<div class="form-group"><label><i class="fas fa-calendar-times"></i> تاريخ الانتهاء</label><input type="date" id="eq_end" value="' + s.end + '"></div></div>' +
+
+    // Row 7: status
+    '<div class="form-group"><label><i class="fas fa-flag"></i> حالة المشترك</label><select id="eq_status">' + statusOpts + '</select></div>' +
+
+    // Notes
+    '<div class="form-group" style="margin-top:8px"><label><i class="fas fa-sticky-note"></i> ملاحظات</label>' +
+    '<textarea id="eq_notes" style="min-height:40px">' + (s.notes||'') + '</textarea></div>' +
+
+    // Actions
+    '<div class="form-actions" style="margin-top:10px">' +
+    '<button class="success" onclick="confirmQuickEdit(' + subId + ')"><i class="fas fa-check"></i> حفظ التعديلات</button>' +
+    '<button class="secondary" onclick="closeModal()">إلغاء</button></div></div>';
+
+  document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit" style="color:var(--primary)"></i> تعديل بيانات ' + s.name;
+  document.getElementById('modalBody').innerHTML = html;
+  openModal();
+
+  // onchange for point updates
+  window._editUpdatePoints = function(id) {
+    const sel = document.getElementById('eq_tower');
+    const pt = document.getElementById('eq_point');
+    if (!sel || !pt) return;
+    const tower = towers.find(t => t.name === sel.value);
+    pt.innerHTML = '<option value="">بدون نقطة</option>' + (tower ? tower.points.map(p => '<option value="' + p + '">' + p + '</option>').join('') : '');
+  };
+
+  // onchange for type → auto update amount
+  window._editTypeChange = function(id) {
+    const sel = document.getElementById('eq_type');
+    const amt = document.getElementById('eq_amount');
+    if (!sel || !amt) return;
+    const tpl = subscriptionTypes.find(t => t.id === parseInt(sel.value));
+    if (tpl) amt.value = tpl.price;
+  };
+
+};
+
+// تأكيد التعديل السريع
+window.confirmQuickEdit = function(subId) {
+  const s = subs.find(x => x.id === subId);
+  if (!s) return;
+
+  const name = document.getElementById('eq_name')?.value.trim();
+  const phone = document.getElementById('eq_phone')?.value.trim();
+  if (!name) { showToast('⚠️ الرجاء إدخال الاسم'); return; }
+  if (!phone) { showToast('⚠️ الرجاء إدخال رقم الهاتف'); return; }
+
+  s.name = name;
+  s.phone = phone;
+  s.ssid = document.getElementById('eq_ssid')?.value.trim() || s.ssid;
+  s.pass = document.getElementById('eq_pass')?.value.trim() || s.pass;
+  s.area = document.getElementById('eq_area')?.value || '';
+  s.tower = document.getElementById('eq_tower')?.value || '';
+  s.point = document.getElementById('eq_point')?.value || '';
+  s.type = document.getElementById('eq_type')?.selectedOptions?.[0]?.text?.split(' - ')[0] || s.type;
+  s.amount = parseInt(document.getElementById('eq_amount')?.value) || 0;
+  s.start = document.getElementById('eq_start')?.value || s.start;
+  s.end = document.getElementById('eq_end')?.value || s.end;
+  s.status = document.getElementById('eq_status')?.value || 'active';
+  s.notes = document.getElementById('eq_notes')?.value.trim() || '';
+
+  saveAllData();
+  closeModal();
+  showToast('✅ تم تعديل بيانات ' + s.name);
 };

@@ -13,25 +13,25 @@ var SidebarComponent = {
         </div>
       </div>
       <div class="side-user">
-        <div class="u-avatar">A</div>
+        <div class="u-avatar">{{ currentUser ? currentUser.name.charAt(0) : '?' }}</div>
         <div>
-          <h5>المدير العام</h5>
-          <p>admin@nettower.iq</p>
+          <h5>{{ currentUser ? currentUser.name : 'زائر' }}</h5>
+          <p>@{{ currentUser ? currentUser.username : 'غير مسجل' }}</p>
         </div>
       </div>
       <nav class="side-nav">
         <div class="nav-section">القائمة الرئيسية</div>
         <router-link to="/"><i class="fas fa-chart-pie"></i> لوحة التحكم</router-link>
-        <router-link to="/subscribers"><i class="fas fa-users"></i> المشتركون <span class="sbadge">{{ subsCount }}</span></router-link>
-        <router-link to="/add-sub"><i class="fas fa-user-plus"></i> إضافة مشترك</router-link>
-        <router-link to="/whatsapp"><i class="fab fa-whatsapp"></i> واتساب</router-link>
+        <router-link to="/subscribers" v-if="can('subscribers.view')"><i class="fas fa-users"></i> المشتركون <span class="sbadge">{{ subsCount }}</span></router-link>
+        <router-link to="/add-sub" v-if="can('subscribers.add')"><i class="fas fa-user-plus"></i> إضافة مشترك</router-link>
+        <router-link to="/whatsapp" v-if="can('whatsapp')"><i class="fab fa-whatsapp"></i> واتساب</router-link>
         <div class="nav-section">المالية</div>
-        <router-link to="/finance"><i class="fas fa-coins"></i> الصندوق المالي</router-link>
-        <router-link to="/reports"><i class="fas fa-chart-bar"></i> التقارير</router-link>
+        <router-link to="/finance" v-if="can('finance.view')"><i class="fas fa-coins"></i> الصندوق المالي</router-link>
+        <router-link to="/reports" v-if="can('reports')"><i class="fas fa-chart-bar"></i> التقارير</router-link>
         <div class="nav-section">الإدارة</div>
-        <router-link to="/archive"><i class="fas fa-archive"></i> الأرشيف</router-link>
-        <router-link to="/notifications"><i class="fas fa-bell"></i> الإشعارات <span class="sbadge">{{ notifCount }}</span></router-link>
-        <router-link to="/settings"><i class="fas fa-cog"></i> الإعدادات</router-link>
+        <router-link to="/archive" v-if="can('archive')"><i class="fas fa-archive"></i> الأرشيف</router-link>
+        <router-link to="/notifications" v-if="can('notifications')"><i class="fas fa-bell"></i> الإشعارات <span class="sbadge">{{ notifCount }}</span></router-link>
+        <router-link to="/settings" v-if="can('settings.view')"><i class="fas fa-cog"></i> الإعدادات</router-link>
       </nav>
       <div class="side-foot">
         <button @click="doLogout"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
@@ -55,13 +55,13 @@ var SidebarComponent = {
     });
 
     function doLogout() {
-      window.location.href = 'login.html';
+      window.doLogout();
     }
 
     watch(() => route.path, () => {
       if (window.innerWidth <= 768) sidebarOpen.value = false;
     });
 
-    return { sidebarOpen, towerInfo, subsCount, notifCount, doLogout };
+    return { sidebarOpen, towerInfo, subsCount, notifCount, currentUser, can, doLogout };
   }
 };

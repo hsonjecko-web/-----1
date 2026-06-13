@@ -543,63 +543,48 @@ var SubDetailPage = {
       <div v-if="sub" class="detail-card">
         <div class="dhead">
           <h3><i class="fas fa-user-circle" style="color:var(--primary)"></i> {{ sub.name }}</h3>
-          <span class="sbadge" :class="statusClass">{{ statusLabel }}</span>
+          <span class="sbadge" :class="sub.status==='active'?'active':sub.status==='expired'?'inactive':'pending'">
+            {{ sub.status==='active'?'فعال':sub.status==='expired'?'منتهي':'غير مفعل' }}
+          </span>
         </div>
         <div class="dbody">
-          <div class="row"><span class="label"><i class="fas fa-phone"></i> الهاتف</span><span class="value ltr" dir="ltr">{{ sub.phone }}</span></div>
-          <div class="row"><span class="label"><i class="fas fa-wifi"></i> اسم الشبكة</span><span class="value ltr" dir="ltr">{{ sub.ssid }}</span></div>
-          <div class="row"><span class="label"><i class="fas fa-key"></i> كلمة المرور</span><span class="value ltr" dir="ltr">{{ sub.pass }}</span></div>
+          <div class="row"><span class="label"><i class="fas fa-phone"></i> الهاتف</span><span class="value">{{ sub.phone }}</span></div>
+          <div class="row"><span class="label"><i class="fas fa-wifi"></i> اسم الشبكة</span><span class="value">{{ sub.ssid }}</span></div>
+          <div class="row"><span class="label"><i class="fas fa-key"></i> كلمة المرور</span><span class="value">{{ sub.pass }}</span></div>
           <div class="row"><span class="label"><i class="fas fa-map-marker-alt"></i> المنطقة</span><span class="value">{{ sub.area }}</span></div>
-          <div class="row" v-if="sub.tower"><span class="label"><i class="fas fa-broadcast-tower"></i> البرج</span><span class="value" v-html="sub.tower + (sub.point ? ' <small style=color:var(--text3)>- ' + sub.point + '</small>' : '')"></span></div>
           <div class="row"><span class="label"><i class="fas fa-tag"></i> نوع الاشتراك</span><span class="value primary">{{ sub.type }}</span></div>
-          <div class="row"><span class="label"><i class="fas fa-dollar-sign"></i> مبلغ الاشتراك</span><span class="value primary" style="font-weight:900;font-size:16px">{{ formatMoney(sub.amount) }}</span></div>
+          <div class="row" v-if="sub.tower"><span class="label"><i class="fas fa-broadcast-tower"></i> البرج</span><span class="value">{{ sub.tower }}</span></div>
+          <div class="row" v-if="sub.point"><span class="label"><i class="fas fa-map-pin"></i> النقطة</span><span class="value">{{ sub.point }}</span></div>
           <div class="row"><span class="label"><i class="fas fa-calendar-plus"></i> تاريخ التفعيل</span><span class="value">{{ sub.start }}</span></div>
           <div class="row">
             <span class="label"><i class="fas fa-calendar-times"></i> تاريخ الانتهاء</span>
-            <span class="value" :class="subDays<0?'danger':subDays<=3?'warning':'success'">{{ sub.end }}</span>
+            <span class="value" :class="subDays<0?'danger':'success'">{{ sub.end }}</span>
           </div>
           <div class="row">
             <span class="label"><i class="fas fa-hourglass-half"></i> الأيام المتبقية</span>
-            <span class="value" :class="subDays<0?'danger':subDays<=3?'warning':'success'" style="font-weight:900">
-              {{ subDays<0 ? 'انتهى' : subDays + ' يوم' }}
+            <span class="value" :class="subDays<0?'danger':subDays<=3?'warning':'success'">
+              {{ subDays<0?'انتهى':subDays+' يوم' }}
             </span>
           </div>
           <div class="row">
-            <span class="label"><i class="fas fa-money-bill-wave"></i> حالة الدفع</span>
-            <span class="value" :class="sub.paid?'success':'danger'">{{ sub.paid ? 'مدفوع' : 'آجل' }}</span>
+            <span class="label"><i class="fas fa-dollar-sign"></i> حالة الدفع</span>
+            <span class="value" :class="sub.paid?'success':'danger'">{{ sub.paid?'مدفوع':'غير مدفوع' }}</span>
           </div>
-          <div class="row" v-if="sub.prevDebt > 0">
-            <span class="label"><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i> دين سابق</span>
-            <span class="value danger" style="font-weight:900;font-size:16px">{{ formatMoney(sub.prevDebt) }}</span>
+          <div class="row" v-if="!sub.paid">
+            <span class="label"><i class="fas fa-exclamation-triangle"></i> المبلغ المستحق</span>
+            <span class="value danger">{{ formatMoney(sub.amount) }}</span>
           </div>
-          <div class="row" v-if="(sub.prevDebt||0) + (sub.paid?0:sub.amount) > 0" style="cursor:pointer;background:var(--warning-glow);border-radius:8px;padding:4px 8px;margin-top:2px" @click="settleSub" title="اضغط لتسديد المستحقات">
-            <span class="label"><i class="fas fa-hand-holding-usd" style="color:var(--success)"></i> إجمالي المستحقات <small style="color:var(--text3);font-weight:400">(اضغط للدفع)</small></span>
-            <span class="value success" style="font-weight:900;font-size:16px">{{ formatMoney((sub.prevDebt||0) + (sub.paid?0:sub.amount)) }}</span>
+          <div class="row" v-if="sub.prevDebt>0">
+            <span class="label"><i class="fas fa-history"></i> الديون السابقة</span>
+            <span class="value warning">{{ formatMoney(sub.prevDebt) }}</span>
           </div>
-          <div v-if="sub.debtHistory && sub.debtHistory.length" style="margin-top:4px">
-            <div style="font-size:12px;font-weight:700;color:var(--text2);padding:6px 0 4px;display:flex;align-items:center;gap:6px">
-              <i class="fas fa-list" style="font-size:11px"></i> سجل الديون
-            </div>
-            <div v-for="(d, i) in sub.debtHistory" :key="i" style="font-size:11px;color:var(--text3);padding:4px 10px;background:var(--danger-glow);border-radius:6px;margin-bottom:3px;display:flex;justify-content:space-between">
-              <span><i class="fas fa-circle" style="font-size:6px;color:var(--danger);margin-left:4px"></i> {{ d.note }}</span>
-              <span style="font-weight:700;color:var(--danger)">{{ formatMoney(d.amount) }} | {{ d.date }}</span>
-            </div>
+          <div class="row" v-if="calcTotalDebt(sub)>0">
+            <span class="label"><i class="fas fa-coins"></i> إجمالي المستحقات</span>
+            <span class="value danger">{{ formatMoney(calcTotalDebt(sub)) }}</span>
           </div>
           <div class="row" v-if="sub.notes">
             <span class="label"><i class="fas fa-sticky-note"></i> ملاحظات</span>
             <span class="value">{{ sub.notes }}</span>
-          </div>
-          <div class="row" v-if="sub.freeCount > 0">
-            <span class="label"><i class="fas fa-gift" style="color:var(--warning)"></i> تفعيل مجاني</span>
-            <span class="value warning">{{ sub.freeCount }} يوم</span>
-          </div>
-          <div v-if="sub.freeDates && sub.freeDates.length" style="margin-top:4px">
-            <div style="font-size:12px;font-weight:700;color:var(--text2);padding:6px 0 4px;display:flex;align-items:center;gap:6px">
-              <i class="fas fa-history" style="font-size:11px"></i> سجل التفعيلات المجانية
-            </div>
-            <div v-for="(d, i) in sub.freeDates" :key="i" style="font-size:11px;color:var(--text3);padding:4px 10px;background:var(--warning-glow);border-radius:6px;margin-bottom:3px">
-              <i class="fas fa-gift" style="color:var(--warning);font-size:10px"></i> {{ d }}
-            </div>
           </div>
         </div>
       </div>
@@ -607,23 +592,17 @@ var SubDetailPage = {
       <div v-if="!sub" style="padding:40px;text-align:center;color:var(--text3)">المشترك غير موجود</div>
 
       <div v-if="sub" class="detail-actions">
-        <button class="cy" @click="editSub"><i class="fas fa-edit"></i> تعديل</button>
-        <button v-if="sub.status==='expired'" class="gr" @click="renewSub"><i class="fas fa-sync"></i> تجديد</button>
-        <button v-if="(sub.prevDebt||0) + (sub.paid?0:sub.amount) > 0" class="cy" @click="settleSub"><i class="fas fa-hand-holding-usd"></i> تسديد</button>
-        <button class="gr" @click="openFreeModal(sub.id)"><i class="fas fa-gift"></i> مجاني</button>
-        <button class="gr" @click="sendWA"><i class="fab fa-whatsapp"></i> واتساب</button>
-        <button v-if="sub.status==='active'" class="ow" @click="disableSub">
-          <i class="fas fa-pause-circle"></i> تعطيل
+        <button v-if="can('subscribers.edit')" class="cy" @click="quickEdit"><i class="fas fa-edit"></i> تعديل</button>
+        <button v-if="can('subscribers.renew')" class="gr" @click="openRenew(sub.id)"><i class="fas fa-sync"></i> تجديد</button>
+        <button v-if="can('subscribers.settle') && calcTotalDebt(sub)>0" class="ow" @click="openSettle(sub.id)"><i class="fas fa-hand-holding-usd"></i> تسديد</button>
+        <button v-if="can('subscribers.edit')" class="ow" @click="activateFree"><i class="fas fa-gift"></i> تفعيل مجاني</button>
+        <button v-if="can('subscribers.edit')" class="rd" @click="toggleStatus">
+          <i class="fas" :class="sub.status==='active'?'fa-pause':'fa-play'"></i>
+          {{ sub.status==='active'?'إيقاف':'تشغيل' }}
         </button>
-        <button v-if="sub.status==='disabled'" class="gr" @click="enableSub">
-          <i class="fas fa-play-circle"></i> تفعيل
-        </button>
-        <button v-if="sub.status==='inactive'" class="gr" @click="reactivateSub">
-          <i class="fas fa-play-circle"></i> تفعيل
-        </button>
-        <button v-if="sub.status!=='active'" class="rd" @click="deleteSub">
-          <i class="fas fa-trash"></i> حذف
-        </button>
+        <button v-if="can('whatsapp')" class="gr" @click="sendWA"><i class="fab fa-whatsapp"></i> واتساب</button>
+        <button v-if="can('subscribers.del')" class="ow" @click="archiveSub"><i class="fas fa-archive"></i> أرشفة</button>
+        <button v-if="can('subscribers.del')" class="rd" @click="deleteSub"><i class="fas fa-trash"></i> حذف</button>
       </div>
     </div>
   `,
@@ -633,86 +612,58 @@ var SubDetailPage = {
 
     const sub = computed(() => subs.find(s => s.id === parseInt(route.params.id)));
     const subDays = computed(() => sub.value ? daysBetween(new Date(sub.value.end), new Date()) : 0);
-    const statusLabel = computed(() => {
-      if (!sub.value) return '';
-      const m = { active: 'فعال', expired: 'منتهي', disabled: 'معطل', inactive: 'غير مفعل' };
-      return m[sub.value.status] || 'غير مفعل';
-    });
-    const statusClass = computed(() => {
-      if (!sub.value) return '';
-      const m = { active: 'active', expired: 'inactive', disabled: 'disabled', inactive: 'pending' };
-      return m[sub.value.status] || 'pending';
-    });
 
-    function editSub() {
-      if (sub.value) window.openQuickEditModal(sub.value.id);
+    function openRenew(id) {
+      window.openRenewModal(id);
     }
 
-    function renewSub() {
-      if (sub.value) window.openRenewModal(sub.value.id);
+    function openSettle(id) {
+      window.openSettleModal(id);
     }
 
-    function settleSub() {
-      if (sub.value) window.openSettleModal(sub.value.id);
+    function quickEdit() {
+      if(sub.value) window.openQuickEditModal(sub.value.id);
     }
 
-    function reactivateSub() {
-      const s = sub.value;
-      if (!s) return;
-      const now = todayStr();
-      const end = calcEndFromType(s.type, now).toISOString().split('T')[0];
-      document.getElementById('modalTitle').innerHTML = '<i class="fas fa-play-circle" style="color:var(--success)"></i> إعادة تفعيل ' + s.name;
-      document.getElementById('modalBody').innerHTML =
-        '<div class="form-wrap" style="padding:0">' +
-        '<div class="form-group"><label><i class="fas fa-tag"></i> الباقة</label>' +
-        '<select id="reactType" onchange="reactOnTypeChange(' + s.id + ')">' +
-        subscriptionTypes.filter(t => t.name !== 'مجاني').map(t =>
-          '<option value="' + t.id + '" ' + (t.name === s.type ? 'selected' : '') + '>' + t.name + ' - ' + formatMoney(t.price) + '</option>'
-        ).join('') + '</select></div>' +
-        '<div class="form-row"><div class="form-group"><label><i class="fas fa-calendar"></i> تاريخ التفعيل</label>' +
-        '<input type="date" id="reactStart" value="' + now + '" onchange="reactOnTypeChange(' + s.id + ')"></div>' +
-        '<div class="form-group"><label><i class="fas fa-calendar-check"></i> ينتهي</label>' +
-        '<input type="date" id="reactEnd" value="' + end + '" readonly style="color:var(--primary);font-weight:800"></div></div>' +
-        '<div class="form-group"><label><i class="fas fa-money-bill-wave"></i> حالة الدفع</label>' +
-        '<div style="display:flex;gap:8px">' +
-        '<button type="button" class="as-paid-btn active" id="reactPaidBtn" onclick="window._reactPaid=true;document.getElementById(\'reactPaidBtn\').classList.add(\'active\');document.getElementById(\'reactDebtBtn\').classList.remove(\'active\')"><i class="fas fa-check-circle"></i> مدفوع</button>' +
-        '<button type="button" class="as-paid-btn" id="reactDebtBtn" onclick="window._reactPaid=false;document.getElementById(\'reactDebtBtn\').classList.add(\'active\');document.getElementById(\'reactPaidBtn\').classList.remove(\'active\')"><i class="fas fa-clock"></i> آجل</button></div></div>' +
-        '<div class="form-actions"><button class="success" onclick="confirmReactivate(' + s.id + ')"><i class="fas fa-check"></i> تفعيل</button>' +
-        '<button class="secondary" onclick="closeModal()">إلغاء</button></div></div>';
-      window._reactPaid = true;
-      openModal();
+    function activateFree() {
+      if(sub.value) window.openFreeModal(sub.value.id);
     }
 
-    function disableSub() {
-      if (!sub.value) return;
-      sub.value.status = 'disabled';
+    function toggleStatus() {
+      if(!sub.value) return;
+      sub.value.status = sub.value.status === 'active' ? 'inactive' : 'active';
       saveAllData();
-      showToast('⏸️ تم تعطيل ' + sub.value.name);
-    }
-
-    function enableSub() {
-      if (!sub.value) return;
-      sub.value.status = 'active';
-      saveAllData();
-      showToast('▶️ تم إعادة تفعيل ' + sub.value.name);
+      showToast(sub.value.status === 'active' ? '▶️ تم التشغيل' : '⏸️ تم الإيقاف');
     }
 
     function sendWA() {
-      if (!sub.value) return;
-      router.push('/whatsapp?subId=' + sub.value.id + '&tpl=0');
+      if(!sub.value) return;
+      window.open('https://wa.me/' + sub.value.phone, '_blank');
+    }
+
+    function archiveSub() {
+      if(!sub.value) return;
+      const idx = subs.findIndex(x => x.id === sub.value.id);
+      if(idx === -1) return;
+      const s = subs.splice(idx, 1)[0];
+      s.archived = true;
+      archivedSubs.push(s);
+      saveAllData();
+      showToast('📦 تم أرشفة المشترك');
+      router.push('/subscribers');
     }
 
     function deleteSub() {
-      if (!sub.value) return;
-      if (!confirm('⚠️ هل أنت متأكد من حذف ' + sub.value.name + ' بشكل نهائي؟')) return;
+      if(!sub.value) return;
+      if(!confirm('⚠️ هل أنت متأكد من حذف هذا المشترك؟')) return;
       const idx = subs.findIndex(x => x.id === sub.value.id);
-      if (idx !== -1) subs.splice(idx, 1);
+      if(idx !== -1) subs.splice(idx, 1);
       saveAllData();
       showToast('🗑️ تم حذف المشترك');
       router.push('/subscribers');
     }
 
-    return { sub, subDays, statusLabel, statusClass, editSub, renewSub, settleSub, reactivateSub, disableSub, enableSub, sendWA, deleteSub, formatMoney, openFreeModal };
+    return { sub, subDays, openRenew, openSettle, quickEdit, activateFree, toggleStatus, sendWA, archiveSub, deleteSub, formatMoney, calcTotalDebt, can };
   }
 };
 
@@ -906,26 +857,26 @@ var FinancePage = {
     <div class="page">
       <div class="shead"><h2><i class="fas fa-coins"></i> الصندوق المالي</h2></div>
 
-      <div class="stats">
-        <div class="stat-card">
-          <div class="top"><div class="icon green"><i class="fas fa-arrow-down"></i></div></div>
-          <div class="num" style="color:var(--success)">{{ cIncome }}</div>
-          <div class="label">إجمالي الإيرادات</div>
+      <div class="fin-grid-2x2">
+        <div class="fin-square-card income">
+          <div class="fsc-icon"><i class="fas fa-arrow-down"></i></div>
+          <div class="fsc-num">{{ cIncome }}</div>
+          <div class="fsc-label">إجمالي الإيرادات</div>
         </div>
-        <div class="stat-card">
-          <div class="top"><div class="icon red"><i class="fas fa-arrow-up"></i></div></div>
-          <div class="num" style="color:var(--danger)">{{ cExpense }}</div>
-          <div class="label">إجمالي المصروفات</div>
+        <div class="fin-square-card expense">
+          <div class="fsc-icon"><i class="fas fa-arrow-up"></i></div>
+          <div class="fsc-num">{{ cExpense }}</div>
+          <div class="fsc-label">إجمالي المصروفات</div>
         </div>
-        <div class="stat-card">
-          <div class="top"><div class="icon cyan"><i class="fas fa-wallet"></i></div></div>
-          <div class="num" style="color:var(--primary)">{{ cBalance }}</div>
-          <div class="label">الرصيد الحالي</div>
+        <div class="fin-square-card balance">
+          <div class="fsc-icon"><i class="fas fa-wallet"></i></div>
+          <div class="fsc-num">{{ cBalance }}</div>
+          <div class="fsc-label">الرصيد الحالي</div>
         </div>
-        <div class="stat-card">
-          <div class="top"><div class="icon orange"><i class="fas fa-exclamation-triangle"></i></div></div>
-          <div class="num" style="color:var(--warning)">{{ cDebts }}</div>
-          <div class="label">الديون المستحقة</div>
+        <div class="fin-square-card debts">
+          <div class="fsc-icon"><i class="fas fa-exclamation-triangle"></i></div>
+          <div class="fsc-num">{{ cDebts }}</div>
+          <div class="fsc-label">الديون المستحقة</div>
         </div>
       </div>
 
@@ -988,7 +939,7 @@ var FinancePage = {
         </div>
       </div>
 
-      <div class="fin-acts">
+      <div class="fin-acts" v-if="can('finance.add')">
         <button class="gr" @click="addFinance('income')"><i class="fas fa-plus-circle"></i> إضافة إيراد</button>
         <button class="rd" @click="addFinance('expense')"><i class="fas fa-minus-circle"></i> إضافة مصروف</button>
       </div>
@@ -1004,9 +955,15 @@ var FinancePage = {
                 <i class="fas fa-map-marker-alt" style="font-size:8px"></i> {{ ff.area || '—' }} · {{ ff.tower || '—' }}{{ ff.point ? ' - ' + ff.point : '' }}
               </div>
             </div>
-            <div style="text-align:left">
-              <div class="famount" :class="ff.type">{{ ff.type==='income'?'+':'-' }} {{ formatMoney(ff.amount) }}</div>
-              <span class="ftype">{{ ff.type==='income'?'إيراد':'مصروف' }}</span>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="text-align:left">
+                <div class="famount" :class="ff.type">{{ ff.type==='income'?'+':'-' }} {{ formatMoney(ff.amount) }}</div>
+                <span class="ftype">{{ ff.type==='income'?'إيراد':'مصروف' }}</span>
+              </div>
+              <div class="fin-actions" v-if="can('finance.edit') || can('finance.del')">
+                <button v-if="can('finance.edit')" class="fin-edit-btn" @click="editFinance(ff)" title="تعديل"><i class="fas fa-pen"></i></button>
+                <button v-if="can('finance.del')" class="fin-del-btn" @click="delFinance(ff.id)" title="حذف"><i class="fas fa-times"></i></button>
+              </div>
             </div>
           </div>
         </div>
@@ -1019,7 +976,6 @@ var FinancePage = {
   setup() {
     const f = reactive({ search:'', type:'all', status:'all', dateFrom:'', dateTo:'', area:'all', tower:'all', point:'all' });
     const af = reactive({ ...f });
-
     function applyFilters() { Object.assign(af, f); }
 
     function matchesFilters(r) {
@@ -1091,7 +1047,28 @@ var FinancePage = {
       openModal();
     }
 
-    return { f, applyFilters, filteredGroups, allAreas, allTowers, filteredPoints, cIncome, cExpense, cBalance, cDebts, addFinance, formatMoney };
+    function editFinance(ff) {
+      document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit" style="color:var(--primary)"></i> تعديل العملية';
+      document.getElementById('modalBody').innerHTML =
+        '<div class="form-wrap" style="padding:0">' +
+        '<div class="form-group"><label>الوصف</label><input type="text" id="fEditDesc" value="' + ff.desc + '"></div>' +
+        '<div class="form-group"><label>المبلغ (دينار)</label><input type="number" id="fEditAmount" value="' + ff.amount + '"></div>' +
+        (ff.type === 'expense' ? '<div class="form-group"><label>فئة المصروف</label><select id="fEditCategory">' + expenseCategories.map(c => '<option ' + (c.name === ff.category ? 'selected' : '') + '>' + c.name + '</option>').join('') + '</select></div>' : '') +
+        '<div class="form-actions">' +
+        '<button class="primary" onclick="saveFinanceEdit(' + ff.id + ')">حفظ التعديل</button>' +
+        '<button class="secondary" onclick="closeModal()">إلغاء</button></div></div>';
+      openModal();
+    }
+
+    function delFinance(id) {
+      if (!confirm('⚠️ هل أنت متأكد من حذف هذه العملية المالية؟')) return;
+      const idx = finRecords.findIndex(f => f.id === id);
+      if (idx !== -1) finRecords.splice(idx, 1);
+      saveAllData();
+      showToast('🗑️ تم الحذف');
+    }
+
+    return { f, applyFilters, filteredGroups, allAreas, allTowers, filteredPoints, cIncome, cExpense, cBalance, cDebts, addFinance, editFinance, delFinance, formatMoney, can };
   }
 };
 
@@ -1110,176 +1087,70 @@ var ArchivePage = {
       </div>
 
       <div v-if="tab==='finance'">
-        <div class="filter-panel">
-          <div class="fp-row">
-            <div class="fp-group" style="flex:2">
-              <label>🔍 بحث</label>
-              <input type="text" placeholder="كلمة بحث..." v-model="f.search">
-            </div>
-            <div class="fp-group">
-              <label>📅 من تاريخ</label>
-              <input type="date" v-model="f.dateFrom">
-            </div>
-            <div class="fp-group">
-              <label>📅 إلى تاريخ</label>
-              <input type="date" v-model="f.dateTo">
-            </div>
-            <button class="search-btn" style="margin-top:22px" @click="applyFilters"><i class="fas fa-search"></i> بحث</button>
+        <div class="search-bar">
+          <div class="input-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="بحث في الوصف..." v-model="finSearch">
           </div>
-          <div class="fp-row">
-            <div class="fp-group">
-              <label>النوع</label>
-              <select v-model="f.type">
-                <option value="all">الكل</option>
-                <option value="income">إيرادات</option>
-                <option value="expense">مصروفات</option>
-              </select>
+        </div>
+        <div class="filter-row">
+          <div class="filter-chip" :class="{ active: finFilter==='all' }" @click="finFilter='all'">الكل</div>
+          <div class="filter-chip" :class="{ active: finFilter==='income' }" @click="finFilter='income'">إيرادات</div>
+          <div class="filter-chip" :class="{ active: finFilter==='expense' }" @click="finFilter='expense'">مصروفات</div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-chip" :class="{ active: finArchiveFilter==='all' }" @click="finArchiveFilter='all'">كل السجلات</div>
+          <div class="filter-chip" :class="{ active: finArchiveFilter==='archived' }" @click="finArchiveFilter='archived'">مؤرشف</div>
+          <div class="filter-chip" :class="{ active: finArchiveFilter==='current' }" @click="finArchiveFilter='current'">حالي</div>
+        </div>
+        <div class="filter-row">
+          <div style="display:flex;gap:8px;flex:1">
+            <div style="flex:1;min-width:0">
+              <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:2px">من تاريخ</label>
+              <input type="date" v-model="finDateFrom" style="width:100%;padding:8px 10px;font-size:13px;border-radius:10px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-family:inherit">
             </div>
-            <div class="fp-group">
-              <label>الحالة</label>
-              <select v-model="f.status">
-                <option value="all">الكل</option>
-                <option value="active">فعال</option>
-                <option value="expired">منتهي</option>
-                <option value="inactive">غير مفعل</option>
-                <option value="disabled">معطل</option>
-              </select>
-            </div>
-            <div class="fp-group">
-              <label>📍 المنطقة</label>
-              <select v-model="f.area" @change="f.tower='all';f.point='all'">
-                <option value="all">كل المناطق</option>
-                <option v-for="a in allAreas" :key="a" :value="a">{{ a }}</option>
-              </select>
-            </div>
-            <div class="fp-group">
-              <label>📡 البرج</label>
-              <select v-model="f.tower" @change="f.point='all'">
-                <option value="all">كل الأبراج</option>
-                <option v-for="t in allTowers" :key="t" :value="t">{{ t }}</option>
-              </select>
-            </div>
-            <div class="fp-group">
-              <label>📍 النقطة</label>
-              <select v-model="f.point">
-                <option value="all">كل النقاط</option>
-                <option v-for="p in filteredPoints" :key="p" :value="p">{{ p }}</option>
-              </select>
+            <div style="flex:1;min-width:0">
+              <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:2px">إلى تاريخ</label>
+              <input type="date" v-model="finDateTo" style="width:100%;padding:8px 10px;font-size:13px;border-radius:10px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-family:inherit">
             </div>
           </div>
         </div>
-          <div class="fp-group">
-            <label>📅 من تاريخ</label>
-            <input type="date" v-model="f.dateFrom">
-          </div>
-          <div class="fp-group">
-            <label>📅 إلى تاريخ</label>
-            <input type="date" v-model="f.dateTo">
-          </div>
-          <button class="search-btn" style="margin-top:22px" @click="applyFilters"><i class="fas fa-search"></i> بحث</button>
-        </div>
-        <div class="fp-row">
-          <div class="fp-group">
-            <label>النوع</label>
-            <select v-model="f.type">
-              <option value="all">الكل</option>
-              <option value="income">إيرادات</option>
-              <option value="expense">مصروفات</option>
-            </select>
-          </div>
-          <div class="fp-group">
-            <label>الحالة</label>
-            <select v-model="f.status">
-              <option value="all">الكل</option>
-              <option value="active">فعال</option>
-              <option value="expired">منتهي</option>
-              <option value="inactive">غير مفعل</option>
-              <option value="disabled">معطل</option>
-            </select>
-          </div>
-          <div class="fp-group">
-            <label>📍 المنطقة</label>
-            <select v-model="f.area" @change="f.tower='all';f.point='all'">
-              <option value="all">كل المناطق</option>
-              <option v-for="a in allAreas" :key="a" :value="a">{{ a }}</option>
-            </select>
-          </div>
-          <div class="fp-group">
-            <label>📡 البرج</label>
-            <select v-model="f.tower" @change="f.point='all'">
-              <option value="all">كل الأبراج</option>
-              <option v-for="t in allTowers" :key="t" :value="t">{{ t }}</option>
-            </select>
-          </div>
-          <div class="fp-group">
-            <label>📍 النقطة</label>
-            <select v-model="f.point">
-              <option value="all">كل النقاط</option>
-              <option v-for="p in filteredPoints" :key="p" :value="p">{{ p }}</option>
-            </select>
-          </div>
-        </div>
-      </div>
 
         <div class="fin-list">
-          <div v-for="(group, month) in filteredGroups" :key="month" style="margin-bottom:16px">
+          <div v-for="(group, month) in finGroups" :key="month" style="margin-bottom:16px">
             <div style="font-weight:800;color:var(--primary);margin-bottom:8px;padding:0 4px;font-size:14px">{{ month }}</div>
-            <div v-for="ff in group" :key="ff.id" class="fin-item">
+            <div v-for="f in group" :key="f.id" class="fin-item" :class="{ 'fin-item-archived': f.archived }">
               <div class="fleft">
-                <div class="fdate">{{ ff.date }}</div>
-                <div class="fdesc">{{ ff.desc }}</div>
-                <div v-if="ff.area || ff.tower" style="font-size:10px;color:var(--text3);margin-top:2px">
-                  <i class="fas fa-map-marker-alt" style="font-size:8px"></i> {{ ff.area || '—' }} · {{ ff.tower || '—' }}{{ ff.point ? ' - ' + ff.point : '' }}
-                </div>
+                <div class="fdate">{{ f.date }}</div>
+                <div class="fdesc">{{ f.desc }}</div>
               </div>
-              <div style="text-align:left">
-                <div class="famount" :class="ff.type">{{ ff.type==='income'?'+':'-' }} {{ formatMoney(ff.amount) }}</div>
-                <span class="ftype">{{ ff.type==='income'?'إيراد':'مصروف' }}</span>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span v-if="f.archived" class="archived-badge"><i class="fas fa-archive"></i> مؤرشف</span>
+                <div style="text-align:left">
+                  <div class="famount" :class="f.type">{{ f.type==='income'?'+':'-' }} {{ formatMoney(f.amount) }}</div>
+                  <span class="ftype">{{ f.type==='income'?'إيراد':'مصروف' }}</span>
+                </div>
               </div>
             </div>
           </div>
-          <p v-if="!Object.keys(filteredGroups).length" style="color:var(--text3);padding:40px;text-align:center;font-size:14px">
+          <p v-if="!Object.keys(finGroups).length" style="color:var(--text3);padding:40px;text-align:center;font-size:14px">
             <i class="fas fa-inbox" style="font-size:48px;display:block;margin-bottom:14px;opacity:.2"></i>لا توجد عمليات مطابقة
           </p>
         </div>
       </div>
 
       <div v-if="tab==='subs'" class="archive-list">
-        <div class="filter-panel">
-          <div class="fp-row" style="align-items:flex-end">
-            <div class="fp-group" style="flex:2">
-              <label>🔍 بحث</label>
-              <input type="text" placeholder="اسم أو هاتف..." v-model="sf.search">
-            </div>
-            <div class="fp-group">
-              <label>📍 المنطقة</label>
-              <select v-model="sf.area">
-                <option value="all">كل المناطق</option>
-                <option v-for="a in allAreas" :key="a" :value="a">{{ a }}</option>
-              </select>
-            </div>
-            <div class="fp-group">
-              <label>📡 البرج</label>
-              <select v-model="sf.tower" @change="sf.point='all'">
-                <option value="all">كل الأبراج</option>
-                <option v-for="t in allTowers" :key="t" :value="t">{{ t }}</option>
-              </select>
-            </div>
-            <div class="fp-group">
-              <label>📍 النقطة</label>
-              <select v-model="sf.point">
-                <option value="all">كل النقاط</option>
-                <option v-for="p in subFilteredPoints" :key="p" :value="p">{{ p }}</option>
-              </select>
-            </div>
-            <button class="search-btn" style="margin-top:22px" @click="applySubFilters"><i class="fas fa-search"></i> بحث</button>
+        <div class="search-bar">
+          <div class="input-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="بحث في الاسم أو الهاتف أو المنطقة..." v-model="subSearch">
           </div>
         </div>
         <div v-for="s in filteredArchived" :key="s.id" class="arch-card">
           <div style="width:42px;height:42px;border-radius:12px;background:var(--bg2);display:grid;place-items:center;font-size:18px;font-weight:800;color:var(--text3);flex-shrink:0">{{ s.name.charAt(0) }}</div>
           <div class="ainfo">
             <h4>{{ s.name }}</h4>
-            <p>{{ s.phone }} · {{ s.type }} · {{ s.area }}{{ s.tower ? ' · ' + s.tower : '' }}{{ s.point ? ' - ' + s.point : '' }}</p>
+            <p>{{ s.phone }} · {{ s.type }} · {{ s.area }}</p>
           </div>
           <div class="aacts">
             <button @click="restoreSub(s.id)" title="استعادة"><i class="fas fa-undo"></i></button>
@@ -1294,14 +1165,12 @@ var ArchivePage = {
   `,
   setup() {
     const tab = ref('finance');
-    const f = reactive({ search:'', type:'all', status:'all', dateFrom:'', dateTo:'', area:'all', tower:'all', point:'all' });
-    const af = reactive({ ...f });
-    function applyFilters() { Object.assign(af, f); }
-
-    // sub filters
-    const sf = reactive({ search:'', area:'all', tower:'all', point:'all' });
-    const sa = reactive({ search:'', area:'all', tower:'all', point:'all' });
-    function applySubFilters() { Object.assign(sa, sf); }
+    const finSearch = ref('');
+    const finFilter = ref('all');
+    const finArchiveFilter = ref('all');
+    const finDateFrom = ref('');
+    const finDateTo = ref('');
+    const subSearch = ref('');
 
     function restoreSub(id) {
       const idx = archivedSubs.findIndex(s => s.id === id);
@@ -1323,57 +1192,43 @@ var ArchivePage = {
 
     const filteredArchived = computed(() => {
       let list = [...archivedSubs];
-      const q = sa.search.toLowerCase();
-      if(q) list = list.filter(s => s.name.toLowerCase().includes(q) || s.phone.includes(q) || s.area.toLowerCase().includes(q) || (s.type||'').toLowerCase().includes(q));
-      if(sa.area !== 'all') list = list.filter(s => s.area === sa.area);
-      if(sa.tower !== 'all') list = list.filter(s => (s.tower||'') === sa.tower);
-      if(sa.point !== 'all') list = list.filter(s => (s.point||'') === sa.point);
+      const q = subSearch.value.toLowerCase();
+      if (q) {
+        list = list.filter(s =>
+          s.name.toLowerCase().includes(q) ||
+          s.phone.includes(q) ||
+          s.area.toLowerCase().includes(q) ||
+          (s.type || '').toLowerCase().includes(q)
+        );
+      }
       return list;
     });
 
-    const subFilteredPoints = computed(() => {
-      if (sf.tower === 'all') return [...new Set(towers.flatMap(t => t.points))].sort();
-      const tower = towers.find(t => t.name === sf.tower);
-      return tower ? [...tower.points].sort() : [];
-    });
+    const finGroups = computed(() => {
+      let list = [...finRecords];
+      const q = finSearch.value.toLowerCase();
+      if(q) list = list.filter(f => f.desc.toLowerCase().includes(q));
 
-    function matchesFilters(r) {
-      if(af.type !== 'all' && r.type !== af.type) return false;
-      if(af.dateFrom && r.date < af.dateFrom) return false;
-      if(af.dateTo && r.date > af.dateTo) return false;
-      if(af.search) { const q = af.search.toLowerCase(); if(!r.desc.toLowerCase().includes(q)) return false; }
-      if(af.area !== 'all' && r.area !== af.area) return false;
-      if(af.tower !== 'all' && r.tower !== af.tower) return false;
-      if(af.point !== 'all' && r.point !== af.point) return false;
-      if(af.status !== 'all') {
-        const sub = r.subId ? subs.find(s => s.id === r.subId) : null;
-        if(!sub || sub.status !== af.status) return false;
-      }
-      return true;
-    }
+      if(finArchiveFilter.value === 'archived') list = list.filter(f => f.archived);
+      else if(finArchiveFilter.value === 'current') list = list.filter(f => !f.archived);
 
-    const filteredGroups = computed(() => {
-      let list = finRecords.filter(matchesFilters);
+      if(finFilter.value === 'income') list = list.filter(f => f.type === 'income');
+      else if(finFilter.value === 'expense') list = list.filter(f => f.type === 'expense');
+      if (finDateFrom.value) list = list.filter(f => f.date >= finDateFrom.value);
+      if (finDateTo.value) list = list.filter(f => f.date <= finDateTo.value);
+
       const m = ['', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
       const groups = {};
-      list.forEach(r => {
-        const [y, month] = r.date.substring(0, 7).split('-');
+      list.forEach(f => {
+        const [y, month] = f.date.substring(0, 7).split('-');
         const label = m[parseInt(month)] + ' ' + y;
         if(!groups[label]) groups[label] = [];
-        groups[label].push(r);
+        groups[label].push(f);
       });
       return groups;
     });
 
-    const allAreas = computed(() => [...areas].sort());
-    const allTowers = computed(() => towers.map(t => t.name).sort());
-    const filteredPoints = computed(() => {
-      if (f.tower === 'all') return [...new Set(towers.flatMap(t => t.points))].sort();
-      const tower = towers.find(t => t.name === f.tower);
-      return tower ? [...tower.points].sort() : [];
-    });
-
-    return { tab, f, applyFilters, filteredGroups, allAreas, allTowers, filteredPoints, sf, sa, applySubFilters, subFilteredPoints, filteredArchived, restoreSub, permaDelete, formatMoney };
+    return { tab, finSearch, finFilter, finArchiveFilter, finDateFrom, finDateTo, subSearch, finGroups, filteredArchived, restoreSub, permaDelete, formatMoney };
   }
 };
 
@@ -1386,124 +1241,184 @@ var ReportsPage = {
     <div class="page">
       <div class="shead"><h2><i class="fas fa-chart-bar"></i> التقارير</h2></div>
 
-      <div class="filter-panel">
-        <div class="fp-row">
-          <div class="fp-group" style="flex:2">
-            <label>🔍 بحث</label>
-            <input type="text" placeholder="كلمة بحث..." v-model="f.search">
-          </div>
-          <div class="fp-group">
-            <label>📅 من تاريخ</label>
-            <input type="date" v-model="f.dateFrom">
-          </div>
-          <div class="fp-group">
-            <label>📅 إلى تاريخ</label>
-            <input type="date" v-model="f.dateTo">
-          </div>
-          <button class="search-btn" style="margin-top:22px" @click="applyFilters"><i class="fas fa-search"></i> بحث</button>
+      <div class="stats">
+        <div class="stat-card">
+          <div class="top"><div class="icon cyan"><i class="fas fa-users"></i></div></div>
+          <div class="num" style="color:var(--primary)">{{ rActive }}</div>
+          <div class="label">مشتركين فعالين</div>
         </div>
-        <div class="fp-row">
-          <div class="fp-group">
-            <label>النوع</label>
-            <select v-model="f.type">
-              <option value="all">الكل</option>
-              <option value="income">إيرادات</option>
-              <option value="expense">مصروفات</option>
-            </select>
-          </div>
-          <div class="fp-group">
-            <label>الحالة</label>
-            <select v-model="f.status">
-              <option value="all">الكل</option>
-              <option value="active">فعال</option>
-              <option value="expired">منتهي</option>
-              <option value="inactive">غير مفعل</option>
-              <option value="disabled">معطل</option>
-            </select>
-          </div>
-          <div class="fp-group">
-            <label>📍 المنطقة</label>
-            <select v-model="f.area" @change="f.tower='all';f.point='all'">
-              <option value="all">كل المناطق</option>
-              <option v-for="a in allAreas" :key="a" :value="a">{{ a }}</option>
-            </select>
-          </div>
-          <div class="fp-group">
-            <label>📡 البرج</label>
-            <select v-model="f.tower" @change="f.point='all'">
-              <option value="all">كل الأبراج</option>
-              <option v-for="t in allTowers" :key="t" :value="t">{{ t }}</option>
-            </select>
-          </div>
-          <div class="fp-group">
-            <label>📍 النقطة</label>
-            <select v-model="f.point">
-              <option value="all">كل النقاط</option>
-              <option v-for="p in filteredPoints" :key="p" :value="p">{{ p }}</option>
-            </select>
-          </div>
+        <div class="stat-card">
+          <div class="top"><div class="icon red"><i class="fas fa-ban"></i></div></div>
+          <div class="num" style="color:var(--danger)">{{ rExpired }}</div>
+          <div class="label">اشتراكات منتهية</div>
+        </div>
+        <div class="stat-card">
+          <div class="top"><div class="icon orange"><i class="fas fa-user-clock"></i></div></div>
+          <div class="num" style="color:var(--warning)">{{ rInactive }}</div>
+          <div class="label">غير مفعلين</div>
+        </div>
+        <div class="stat-card">
+          <div class="top"><div class="icon red"><i class="fas fa-coins"></i></div></div>
+          <div class="num" style="color:var(--danger)">{{ rDebts }}</div>
+          <div class="label">الديون المستحقة</div>
+        </div>
+        <div class="stat-card">
+          <div class="top"><div class="icon green"><i class="fas fa-wallet"></i></div></div>
+          <div class="num" style="color:var(--success)">{{ rPayments }}</div>
+          <div class="label">إجمالي المدفوعات</div>
+        </div>
+        <div class="stat-card">
+          <div class="top"><div class="icon cyan"><i class="fas fa-archive"></i></div></div>
+          <div class="num" style="color:var(--primary)">{{ rArchived }}</div>
+          <div class="label">المؤرشفين</div>
         </div>
       </div>
 
-      <div class="report-cards">
-        <div v-for="r in reports" :key="r.label" class="rep-card">
-          <div class="rnum" :class="r.color">{{ r.num }}</div>
-          <div class="rlabel">{{ r.label }}</div>
-        </div>
+      <div class="filter-row" style="padding:0 20px 12px">
+        <div class="filter-chip" :class="{ active: repTab==='finance' }" @click="repTab='finance'">السجل المالي</div>
+        <div class="filter-chip" :class="{ active: repTab==='subs' }" @click="repTab='subs'">المشتركين</div>
+        <div class="filter-chip" :class="{ active: repTab==='debts' }" @click="repTab='debts'">الديون</div>
       </div>
 
-      <div style="padding:8px 20px 0">
-        <h3 style="font-size:14px;color:var(--text2)"><i class="fas fa-list"></i> سجل العمليات</h3>
-      </div>
-      <div class="fin-list">
-        <div v-for="(group, month) in filteredGroups" :key="month" style="margin-bottom:16px">
-          <div style="font-weight:800;color:var(--primary);margin-bottom:8px;padding:0 4px;font-size:14px">{{ month }}</div>
-          <div v-for="ff in group" :key="ff.id" class="fin-item">
-            <div class="fleft">
-              <div class="fdate">{{ ff.date }}</div>
-              <div class="fdesc">{{ ff.desc }}</div>
-              <div v-if="ff.area || ff.tower" style="font-size:10px;color:var(--text3);margin-top:2px">
-                <i class="fas fa-map-marker-alt" style="font-size:8px"></i> {{ ff.area || '—' }} · {{ ff.tower || '—' }}{{ ff.point ? ' - ' + ff.point : '' }}
+      <div v-if="repTab==='finance'">
+        <div class="search-bar">
+          <div class="input-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="بحث في الوصف..." v-model="searchQuery">
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-chip" :class="{ active: filterType==='all' }" @click="filterType='all'">الكل</div>
+          <div class="filter-chip" :class="{ active: filterType==='income' }" @click="filterType='income'">إيرادات</div>
+          <div class="filter-chip" :class="{ active: filterType==='expense' }" @click="filterType='expense'">مصروفات</div>
+        </div>
+        <div class="filter-row">
+          <div style="display:flex;gap:8px;flex:1">
+            <div style="flex:1;min-width:0">
+              <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:2px">من تاريخ</label>
+              <input type="date" v-model="dateFrom" style="width:100%;padding:8px 10px;font-size:13px;border-radius:10px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-family:inherit">
+            </div>
+            <div style="flex:1;min-width:0">
+              <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:2px">إلى تاريخ</label>
+              <input type="date" v-model="dateTo" style="width:100%;padding:8px 10px;font-size:13px;border-radius:10px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-family:inherit">
+            </div>
+          </div>
+        </div>
+        <div class="fin-list">
+          <div v-for="(group, month) in filteredGroups" :key="month" style="margin-bottom:16px">
+            <div style="font-weight:800;color:var(--primary);margin-bottom:8px;padding:0 4px;font-size:14px">{{ month }}</div>
+            <div v-for="f in group" :key="f.id" class="fin-item">
+              <div class="fleft">
+                <div class="fdate">{{ f.date }}</div>
+                <div class="fdesc">{{ f.desc }}</div>
+              </div>
+              <div style="text-align:left">
+                <div class="famount" :class="f.type">{{ f.type==='income'?'+':'-' }} {{ formatMoney(f.amount) }}</div>
+                <span class="ftype">{{ f.type==='income'?'إيراد':'مصروف' }}</span>
               </div>
             </div>
-            <div style="text-align:left">
-              <div class="famount" :class="ff.type">{{ ff.type==='income'?'+':'-' }} {{ formatMoney(ff.amount) }}</div>
-              <span class="ftype">{{ ff.type==='income'?'إيراد':'مصروف' }}</span>
-            </div>
+          </div>
+          <p v-if="!Object.keys(filteredGroups).length" style="color:var(--text3);padding:40px;text-align:center;font-size:14px">
+            <i class="fas fa-inbox" style="font-size:48px;display:block;margin-bottom:14px;opacity:.2"></i>لا توجد عمليات مطابقة
+          </p>
+        </div>
+      </div>
+
+      <div v-if="repTab==='subs'">
+        <div class="search-bar">
+          <div class="input-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="بحث في الاسم أو الهاتف..." v-model="subSearch">
           </div>
         </div>
-        <p v-if="!Object.keys(filteredGroups).length" style="color:var(--text3);padding:40px;text-align:center;font-size:14px">
-          <i class="fas fa-inbox" style="font-size:48px;display:block;margin-bottom:14px;opacity:.2"></i>لا توجد عمليات مطابقة
-        </p>
+        <div class="filter-row">
+          <div class="filter-chip" :class="{ active: subStatusFilter==='all' }" @click="subStatusFilter='all'">الكل</div>
+          <div class="filter-chip" :class="{ active: subStatusFilter==='active' }" @click="subStatusFilter='active'">فعال</div>
+          <div class="filter-chip" :class="{ active: subStatusFilter==='expired' }" @click="subStatusFilter='expired'">منتهي</div>
+          <div class="filter-chip" :class="{ active: subStatusFilter==='inactive' }" @click="subStatusFilter='inactive'">غير مفعل</div>
+          <div class="filter-chip" :class="{ active: subStatusFilter==='disabled' }" @click="subStatusFilter='disabled'">معطل</div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-chip" :class="{ active: subAreaFilter==='all' }" @click="subAreaFilter='all'">كل المناطق</div>
+          <div class="filter-chip" v-for="a in repAreas" :key="a" :class="{ active: subAreaFilter===a }" @click="subAreaFilter=a">{{ a }}</div>
+        </div>
+        <div style="padding:0 20px;margin-bottom:8px;font-size:13px;color:var(--text2)">
+          <i class="fas fa-list"></i> عدد المشتركين: {{ filteredSubs.length }}
+        </div>
+        <div class="subs-list">
+          <div v-for="s in filteredSubs" :key="s.id" class="sub-card" :class="s.status" @click="$router.push('/sub-detail/'+s.id)">
+            <div class="avatar" :class="{ on:s.status==='active', off:s.status==='expired', wait:s.status==='inactive', disabled:s.status==='disabled' }">{{ s.name.charAt(0) }}</div>
+            <div class="info">
+              <div class="name">{{ s.name }}</div>
+              <div class="phone"><i class="fas fa-phone"></i> {{ s.phone }}</div>
+              <div class="meta">
+                <span class="type">{{ s.type }}</span>
+                <span :class="s.paid ? 'paid' : 'debt'">{{ s.paid ? 'مدفوع' : 'غير مدفوع' }}</span>
+              </div>
+            </div>
+          </div>
+          <p v-if="!filteredSubs.length" style="color:var(--text3);padding:40px;text-align:center;font-size:14px">
+            <i class="fas fa-users" style="font-size:48px;display:block;margin-bottom:14px;opacity:.2"></i>لا يوجد مشتركين
+          </p>
+        </div>
+      </div>
+
+      <div v-if="repTab==='debts'">
+        <div class="search-bar">
+          <div class="input-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="بحث في الاسم أو الهاتف..." v-model="debtSearch">
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="filter-chip" :class="{ active: debtAreaFilter==='all' }" @click="debtAreaFilter='all'">كل المناطق</div>
+          <div class="filter-chip" v-for="a in repAreas" :key="a" :class="{ active: debtAreaFilter===a }" @click="debtAreaFilter=a">{{ a }}</div>
+        </div>
+        <div style="padding:0 20px;margin-bottom:8px">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:13px">
+            <span style="color:var(--danger);font-weight:800">إجمالي الديون: {{ totalDebtAll }}</span>
+            <span style="color:var(--text2)">عدد المدينين: {{ debtorsCount }}</span>
+          </div>
+        </div>
+        <div class="subs-list">
+          <div v-for="s in filteredDebtors" :key="s.id" class="sub-card" :class="s.status" @click="$router.push('/sub-detail/'+s.id)">
+            <div class="avatar" :class="{ on:s.status==='active', off:s.status==='expired', wait:s.status==='inactive', disabled:s.status==='disabled' }">{{ s.name.charAt(0) }}</div>
+            <div class="info">
+              <div class="name">{{ s.name }}</div>
+              <div class="phone"><i class="fas fa-phone"></i> {{ s.phone }} · {{ s.area }}</div>
+              <div class="meta">
+                <span class="type">{{ s.type }}</span>
+                <span class="debt">دين: {{ formatMoney(calcTotalDebt(s)) }}</span>
+                <span v-if="s.prevDebt > 0" class="remaining">سابق: {{ formatMoney(s.prevDebt) }}</span>
+              </div>
+            </div>
+          </div>
+          <p v-if="!filteredDebtors.length" style="color:var(--text3);padding:40px;text-align:center;font-size:14px">
+            <i class="fas fa-check-circle" style="font-size:48px;display:block;margin-bottom:14px;opacity:.2"></i>لا يوجد مدينين - كل المشتركين مسددين
+          </p>
+        </div>
       </div>
     </div>
   `,
   setup() {
-    const f = reactive({ search:'', type:'all', status:'all', dateFrom:'', dateTo:'', area:'all', tower:'all', point:'all' });
-    const af = reactive({ ...f });
+    const searchQuery = ref('');
+    const filterType = ref('all');
+    const dateFrom = ref('');
+    const dateTo = ref('');
+    const repTab = ref('finance');
+    const subSearch = ref('');
+    const subStatusFilter = ref('all');
+    const subAreaFilter = ref('all');
+    const debtSearch = ref('');
+    const debtAreaFilter = ref('all');
 
-    function applyFilters() { Object.assign(af, f); }
-
-    const filteredSubs = computed(() => {
-      let list = subs.filter(s => !s.archived);
-      if(af.area !== 'all') list = list.filter(s => s.area === af.area);
-      if(af.tower !== 'all') list = list.filter(s => (s.tower || '') === af.tower);
-      if(af.point !== 'all') list = list.filter(s => (s.point || '') === af.point);
-      if(af.status !== 'all') list = list.filter(s => s.status === af.status);
-      return list;
-    });
-
-    function matchesFilters(r) {
-      if(af.type !== 'all' && r.type !== af.type) return false;
-      if(af.dateFrom && r.date < af.dateFrom) return false;
-      if(af.dateTo && r.date > af.dateTo) return false;
-      if(af.search) { const q = af.search.toLowerCase(); if(!r.desc.toLowerCase().includes(q)) return false; }
-      if(af.area !== 'all' && r.area !== af.area) return false;
-      if(af.tower !== 'all' && r.tower !== af.tower) return false;
-      if(af.point !== 'all' && r.point !== af.point) return false;
-      if(af.status !== 'all') {
-        const sub = r.subId ? subs.find(s => s.id === r.subId) : null;
-        if(!sub || sub.status !== af.status) return false;
+    function matchesFilters(f) {
+      if (filterType.value !== 'all' && f.type !== filterType.value) return false;
+      if (dateFrom.value && f.date < dateFrom.value) return false;
+      if (dateTo.value && f.date > dateTo.value) return false;
+      if (searchQuery.value) {
+        const q = searchQuery.value.toLowerCase();
+        if (!f.desc.toLowerCase().includes(q)) return false;
       }
       return true;
     }
@@ -1513,34 +1428,58 @@ var ReportsPage = {
     const filteredGroups = computed(() => {
       const m = ['', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
       const groups = {};
-      filteredRecords.value.forEach(r => {
-        const [y, month] = r.date.substring(0, 7).split('-');
+      filteredRecords.value.forEach(f => {
+        const [y, month] = f.date.substring(0, 7).split('-');
         const label = m[parseInt(month)] + ' ' + y;
-        if(!groups[label]) groups[label] = [];
-        groups[label].push(r);
+        if (!groups[label]) groups[label] = [];
+        groups[label].push(f);
       });
       return groups;
     });
 
-    const allAreas = computed(() => [...areas].sort());
-    const allTowers = computed(() => towers.map(t => t.name).sort());
-    const filteredPoints = computed(() => {
-      if (f.tower === 'all') return [...new Set(towers.flatMap(t => t.points))].sort();
-      const tower = towers.find(t => t.name === f.tower);
-      return tower ? [...tower.points].sort() : [];
+    const repAreas = computed(() => {
+      const s = new Set();
+      subs.forEach(x => { if (x.area) s.add(x.area); });
+      return [...s].sort();
     });
 
-    const reports = computed(() => [
-      { num: filteredSubs.value.filter(s => s.status === 'active').length, label: 'مشتركين فعالين', color: 'cyan' },
-      { num: filteredSubs.value.filter(s => s.status === 'disabled').length, label: 'معطلين', color: 'cyan' },
-      { num: filteredSubs.value.filter(s => s.status === 'expired').length, label: 'اشتراكات منتهية', color: 'red' },
-      { num: filteredSubs.value.filter(s => s.status === 'inactive').length, label: 'غير مفعلين', color: 'orange' },
-      { num: formatMoney(filteredSubs.value.reduce((a, s) => a + calcTotalDebt(s), 0)), label: 'الديون المستحقة', color: 'red' },
-      { num: formatMoney(filteredRecords.value.filter(r => r.type === 'income').reduce((a, r) => a + r.amount, 0)), label: 'إجمالي المدفوعات', color: 'green' },
-      { num: af.area !== 'all' || af.tower !== 'all' || af.status !== 'all' ? '—' : archivedSubs.length, label: 'المؤرشفين', color: 'cyan' }
-    ]);
+    const filteredSubs = computed(() => {
+      let list = [...subs];
+      const q = subSearch.value.toLowerCase();
+      if (q) list = list.filter(x => x.name.toLowerCase().includes(q) || x.phone.includes(q) || x.area.toLowerCase().includes(q));
+      if (subStatusFilter.value !== 'all') list = list.filter(x => x.status === subStatusFilter.value);
+      if (subAreaFilter.value !== 'all') list = list.filter(x => x.area === subAreaFilter.value);
+      return list;
+    });
 
-    return { f, applyFilters, reports, filteredGroups, allAreas, allTowers, filteredPoints, formatMoney };
+    const filteredDebtors = computed(() => {
+      let list = subs.filter(s => calcTotalDebt(s) > 0);
+      const q = debtSearch.value.toLowerCase();
+      if (q) list = list.filter(x => x.name.toLowerCase().includes(q) || x.phone.includes(q));
+      if (debtAreaFilter.value !== 'all') list = list.filter(x => x.area === debtAreaFilter.value);
+      return list;
+    });
+
+    const totalDebtAll = computed(() => formatMoney(filteredDebtors.value.reduce((a, s) => a + calcTotalDebt(s), 0)));
+    const debtorsCount = computed(() => filteredDebtors.value.length);
+
+    const rActive = computed(() => subs.filter(s => s.status === 'active').length);
+    const rExpired = computed(() => subs.filter(s => s.status === 'expired').length);
+    const rInactive = computed(() => subs.filter(s => s.status === 'inactive' || s.status === 'disabled').length);
+    const rDebts = computed(() => formatMoney(subs.filter(s => !s.paid).reduce((a, s) => a + s.amount, 0)));
+    const rPayments = computed(() => formatMoney(finRecords.filter(f => f.type === 'income').reduce((a, f) => a + f.amount, 0)));
+    const rArchived = computed(() => archivedSubs.length);
+
+    return {
+      searchQuery, filterType, dateFrom, dateTo, repTab,
+      subSearch, subStatusFilter, subAreaFilter,
+      debtSearch, debtAreaFilter,
+      filteredRecords, filteredGroups, repAreas,
+      filteredSubs, filteredDebtors,
+      totalDebtAll, debtorsCount,
+      rActive, rExpired, rInactive, rDebts, rPayments, rArchived,
+      formatMoney, calcTotalDebt
+    };
   }
 };
 
@@ -1617,7 +1556,15 @@ var SettingsPage = {
     <div class="page">
       <div class="shead"><h2><i class="fas fa-cog"></i> الإعدادات</h2></div>
       <div class="settings-list">
-        <div class="set-card" @click="manageSubscriptions">
+        <div class="set-card" @click="manageUsers" v-if="can('settings.manageUsers')">
+          <div class="sicon"><i class="fas fa-users-cog"></i></div>
+          <div class="sinfo">
+            <h4>المستخدمين والصلاحيات</h4>
+            <p>إدارة المستخدمين وصلاحياتهم · {{ users.length }} مستخدم</p>
+          </div>
+          <i class="fas fa-chevron-left sarrow"></i>
+        </div>
+        <div class="set-card" @click="manageSubscriptions" v-if="can('settings.manageTypes')">
           <div class="sicon"><i class="fas fa-tags"></i></div>
           <div class="sinfo">
             <h4>أنواع الاشتراك</h4>
@@ -1625,7 +1572,7 @@ var SettingsPage = {
           </div>
           <i class="fas fa-chevron-left sarrow"></i>
         </div>
-        <div class="set-card" @click="manageAreas">
+        <div class="set-card" @click="manageAreas" v-if="can('settings.manageAreas')">
           <div class="sicon green"><i class="fas fa-map-marker-alt"></i></div>
           <div class="sinfo">
             <h4>المناطق</h4>
@@ -1633,7 +1580,7 @@ var SettingsPage = {
           </div>
           <i class="fas fa-chevron-left sarrow"></i>
         </div>
-        <div class="set-card" @click="manageTemplates">
+        <div class="set-card" @click="manageTemplates" v-if="can('settings.manageTemplates')">
           <div class="sicon orange"><i class="fab fa-whatsapp"></i></div>
           <div class="sinfo">
             <h4>الرسائل الجاهزة</h4>
@@ -1641,7 +1588,7 @@ var SettingsPage = {
           </div>
           <i class="fas fa-chevron-left sarrow"></i>
         </div>
-        <div class="set-card" @click="manageAlerts">
+        <div class="set-card" @click="manageAlerts" v-if="can('settings.manageAlerts')">
           <div class="sicon orange"><i class="fas fa-clock"></i></div>
           <div class="sinfo">
             <h4>التنبيهات</h4>
@@ -1649,7 +1596,7 @@ var SettingsPage = {
           </div>
           <i class="fas fa-chevron-left sarrow"></i>
         </div>
-        <div class="set-card" @click="manageExpenseCategories">
+        <div class="set-card" @click="manageExpenseCategories" v-if="can('settings.manageTypes')">
           <div class="sicon red"><i class="fas fa-receipt"></i></div>
           <div class="sinfo">
             <h4>فئات المصروفات</h4>
@@ -1657,15 +1604,7 @@ var SettingsPage = {
           </div>
           <i class="fas fa-chevron-left sarrow"></i>
         </div>
-        <div class="set-card" @click="manageTowers">
-          <div class="sicon green"><i class="fas fa-broadcast-tower"></i></div>
-          <div class="sinfo">
-            <h4>الأبراج</h4>
-            <p>إدارة الأبراج والنقاط</p>
-          </div>
-          <i class="fas fa-chevron-left sarrow"></i>
-        </div>
-        <div class="set-card" @click="manageTowerInfo">
+        <div class="set-card" @click="manageTowerInfo" v-if="can('settings.manageTowers')">
           <div class="sicon green"><i class="fas fa-building"></i></div>
           <div class="sinfo">
             <h4>معلومات البرج</h4>
@@ -1677,57 +1616,61 @@ var SettingsPage = {
     </div>
   `,
   setup() {
-    function manageSubscriptions() {
-      let html = '<div class="set-modal-desc"><i class="fas fa-info-circle" style="color:var(--primary)"></i> تعديل الأنواع الموجودة أو إضافة نوع جديد. السعر بالدينار العراقي.</div>';
-      subscriptionTypes.forEach(t => {
-        html += '<div class="set-item"><div class="set-item-icon"><i class="fas fa-tag"></i></div>' +
-          '<div class="field"><input type="text" id="st_name_' + t.id + '" value="' + t.name + '" placeholder="اسم النوع"></div>' +
-          '<div class="field"><input type="number" id="st_price_' + t.id + '" value="' + t.price + '" class="small" placeholder="السعر"></div>' +
-          '<div class="field"><input type="number" id="st_days_' + t.id + '" value="' + t.days + '" class="small" placeholder="أيام"></div>' +
-          '<div class="set-item-acts"><button class="save-btn" onclick="saveSubscriptionType(' + t.id + ')"><i class="fas fa-check"></i></button>' +
-          '<button class="del-btn" onclick="deleteSubscriptionType(' + t.id + ')"><i class="fas fa-trash"></i></button></div></div>';
+    function manageUsers() {
+      let html = '<div class="form-wrap" style="padding:0">';
+      users.forEach(u => {
+        const permStr = u.permissions.settings.manageUsers ? 'مدير نظام' : 'مستخدم';
+        html += '<div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--glass-border);cursor:pointer" onclick="openEditUser(' + u.id + ')">' +
+          '<div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--primary),#0891B2);display:grid;place-items:center;font-size:16px;color:#fff;font-weight:800">' + u.name.charAt(0) + '</div>' +
+          '<div style="flex:1">' +
+          '<div style="font-weight:700;font-size:14px">' + u.name + '</div>' +
+          '<div style="font-size:11px;color:var(--text3)">@' + u.username + ' · ' + permStr + '</div></div>' +
+          '<i class="fas fa-chevron-left" style="color:var(--text3);font-size:12px"></i></div>';
       });
-      html += '<div class="set-add-section"><div class="set-add-title"><i class="fas fa-plus-circle"></i> إضافة نوع جديد</div>' +
-        '<div class="set-add-row">' +
-        '<input type="text" id="new_st_name" placeholder="اسم النوع">' +
-        '<input type="number" id="new_st_price" placeholder="السعر" class="small">' +
-        '<input type="number" id="new_st_days" placeholder="أيام" class="small">' +
-        '<button onclick="addSubscriptionType()"><i class="fas fa-plus"></i> إضافة</button></div></div>';
+      html += '<div style="margin-top:14px">' +
+        '<button class="primary" onclick="openAddUser()" style="padding:12px 24px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--primary),#0891B2);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:Tajawal,sans-serif"><i class="fas fa-plus"></i> إضافة مستخدم جديد</button></div>' +
+        '</div>';
+      document.getElementById('modalTitle').innerHTML = '<i class="fas fa-users-cog" style="color:var(--primary)"></i> إدارة المستخدمين';
+      document.getElementById('modalBody').innerHTML = html;
+      openModal();
+    }
+
+    function manageSubscriptions() {
+      let html = '<div class="form-wrap" style="padding:0">';
+      subscriptionTypes.forEach(t => {
+        html += '<div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--glass-border)">' +
+          '<span style="flex:1;font-weight:700">' + t.name + '</span>' +
+          '<span style="color:var(--text2)">' + t.price.toLocaleString() + ' دينار</span>' +
+          '<span style="color:var(--primary)">' + t.days + ' يوم</span>' +
+          '</div>';
+      });
+      html += '<div style="margin-top:14px;color:var(--text3);font-size:12px">للتعديل: سيتم تفعيل التحرير قريباً</div></div>';
       document.getElementById('modalTitle').innerHTML = '<i class="fas fa-tags" style="color:var(--primary)"></i> أنواع الاشتراك';
       document.getElementById('modalBody').innerHTML = html;
       openModal();
     }
 
     function manageAreas() {
-      let html = '<div class="set-modal-desc"><i class="fas fa-info-circle" style="color:var(--primary)"></i> تعديل المناطق الموجودة أو إضافة منطقة جديدة.</div>';
+      let html = '<div class="form-wrap" style="padding:0">';
       areas.forEach(a => {
-        html += '<div class="set-item"><div class="set-item-icon" style="color:var(--success)"><i class="fas fa-map-pin"></i></div>' +
-          '<div class="field"><input type="text" id="area_' + a + '" value="' + a + '" placeholder="اسم المنطقة"></div>' +
-          '<div class="set-item-acts"><button class="save-btn" onclick="saveArea(\'' + a + '\')"><i class="fas fa-check"></i></button>' +
-          '<button class="del-btn" onclick="deleteArea(\'' + a + '\')"><i class="fas fa-trash"></i></button></div></div>';
+        html += '<div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--glass-border)">' +
+          '<span><i class="fas fa-map-pin" style="color:var(--primary)"></i></span>' +
+          '<span style="flex:1">' + a + '</span></div>';
       });
-      html += '<div class="set-add-section"><div class="set-add-title"><i class="fas fa-plus-circle"></i> إضافة منطقة جديدة</div>' +
-        '<div class="set-add-row">' +
-        '<input type="text" id="new_area_name" placeholder="اسم المنطقة">' +
-        '<button onclick="addArea()"><i class="fas fa-plus"></i> إضافة</button></div></div>';
+      html += '</div>';
       document.getElementById('modalTitle').innerHTML = '<i class="fas fa-map-marker-alt" style="color:var(--success)"></i> المناطق';
       document.getElementById('modalBody').innerHTML = html;
       openModal();
     }
 
     function manageTemplates() {
-      let html = '<div class="set-modal-desc"><i class="fas fa-info-circle" style="color:var(--warning)"></i> تعديل القوالب الموجودة أو إضافة قالب جديد. استخدم {name}, {phone}, {type}, {end}, {amount}, {towerPhone}.</div>';
+      let html = '<div class="form-wrap" style="padding:0">';
       waTemplates.forEach(t => {
-        html += '<div class="set-item" style="flex-wrap:wrap;padding-bottom:8px"><div class="set-item-icon" style="color:var(--success)"><i class="fab fa-whatsapp"></i></div>' +
-          '<div class="field" style="flex:2"><input type="text" id="tpl_title_' + t.id + '" value="' + t.title + '" placeholder="عنوان القالب"></div>' +
-          '<div class="set-item-acts"><button class="save-btn" onclick="saveTemplate(' + t.id + ')"><i class="fas fa-check"></i></button>' +
-          '<button class="del-btn" onclick="deleteTemplate(' + t.id + ')"><i class="fas fa-trash"></i></button></div>' +
-          '<div style="width:100%;margin-top:4px"><textarea id="tpl_msg_' + t.id + '" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--glass-border);background:var(--bg2);color:var(--text);font-size:12px;font-family:Tajawal,sans-serif;resize:vertical;min-height:45px" rows="2">' + t.msg + '</textarea></div></div>';
+        html += '<div style="padding:12px 0;border-bottom:1px solid var(--glass-border)">' +
+          '<div style="font-weight:700;margin-bottom:4px">' + t.title + '</div>' +
+          '<div style="font-size:12px;color:var(--text2);white-space:pre-line">' + t.msg.substring(0, 60) + '...</div></div>';
       });
-      html += '<div class="set-add-section"><div class="set-add-title"><i class="fas fa-plus-circle"></i> إضافة قالب جديد</div>' +
-        '<input type="text" id="new_tpl_title" placeholder="عنوان القالب" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-size:13px;font-family:Tajawal,sans-serif;margin-bottom:6px;outline:none">' +
-        '<textarea id="new_tpl_msg" placeholder="نص الرسالة..." style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-size:12px;font-family:Tajawal,sans-serif;resize:vertical;min-height:45px;outline:none;margin-bottom:6px" rows="2"></textarea>' +
-        '<button onclick="addTemplate()" style="padding:8px 14px;border-radius:8px;border:none;background:var(--primary);color:#fff;cursor:pointer;font-size:13px;font-weight:700;font-family:Tajawal,sans-serif"><i class="fas fa-plus"></i> إضافة قالب</button></div>';
+      html += '<div style="margin-top:14px;color:var(--text3);font-size:12px">للتعديل: سيتم تفعيل التحرير قريباً</div></div>';
       document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit" style="color:var(--warning)"></i> الرسائل الجاهزة';
       document.getElementById('modalBody').innerHTML = html;
       openModal();
@@ -1737,56 +1680,43 @@ var SettingsPage = {
       const opts = [2, 3, 4, 5, 6, 7];
       document.getElementById('modalTitle').innerHTML = '<i class="fas fa-clock" style="color:var(--warning)"></i> مدة التنبيه';
       document.getElementById('modalBody').innerHTML =
-        '<div class="set-modal-desc"><i class="fas fa-info-circle" style="color:var(--warning)"></i> حدد عدد الأيام التي تسبق انتهاء الاشتراك لإرسال تنبيه.</div>' +
-        '<div style="padding:4px 0"><div class="form-group"><label>تنبيه قبل انتهاء الاشتراك بـ</label>' +
+        '<div class="form-wrap" style="padding:0">' +
+        '<div class="form-group"><label>تنبيه قبل انتهاء الاشتراك بـ (أيام)</label>' +
         '<select id="alertDaysSelect">' +
         opts.map(d => '<option value="' + d + '" ' + (d === alertDays ? 'selected' : '') + '>' + d + ' أيام</option>').join('') +
         '</select></div>' +
-        '<div class="form-actions" style="margin-top:16px">' +
-        '<button class="primary" onclick="saveAlertDays()"><i class="fas fa-check"></i> حفظ</button>' +
+        '<div class="form-actions">' +
+        '<button class="primary" onclick="saveAlertDays()">حفظ</button>' +
         '<button class="secondary" onclick="closeModal()">إلغاء</button></div></div>';
       openModal();
     }
 
     function manageExpenseCategories() {
-      let html = '<div class="set-modal-desc"><i class="fas fa-info-circle" style="color:var(--danger)"></i> إدارة فئات المصروفات لإضافتها عند تسجيل مصروف جديد.</div>';
+      let html = '<div class="form-wrap" style="padding:0">';
       expenseCategories.forEach(c => {
-        html += '<div class="set-item"><div class="set-item-icon" style="color:var(--danger)"><i class="fas fa-receipt"></i></div>' +
-          '<div class="field"><input type="text" id="cat_name_' + c.id + '" value="' + c.name + '" placeholder="اسم الفئة"></div>' +
-          '<div class="set-item-acts"><button class="save-btn" onclick="saveExpenseCategory(' + c.id + ')"><i class="fas fa-check"></i></button>' +
-          '<button class="del-btn" onclick="deleteExpenseCategory(' + c.id + ')"><i class="fas fa-trash"></i></button></div></div>';
+        html += '<div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--glass-border)">' +
+          '<span><i class="fas fa-receipt" style="color:var(--danger)"></i></span>' +
+          '<span style="flex:1">' + c.name + '</span></div>';
       });
-      html += '<div class="set-add-section"><div class="set-add-title"><i class="fas fa-plus-circle"></i> إضافة فئة جديدة</div>' +
-        '<div class="set-add-row">' +
-        '<input type="text" id="new_cat_name" placeholder="اسم الفئة">' +
-        '<button onclick="addExpenseCategory()"><i class="fas fa-plus"></i> إضافة</button></div></div>';
+      html += '</div>';
       document.getElementById('modalTitle').innerHTML = '<i class="fas fa-receipt" style="color:var(--danger)"></i> فئات المصروفات';
       document.getElementById('modalBody').innerHTML = html;
-      openModal();
-    }
-
-    function manageTowers() {
-      document.getElementById('modalTitle').innerHTML = '<i class="fas fa-broadcast-tower" style="color:var(--success)"></i> الأبراج والنقاط';
-      window.renderTowersModal();
       openModal();
     }
 
     function manageTowerInfo() {
       document.getElementById('modalTitle').innerHTML = '<i class="fas fa-building" style="color:var(--success)"></i> معلومات البرج';
       document.getElementById('modalBody').innerHTML =
-        '<div class="set-modal-desc"><i class="fas fa-info-circle" style="color:var(--success)"></i> بيانات البرج الأساسية المستخدمة في قوالب واتساب.</div>' +
-        '<div class="set-item"><div class="set-item-icon"><i class="fas fa-building"></i></div>' +
-        '<div class="field"><input type="text" id="tName" value="' + towerInfo.name + '" placeholder="اسم البرج"></div></div>' +
-        '<div class="set-item"><div class="set-item-icon" style="color:var(--success)"><i class="fas fa-map-marker-alt"></i></div>' +
-        '<div class="field"><input type="text" id="tAddress" value="' + towerInfo.address + '" placeholder="العنوان"></div></div>' +
-        '<div class="set-item"><div class="set-item-icon" style="color:var(--success)"><i class="fas fa-phone"></i></div>' +
-        '<div class="field"><input type="text" id="tPhone" value="' + towerInfo.phone + '" placeholder="رقم الهاتف"></div></div>' +
-        '<div class="form-actions" style="margin-top:16px">' +
-        '<button class="primary" onclick="saveTowerInfo()"><i class="fas fa-check"></i> حفظ</button>' +
-        '<button class="secondary" onclick="closeModal()">إلغاء</button></div>';
+        '<div class="form-wrap" style="padding:0">' +
+        '<div class="form-group"><label>اسم البرج</label><input type="text" id="tName" value="' + towerInfo.name + '"></div>' +
+        '<div class="form-group"><label>العنوان</label><input type="text" id="tAddress" value="' + towerInfo.address + '"></div>' +
+        '<div class="form-group"><label>رقم الهاتف (واتساب)</label><input type="text" id="tPhone" value="' + towerInfo.phone + '"></div>' +
+        '<div class="form-actions">' +
+        '<button class="primary" onclick="saveTowerInfo()">حفظ</button>' +
+        '<button class="secondary" onclick="closeModal()">إلغاء</button></div></div>';
       openModal();
     }
 
-    return { alertDays, towerInfo, towers, manageSubscriptions, manageAreas, manageTemplates, manageAlerts, manageExpenseCategories, manageTowers, manageTowerInfo };
+    return { alertDays, towerInfo, users, can, manageUsers, manageSubscriptions, manageAreas, manageTemplates, manageAlerts, manageExpenseCategories, manageTowerInfo };
   }
 };

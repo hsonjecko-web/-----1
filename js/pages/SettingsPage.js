@@ -7,7 +7,15 @@ var SettingsPage = {
     <div class="page">
       <div class="shead"><h2><i class="fas fa-cog"></i> الإعدادات</h2></div>
       <div class="settings-list">
-        <div class="set-card" @click="manageSubscriptions">
+        <div class="set-card" @click="manageUsers" v-if="can('settings.manageUsers')">
+          <div class="sicon"><i class="fas fa-users-cog"></i></div>
+          <div class="sinfo">
+            <h4>المستخدمين والصلاحيات</h4>
+            <p>إدارة المستخدمين وصلاحياتهم · {{ users.length }} مستخدم</p>
+          </div>
+          <i class="fas fa-chevron-left sarrow"></i>
+        </div>
+        <div class="set-card" @click="manageSubscriptions" v-if="can('settings.manageTypes')">
           <div class="sicon"><i class="fas fa-tags"></i></div>
           <div class="sinfo">
             <h4>أنواع الاشتراك</h4>
@@ -15,7 +23,7 @@ var SettingsPage = {
           </div>
           <i class="fas fa-chevron-left sarrow"></i>
         </div>
-        <div class="set-card" @click="manageAreas">
+        <div class="set-card" @click="manageAreas" v-if="can('settings.manageAreas')">
           <div class="sicon green"><i class="fas fa-map-marker-alt"></i></div>
           <div class="sinfo">
             <h4>المناطق</h4>
@@ -23,7 +31,7 @@ var SettingsPage = {
           </div>
           <i class="fas fa-chevron-left sarrow"></i>
         </div>
-        <div class="set-card" @click="manageTemplates">
+        <div class="set-card" @click="manageTemplates" v-if="can('settings.manageTemplates')">
           <div class="sicon orange"><i class="fab fa-whatsapp"></i></div>
           <div class="sinfo">
             <h4>الرسائل الجاهزة</h4>
@@ -31,7 +39,7 @@ var SettingsPage = {
           </div>
           <i class="fas fa-chevron-left sarrow"></i>
         </div>
-        <div class="set-card" @click="manageAlerts">
+        <div class="set-card" @click="manageAlerts" v-if="can('settings.manageAlerts')">
           <div class="sicon orange"><i class="fas fa-clock"></i></div>
           <div class="sinfo">
             <h4>التنبيهات</h4>
@@ -39,7 +47,7 @@ var SettingsPage = {
           </div>
           <i class="fas fa-chevron-left sarrow"></i>
         </div>
-        <div class="set-card" @click="manageExpenseCategories">
+        <div class="set-card" @click="manageExpenseCategories" v-if="can('settings.manageTypes')">
           <div class="sicon red"><i class="fas fa-receipt"></i></div>
           <div class="sinfo">
             <h4>فئات المصروفات</h4>
@@ -47,7 +55,7 @@ var SettingsPage = {
           </div>
           <i class="fas fa-chevron-left sarrow"></i>
         </div>
-        <div class="set-card" @click="manageTowerInfo">
+        <div class="set-card" @click="manageTowerInfo" v-if="can('settings.manageTowers')">
           <div class="sicon green"><i class="fas fa-building"></i></div>
           <div class="sinfo">
             <h4>معلومات البرج</h4>
@@ -59,6 +67,25 @@ var SettingsPage = {
     </div>
   `,
   setup() {
+    function manageUsers() {
+      let html = '<div class="form-wrap" style="padding:0">';
+      users.forEach(u => {
+        const permStr = u.permissions.settings.manageUsers ? 'مدير نظام' : 'مستخدم';
+        html += '<div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--glass-border);cursor:pointer" onclick="openEditUser(' + u.id + ')">' +
+          '<div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--primary),#0891B2);display:grid;place-items:center;font-size:16px;color:#fff;font-weight:800">' + u.name.charAt(0) + '</div>' +
+          '<div style="flex:1">' +
+          '<div style="font-weight:700;font-size:14px">' + u.name + '</div>' +
+          '<div style="font-size:11px;color:var(--text3)">@' + u.username + ' · ' + permStr + '</div></div>' +
+          '<i class="fas fa-chevron-left" style="color:var(--text3);font-size:12px"></i></div>';
+      });
+      html += '<div style="margin-top:14px">' +
+        '<button class="primary" onclick="openAddUser()" style="padding:12px 24px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--primary),#0891B2);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:Tajawal,sans-serif"><i class="fas fa-plus"></i> إضافة مستخدم جديد</button></div>' +
+        '</div>';
+      document.getElementById('modalTitle').innerHTML = '<i class="fas fa-users-cog" style="color:var(--primary)"></i> إدارة المستخدمين';
+      document.getElementById('modalBody').innerHTML = html;
+      openModal();
+    }
+
     function manageSubscriptions() {
       let html = '<div class="form-wrap" style="padding:0">';
       subscriptionTypes.forEach(t => {
@@ -141,6 +168,6 @@ var SettingsPage = {
       openModal();
     }
 
-    return { alertDays, towerInfo, manageSubscriptions, manageAreas, manageTemplates, manageAlerts, manageExpenseCategories, manageTowerInfo };
+    return { alertDays, towerInfo, users, can, manageUsers, manageSubscriptions, manageAreas, manageTemplates, manageAlerts, manageExpenseCategories, manageTowerInfo };
   }
 };

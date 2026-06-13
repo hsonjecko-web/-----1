@@ -101,13 +101,15 @@ body{
    SIDEBAR - القائمة الجانبية
    ================================================================ */
 .sidebar{
-  position:fixed;top:0;right:0;          /* مثبتة على اليمين (لأن الواجهة RTL) */
+  position:relative;                     /* في التدفق الطبيعي على الحاسوب */
+  right:0;
   width:var(--sidebar-w);height:100vh;   /* عرض ثابت وطول كامل */
   background:var(--bg2);                 /* خلفية حسب الثيم */
   border-left:1px solid var(--glass-border);
   z-index:500;display:flex;flex-direction:column;  /* عناصر رأسية */
   transition:transform .4s cubic-bezier(.22,.68,0,1);  /* حركة سلسة */
-  overflow-y:auto                        /* تمرير عمودي إذا لزم */
+  overflow-y:auto;                       /* تمرير عمودي إذا لزم */
+  flex-shrink:0                          /* لا يتقلص */
 }
 
 /* الشعار في السايدبار */
@@ -195,17 +197,16 @@ body{
    MAIN - المحتوى الرئيسي
    ================================================================ */
 .main{
-  flex:1;margin-right:var(--sidebar-w);      /* مساحة للسايدبار على اليمين */
-  max-width:calc(100% - var(--sidebar-w));
+  flex:1;min-width:0;                        /* يتمدد ليملأ المساحة المتبقية */
   padding-bottom:20px;position:relative;
   overflow-x:hidden;                         /* يمنع أي تجاوز داخلي */
 }
 
-/* في الموبايل: إخفاء مساحة السايدبار وإظهار الشريط السفلي */
+/* في الموبايل: السايدبار يتحول إلى fixed ويختبئ خارج الشاشة */
 @media(max-width:768px){
-  .main{margin-right:0;max-width:100%;width:100%;padding-bottom:calc(var(--nav-h) + 16px)}
+  .main{max-width:100%;width:100%;padding-bottom:calc(var(--nav-h) + 16px)}
   body{width:100%;overflow-x:hidden}
-  .sidebar{transform:translateX(var(--sidebar-w))}
+  .sidebar{position:fixed;top:0;right:0;transform:translateX(var(--sidebar-w))}
   .sidebar.open{transform:translateX(0)}
   .header .h-search{width:auto;flex:1;max-width:160px}
   .header .h-search input{font-size:12px;padding:7px 30px 7px 8px}
@@ -303,6 +304,17 @@ body{
   color:#fff;font-size:8px;width:16px;height:16px;border-radius:50%;
   display:grid;place-items:center;font-weight:800;border:2px solid var(--bg)
 }
+
+/* معلومات المستخدم في الهيدر */
+.header .h-user{position:relative;display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 10px 4px 4px;border-radius:30px;border:1px solid var(--glass-border);background:var(--card);transition:.25s;flex-shrink:0}
+.header .h-user:hover{border-color:var(--primary-light)}
+.header .h-user .hu-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#0891B2);display:grid;place-items:center;font-size:13px;color:#fff;font-weight:800}
+.header .h-user .hu-name{font-size:12px;font-weight:700;color:var(--text);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:768px){.header .h-user .hu-name{display:none}}
+.header .h-user .hu-menu{position:absolute;top:calc(100% + 6px);left:0;background:var(--card);border:1px solid var(--glass-border);border-radius:12px;padding:6px;min-width:160px;box-shadow:var(--shadow-lg);z-index:200}
+.header .h-user .hu-menu .hum-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;transition:.2s}
+.header .h-user .hu-menu .hum-item:hover{background:var(--bg2);color:var(--danger)}
+.header .h-user .hu-menu .hum-item i{font-size:14px}
 
 /* مربع البحث في الهيدر */
 .header .h-search{position:relative;width:200px}
@@ -666,6 +678,9 @@ body{
 .fin-item .famount.income{color:var(--success)}   /* إيراد - أخضر */
 .fin-item .famount.expense{color:var(--danger)}   /* مصروف - أحمر */
 .fin-item .ftype{font-size:11px;padding:2px 10px;border-radius:20px;background:var(--bg2);color:var(--text2)}
+.fin-item-archived{opacity:.75;border-color:var(--text3)!important}
+.fin-item-archived .fdesc{color:var(--text3)}
+.archived-badge{font-size:10px;color:var(--text3);background:var(--bg2);padding:3px 8px;border-radius:20px;white-space:nowrap;display:flex;align-items:center;gap:3px}
 
 /* ================================================================
    ARCHIVE - الأرشيف
@@ -773,6 +788,49 @@ body{
 .modal .mhead h3{font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px}
 .modal .mhead h3 i{color:var(--primary)}
 .modal .mhead button{background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;padding:4px}
+
+/* ================================================================
+   FINANCE 2x2 GRID - كروت مربعة للصندوق المالي
+   ================================================================ */
+.fin-grid-2x2{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:8px 20px}
+.fin-square-card{
+  aspect-ratio:1/1;border-radius:var(--radius);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;border:1px solid var(--glass-border);
+  padding:16px;position:relative;overflow:hidden
+}
+.fin-square-card .fsc-icon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:20px}
+.fin-square-card .fsc-num{font-size:22px;font-weight:900;line-height:1.2}
+.fin-square-card .fsc-label{font-size:11px;color:var(--text2);font-weight:600}
+.fin-square-card.income{background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(34,197,94,.02))}
+.fin-square-card.income .fsc-icon{background:var(--success-glow);color:var(--success)}
+.fin-square-card.income .fsc-num{color:var(--success)}
+.fin-square-card.expense{background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(239,68,68,.02))}
+.fin-square-card.expense .fsc-icon{background:var(--danger-glow);color:var(--danger)}
+.fin-square-card.expense .fsc-num{color:var(--danger)}
+.fin-square-card.balance{background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(6,182,212,.02))}
+.fin-square-card.balance .fsc-icon{background:var(--primary-glow);color:var(--primary)}
+.fin-square-card.balance .fsc-num{color:var(--primary)}
+.fin-square-card.debts{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(245,158,11,.02))}
+.fin-square-card.debts .fsc-icon{background:var(--warning-glow);color:var(--warning)}
+.fin-square-card.debts .fsc-num{color:var(--warning)}
+@media(max-width:480px){
+  .fin-grid-2x2{gap:8px;padding:6px 14px}
+  .fin-square-card .fsc-num{font-size:18px}
+  .fin-square-card .fsc-icon{width:36px;height:36px;font-size:17px}
+}
+
+/* ===== أزرار تعديل/حذف في قائمة الصندوق المالي ===== */
+.fin-actions{display:flex;gap:4px;flex-shrink:0}
+.fin-edit-btn,.fin-del-btn{
+  width:30px;height:30px;border-radius:8px;border:1px solid var(--glass-border);
+  background:var(--bg2);font-size:11px;cursor:pointer;transition:.2s;
+  display:grid;place-items:center
+}
+.fin-edit-btn{color:var(--primary)}
+.fin-edit-btn:active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.fin-del-btn{color:var(--danger)}
+.fin-del-btn:active{background:var(--danger);color:#fff;border-color:var(--danger)}
 
 /* ================================================================
    REPORTS - صفحة التقارير
@@ -996,6 +1054,50 @@ body{
 .renew-summary{font-size:12px;color:var(--text2);line-height:1.7;margin-top:12px}
 
 /* ================================================================
+   SETTLE MODAL - ديون فردية مع اختيار
+   ================================================================ */
+.settle-debt-item{
+  border:1px solid var(--glass-border);border-radius:12px;
+  margin-bottom:6px;overflow:hidden;transition:.2s
+}
+.settle-debt-item:hover{border-color:var(--primary-light)}
+.settle-debt-check{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;cursor:pointer;transition:.2s
+}
+.settle-debt-check:hover{background:var(--primary-light)}
+.settle-debt-check input[type=checkbox]{
+  appearance:none;-webkit-appearance:none;
+  width:20px;height:20px;border-radius:6px;
+  border:2px solid var(--text3);flex-shrink:0;
+  position:relative;transition:.25s;cursor:pointer
+}
+.settle-debt-check input[type=checkbox]::after{
+  content:'\f00c';font-family:'Font Awesome 6 Free';font-weight:900;
+  position:absolute;inset:0;display:grid;place-items:center;
+  font-size:11px;color:#fff;opacity:0;transform:scale(0);
+  transition:.25s cubic-bezier(.22,.68,0,1)
+}
+.settle-debt-check input[type=checkbox]:checked{
+  background:var(--success);border-color:var(--success)
+}
+.settle-debt-check input[type=checkbox]:checked::after{opacity:1;transform:scale(1)}
+.settle-debt-info{flex:1;min-width:0}
+.settle-debt-note{font-size:13px;font-weight:700;color:var(--text);margin-bottom:1px}
+.settle-debt-meta{font-size:10px;color:var(--text3)}
+.settle-debt-amount{font-size:16px;font-weight:900;color:var(--danger);white-space:nowrap}
+.settle-debt-amount.warn{color:var(--warning)}
+.settle-custom-row{
+  margin:12px 0;padding:14px;background:var(--bg2);
+  border-radius:12px;border:1px solid var(--glass-border)
+}
+.settle-total{
+  margin-top:8px;font-size:13px;font-weight:800;
+  color:var(--success);text-align:center;
+  padding:8px;background:var(--success-glow);border-radius:8px
+}
+
+/* ================================================================
    FREE ACTIVATION MODAL
    ================================================================ */
 .free-day-input{display:flex;gap:10px;align-items:center;margin:14px 0}
@@ -1011,6 +1113,65 @@ body{
 .loading-dots span:nth-child(2){animation-delay:.2s}
 .loading-dots span:nth-child(3){animation-delay:.4s}
 @keyframes dotPulse{from{opacity:.2;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+
+/* ================================================================
+   DESKTOP & TABLET - تحسينات للشاشات الكبيرة
+   ================================================================ */
+@media(min-width:769px){
+  .bnav{display:none!important}
+  .side-overlay{display:none!important}
+  .header .menu-btn{display:none!important}
+  .stats{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));padding:12px 24px}
+  .stat-card{padding:22px}
+  .stat-card .num{font-size:28px}
+  .stat-card:hover{transform:translateY(-2px);border-color:var(--primary-light);box-shadow:0 8px 32px var(--primary-glow)}
+  .header{padding:14px 24px}
+  .header .page-title{font-size:20px}
+  .header .h-search{width:280px}
+  .header .h-search input{font-size:14px;padding:10px 40px 10px 14px}
+  .subs-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:10px;padding:0 24px 20px}
+  .shead{padding:18px 24px 10px}
+  .shead h2{font-size:18px}
+  .quick-acts{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));padding:10px 24px}
+  .qa{padding:20px 14px}
+  .qa:hover{transform:translateY(-2px);border-color:var(--primary-light);box-shadow:0 8px 24px var(--primary-glow)}
+  .sub-card:hover{transform:translateY(-2px)}
+  .search-bar{padding:10px 24px}
+  .filter-row{padding:0 24px 12px}
+  .fin-grid-2x2{padding:10px 24px;gap:16px}
+  .fin-square-card .fsc-num{font-size:26px}
+  .fin-square-card .fsc-icon{width:48px;height:48px;font-size:22px}
+  .fin-acts{padding:10px 24px}
+  .fin-list{padding:0 24px 20px}
+  .form-wrap{padding:10px 24px 24px}
+  .detail-card{margin:10px 24px;padding:22px}
+  .detail-actions{margin:10px 24px 24px;grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+  .whatsapp-templates{padding:10px 24px 20px}
+  .wa-preview{margin:10px 24px;padding:20px}
+  .wa-send-btn{width:calc(100% - 48px);margin:10px 24px}
+  .archive-list{padding:0 24px 20px}
+  .notif-list{padding:10px 24px 24px}
+  .settings-list{padding:10px 24px 24px}
+  .report-cards{padding:10px 24px}
+  .modal{max-width:680px;border-radius:var(--radius-xl);bottom:auto;top:50%;transform:translateX(-50%) translateY(-50%);padding:28px;max-height:80vh}
+  .modal.open{transform:translateX(-50%) translateY(-50%)}
+  .modal-overlay.show{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .filter-panel{margin:0 24px 14px;padding:18px}
+  .fin-item{padding:16px;border-radius:14px}
+  .fin-item .fleft .fdesc{font-size:14px}
+  .fin-item .famount{font-size:18px}
+}
+@media(min-width:1024px){
+  .stats{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+  .subs-list{grid-template-columns:repeat(auto-fill,minmax(380px,1fr))}
+  .stat-card{padding:24px}
+  .stat-card .num{font-size:32px}
+  .quick-acts{grid-template-columns:repeat(6,1fr)}
+  .detail-actions{grid-template-columns:repeat(6,1fr)}
+}
+@media(min-width:1400px){
+  .subs-list{grid-template-columns:repeat(3,1fr)}
+}
 
 body.modal-open{overflow:hidden;position:fixed;width:100%}
 

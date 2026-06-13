@@ -22,6 +22,13 @@ var HeaderComponent = {
         <i class="fas fa-search"></i>
         <input type="text" placeholder="بحث عن مشترك..." v-model="searchQ" @keydown.enter="doSearch" @input="doSearch">
       </div>
+      <div class="h-user" @click="showUserMenu = !showUserMenu" v-click-outside="() => showUserMenu = false">
+        <div class="hu-avatar">{{ currentUser ? currentUser.name.charAt(0) : '?' }}</div>
+        <div class="hu-name">{{ currentUser ? currentUser.name : 'زائر' }}</div>
+        <div class="hu-menu" v-if="showUserMenu">
+          <div class="hum-item" @click="doLogoutAction"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</div>
+        </div>
+      </div>
       <div class="h-actions">
         <button @click="toggleTheme" title="تغيير المود">
           <i class="fas" :class="isDark?'fa-moon':'fa-sun'"></i>
@@ -38,6 +45,7 @@ var HeaderComponent = {
     const sidebarOpen = inject('sidebarOpen');
     const searchQ = ref('');
     const isDark = ref(localStorage.getItem('nettower-theme') !== 'light');
+    const showUserMenu = ref(false);
 
     const currentTitle = computed(() => {
       const name = route.name || 'home';
@@ -82,6 +90,10 @@ var HeaderComponent = {
       }
     }
 
-    return { currentTitle, currentIcon, notifBadge, toggleSidebar, toggleTheme, searchQ, doSearch, isDark };
+    function doLogoutAction() {
+      doLogout();
+    }
+
+    return { currentTitle, currentIcon, notifBadge, toggleSidebar, toggleTheme, searchQ, doSearch, isDark, currentUser, showUserMenu, doLogoutAction };
   }
 };

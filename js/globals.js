@@ -21,6 +21,23 @@ window.saveTowerInfo = function() {
   closeModal();
 };
 
+window.saveFinanceEdit = function(id) {
+  const f = finRecords.find(x => x.id === id);
+  if (!f) return;
+  const desc = document.getElementById('fEditDesc')?.value?.trim();
+  const amount = parseInt(document.getElementById('fEditAmount')?.value);
+  if (!desc) { showToast('⚠️ أدخل الوصف'); return; }
+  if (!amount) { showToast('⚠️ أدخل المبلغ'); return; }
+  f.desc = desc;
+  f.amount = amount;
+  if (f.type === 'expense') {
+    f.category = document.getElementById('fEditCategory')?.value || f.category;
+  }
+  saveAllData();
+  closeModal();
+  showToast('✅ تم التعديل');
+};
+
 window.saveFinance = function(type) {
   const amount = parseInt(document.getElementById('fAmount').value);
   if(!amount) { showToast('⚠️ أدخل المبلغ'); return; }
@@ -168,6 +185,166 @@ window.deleteExpenseCategory = function(id) {
   closeModal();
 };
 
+// ===== دوال إدارة المستخدمين =====
+window.openAddUser = function() {
+  const permCheckbox = function(key, label) {
+    return '<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="perm_' + key.replace(/\./g, '_') + '" checked> ' + label + '</label>';
+  };
+
+  let permHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0">';
+  permHtml += permCheckbox('subscribers.view', 'عرض المشتركين');
+  permHtml += permCheckbox('subscribers.add', 'إضافة مشترك');
+  permHtml += permCheckbox('subscribers.edit', 'تعديل مشترك');
+  permHtml += permCheckbox('subscribers.del', 'حذف مشترك');
+  permHtml += permCheckbox('subscribers.renew', 'تجديد');
+  permHtml += permCheckbox('subscribers.settle', 'تسديد');
+  permHtml += permCheckbox('finance.view', 'عرض الصندوق');
+  permHtml += permCheckbox('finance.add', 'إضافة مالية');
+  permHtml += permCheckbox('finance.edit', 'تعديل مالية');
+  permHtml += permCheckbox('finance.del', 'حذف مالية');
+  permHtml += permCheckbox('whatsapp', 'واتساب');
+  permHtml += permCheckbox('reports', 'التقارير');
+  permHtml += permCheckbox('archive', 'الأرشيف');
+  permHtml += permCheckbox('notifications', 'الإشعارات');
+  permHtml += permCheckbox('settings.view', 'الإعدادات');
+  permHtml += permCheckbox('settings.manageUsers', 'إدارة المستخدمين');
+  permHtml += '</div>';
+
+  document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus" style="color:var(--success)"></i> إضافة مستخدم جديد';
+  document.getElementById('modalBody').innerHTML =
+    '<div class="form-wrap" style="padding:0">' +
+    '<div class="form-group"><label>الاسم الكامل</label><input type="text" id="newUserName" placeholder="مثال: أحمد علي"></div>' +
+    '<div class="form-group"><label>اسم المستخدم</label><input type="text" id="newUserUsername" placeholder="مثال: ahmed"></div>' +
+    '<div class="form-group"><label>كلمة المرور</label><input type="text" id="newUserPassword" placeholder="********"></div>' +
+    '<div style="font-size:13px;font-weight:700;color:var(--text2);margin-top:6px">الصلاحيات:</div>' +
+    permHtml +
+    '<div class="form-actions">' +
+    '<button class="success" onclick="confirmAddUser()">إضافة</button>' +
+    '<button class="secondary" onclick="closeModal()">إلغاء</button></div></div>';
+  openModal();
+};
+
+window.confirmAddUser = function() {
+  const name = document.getElementById('newUserName')?.value?.trim();
+  const username = document.getElementById('newUserUsername')?.value?.trim();
+  const password = document.getElementById('newUserPassword')?.value?.trim();
+  if(!name || !username || !password) { showToast('⚠️ املأ جميع الحقول'); return; }
+  if(users.find(u => u.username === username)) { showToast('⚠️ اسم المستخدم موجود مسبقاً'); return; }
+
+  const getPerm = function(key) {
+    const el = document.getElementById('perm_' + key.replace(/\./g, '_'));
+    return el ? el.checked : false;
+  };
+
+  const maxId = users.reduce((m, u) => Math.max(m, u.id), 0);
+  users.push({
+    id: maxId + 1, name, username, password, lastLogin: null,
+    permissions: {
+      dashboard: true,
+      subscribers: { view: getPerm('subscribers.view'), add: getPerm('subscribers.add'), edit: getPerm('subscribers.edit'), del: getPerm('subscribers.del'), renew: getPerm('subscribers.renew'), settle: getPerm('subscribers.settle') },
+      finance: { view: getPerm('finance.view'), add: getPerm('finance.add'), edit: getPerm('finance.edit'), del: getPerm('finance.del') },
+      whatsapp: getPerm('whatsapp'), reports: getPerm('reports'), archive: getPerm('archive'), notifications: getPerm('notifications'),
+      settings: { view: getPerm('settings.view'), manageUsers: getPerm('settings.manageUsers'), manageTypes: false, manageAreas: false, manageTowers: false, manageTemplates: false, manageAlerts: false }
+    }
+  });
+  saveAllData();
+  closeModal();
+  showToast('✅ تم إضافة المستخدم: ' + name);
+};
+
+window.openEditUser = function(userId) {
+  const u = users.find(x => x.id === userId);
+  if (!u) return;
+
+  const permCheckbox = function(key, label) {
+    const parts = key.split('.');
+    let obj = u.permissions;
+    for (let i = 0; i < parts.length; i++) {
+      if (obj === undefined || obj === null) break;
+      obj = obj[parts[i]];
+    }
+    const checked = obj === true ? 'checked' : '';
+    return '<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" id="perm_' + key.replace(/\./g, '_') + '" ' + checked + '> ' + label + '</label>';
+  };
+
+  let permHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0">';
+  permHtml += permCheckbox('subscribers.view', 'عرض المشتركين');
+  permHtml += permCheckbox('subscribers.add', 'إضافة مشترك');
+  permHtml += permCheckbox('subscribers.edit', 'تعديل مشترك');
+  permHtml += permCheckbox('subscribers.del', 'حذف مشترك');
+  permHtml += permCheckbox('subscribers.renew', 'تجديد');
+  permHtml += permCheckbox('subscribers.settle', 'تسديد');
+  permHtml += permCheckbox('finance.view', 'عرض الصندوق');
+  permHtml += permCheckbox('finance.add', 'إضافة مالية');
+  permHtml += permCheckbox('finance.edit', 'تعديل مالية');
+  permHtml += permCheckbox('finance.del', 'حذف مالية');
+  permHtml += permCheckbox('whatsapp', 'واتساب');
+  permHtml += permCheckbox('reports', 'التقارير');
+  permHtml += permCheckbox('archive', 'الأرشيف');
+  permHtml += permCheckbox('notifications', 'الإشعارات');
+  permHtml += permCheckbox('settings.view', 'الإعدادات');
+  permHtml += permCheckbox('settings.manageUsers', 'إدارة المستخدمين');
+  permHtml += '</div>';
+
+  document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-edit" style="color:var(--primary)"></i> تعديل مستخدم: ' + u.name;
+  document.getElementById('modalBody').innerHTML =
+    '<div class="form-wrap" style="padding:0">' +
+    '<div class="form-group"><label>الاسم الكامل</label><input type="text" id="editUserName" value="' + u.name + '"></div>' +
+    '<div class="form-group"><label>اسم المستخدم</label><input type="text" id="editUserUsername" value="' + u.username + '"></div>' +
+    '<div class="form-group"><label>كلمة المرور <span style="color:var(--text3);font-weight:400">(اترك فارغاً إن لم ترد التغيير)</span></label><input type="text" id="editUserPassword" placeholder="******"></div>' +
+    '<div style="font-size:13px;font-weight:700;color:var(--text2);margin-top:6px">الصلاحيات:</div>' +
+    permHtml +
+    '<div class="form-actions">' +
+    (userId !== 1 ? '<button class="danger" onclick="confirmDeleteUser(' + userId + ')" style="flex:0.5"><i class="fas fa-trash"></i> حذف</button>' : '') +
+    '<button class="success" onclick="confirmEditUser(' + userId + ')">حفظ</button>' +
+    '<button class="secondary" onclick="closeModal()">إلغاء</button></div></div>';
+  openModal();
+};
+
+window.confirmEditUser = function(userId) {
+  const u = users.find(x => x.id === userId);
+  if (!u) return;
+  const name = document.getElementById('editUserName')?.value?.trim();
+  const username = document.getElementById('editUserUsername')?.value?.trim();
+  if(!name || !username) { showToast('⚠️ املأ الاسم واسم المستخدم'); return; }
+
+  const existing = users.find(x => x.username === username && x.id !== userId);
+  if(existing) { showToast('⚠️ اسم المستخدم موجود مسبقاً'); return; }
+
+  const password = document.getElementById('editUserPassword')?.value?.trim();
+  if(password) u.password = password;
+
+  u.name = name;
+  u.username = username;
+
+  const getPerm = function(key) {
+    const el = document.getElementById('perm_' + key.replace(/\./g, '_'));
+    return el ? el.checked : false;
+  };
+
+  u.permissions = {
+    dashboard: true,
+    subscribers: { view: getPerm('subscribers.view'), add: getPerm('subscribers.add'), edit: getPerm('subscribers.edit'), del: getPerm('subscribers.del'), renew: getPerm('subscribers.renew'), settle: getPerm('subscribers.settle') },
+    finance: { view: getPerm('finance.view'), add: getPerm('finance.add'), edit: getPerm('finance.edit'), del: getPerm('finance.del') },
+    whatsapp: getPerm('whatsapp'), reports: getPerm('reports'), archive: getPerm('archive'), notifications: getPerm('notifications'),
+    settings: { view: getPerm('settings.view'), manageUsers: getPerm('settings.manageUsers'), manageTypes: false, manageAreas: false, manageTowers: false, manageTemplates: false, manageAlerts: false }
+  };
+
+  saveAllData();
+  closeModal();
+  showToast('✅ تم تعديل المستخدم: ' + name);
+};
+
+window.confirmDeleteUser = function(userId) {
+  if(userId === 1) { showToast('⚠️ لا يمكن حذف المدير العام'); return; }
+  if(!confirm('⚠️ هل أنت متأكد من حذف هذا المستخدم؟')) return;
+  const idx = users.findIndex(x => x.id === userId);
+  if(idx !== -1) users.splice(idx, 1);
+  saveAllData();
+  closeModal();
+  showToast('🗑️ تم حذف المستخدم');
+};
+
 // ===== إعادة رسم مودال الأبراج (حتى تظهر النقاط الجديدة فوراً) =====
 window.renderTowersModal = function() {
   let html = '<div class="form-wrap" style="padding:0"><div style="font-size:12px;color:var(--text3);margin-bottom:8px">إدارة الأبراج والنقاط التابعة لكل برج</div>';
@@ -253,8 +430,13 @@ window.openRenewModal = function(subId) {
   const s = subs.find(x => x.id === subId);
   if (!s) return;
 
+  if (s.status === 'active' && s.paid) {
+    showToast('⚠️ لا يمكن التجديد، الاشتراك لا يزال ساري المفعول ومدفوع');
+    return;
+  }
+
   const unpaidAmount = !s.paid ? s.amount : 0;
-  const totalDebt = s.prevDebt + unpaidAmount;
+  const totalDebt = calcTotalDebt(s);
   const isExpired = s.status === 'expired';
   const hasDebt = totalDebt > 0;
 
@@ -322,7 +504,7 @@ window.renewOnTypeChange = function(subId) {
 window.updateRenewSummary = function(s, tpl) {
   if (!s || !tpl) return;
   const unpaidAmount = !s.paid ? s.amount : 0;
-  const totalDebt = s.prevDebt + unpaidAmount;
+  const totalDebt = calcTotalDebt(s);
   const start = document.getElementById('renewStart').value || todayStr();
   const end = document.getElementById('renewEnd').value;
 
@@ -367,8 +549,6 @@ window.confirmRenewal = function(subId) {
   if (!start) { showToast('⚠️ الرجاء تحديد تاريخ التفعيل'); return; }
   const end = document.getElementById('renewEnd').value;
   const notes = document.getElementById('renewNotes').value.trim();
-  const currentDebt = s.prevDebt + (!s.paid ? s.amount : 0);
-  const wasExpired = s.status === 'expired';
 
   s.type = tpl.name;
   s.amount = tpl.price;
@@ -378,28 +558,23 @@ window.confirmRenewal = function(subId) {
   s.notes = notes;
 
   if (window._renewPaid !== false) {
-    // مدفوع: تسجيل كل شيء كـ income
-    if (currentDebt > 0) {
-      finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تسديد دين سابق - ' + s.name, amount: currentDebt, type: 'income', subId: s.id, area: s.area, tower: s.tower || '', point: s.point || '' });
-    }
     finRecords.unshift({ id: finId++, date: todayStr(), desc: 'تجديد اشتراك - ' + s.name + ' (' + tpl.name + ')', amount: tpl.price, type: 'income', subId: s.id, area: s.area, tower: s.tower || '', point: s.point || '' });
     s.paid = true;
-    s.prevDebt = 0;
-    s.debtHistory = [];
     showToast('✅ تم تجديد اشتراك ' + s.name + ' (مدفوع)');
-    } else {
-      // آجل: يترحل الدين القديم + الاشتراك الجديد غير مدفوع
-      if (currentDebt > 0) {
-        s.paid = false;
-        s.prevDebt = currentDebt;
-        s.debtHistory.push({ amount: tpl.price, date: todayStr(), note: 'إضافة من تجديد (' + tpl.name + ')' });
-        showToast('✅ تم تجديد اشتراك ' + s.name + ' مع إضافة دين جديد');
-      } else {
-        s.paid = false;
-        s.prevDebt = 0;
-        s.debtHistory.push({ amount: tpl.price, date: todayStr(), note: 'إضافة من تجديد (' + tpl.name + ')' });
-        showToast('✅ تم تجديد اشتراك ' + s.name + ' (آجل)');
-      }
+  } else {
+    // آجل: إضافة دين جديد للسجل + بقاء الديون القديمة
+    if (!s.debtHistory) s.debtHistory = [];
+    s.debtHistory.push({
+      id: nextDebtId++,
+      amount: tpl.price,
+      remaining: tpl.price,
+      date: todayStr(),
+      note: 'إضافة من تجديد (' + tpl.name + ')',
+      payments: []
+    });
+    s.paid = false;
+    recalcPrevDebt(s);
+    showToast('✅ تم تجديد اشتراك ' + s.name + ' (آجل - أضيف دين جديد)');
   }
 
   saveAllData();
@@ -498,47 +673,102 @@ window.confirmFreeActivation = function(subId) {
   showToast('🎁 تم تفعيل ' + days + ' يوم مجاني لـ ' + s.name);
 };
 
+// ===== دوال مساعدة لمودال التسديد الجديد =====
+window.updateSettleTotal = function() {
+  const checkboxes = document.querySelectorAll('.debt-checkbox:checked');
+  let total = 0;
+  checkboxes.forEach(function(cb) { total += parseInt(cb.dataset.amount) || 0; });
+  var el = document.getElementById('settleTotalDisplay');
+  if (el) el.innerHTML = 'الإجمالي المحدد: ' + formatMoney(total);
+  var amt = document.getElementById('settleAmount');
+  if (amt) amt.value = total;
+};
+
+window.updateSettleChecks = function() {
+  var amt = parseInt(document.getElementById('settleAmount').value);
+  if (!amt || amt <= 0) return;
+  var checkboxes = document.querySelectorAll('.debt-checkbox');
+  checkboxes.forEach(function(cb) { cb.checked = false; });
+  var remaining = amt;
+  for (var i = 0; i < checkboxes.length; i++) {
+    if (remaining <= 0) break;
+    var dAmt = parseInt(checkboxes[i].dataset.amount);
+    if (dAmt <= remaining) {
+      checkboxes[i].checked = true;
+      remaining -= dAmt;
+    }
+  }
+  window.updateSettleTotal();
+};
+
 // ===== مودال تسديد المستحقات (Settle) =====
 window.openSettleModal = function(subId) {
   const s = subs.find(x => x.id === subId);
   if (!s) return;
 
   const unpaidAmount = !s.paid ? s.amount : 0;
-  const totalDebt = s.prevDebt + unpaidAmount;
+  const totalDebt = calcTotalDebt(s);
 
   if (totalDebt <= 0) {
     showToast('⚠️ لا يوجد ديون مستحقة');
     return;
   }
 
-  let historyHtml = '';
-  if (s.debtHistory && s.debtHistory.length) {
-    historyHtml = '<div style="margin:10px 0;padding:10px;background:var(--bg2);border-radius:10px">' +
-      '<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px"><i class="fas fa-list"></i> سجل الديون</div>';
-    s.debtHistory.forEach(function(d) {
-      historyHtml += '<div style="font-size:11px;color:var(--text3);padding:3px 0;display:flex;justify-content:space-between">' +
-        '<span><i class="fas fa-circle" style="font-size:6px;color:var(--danger);margin-left:4px"></i> ' + d.note + '</span>' +
-        '<span style="font-weight:700;color:var(--danger)">' + formatMoney(d.amount) + ' | ' + d.date + '</span></div>';
-    });
-    historyHtml += '</div>';
+  var html = '<div class="form-wrap" style="padding:0">';
+
+  // قائمة الديون الفردية - كل دين مع checkbox
+  if ((s.debtHistory || []).filter(function(d) { return d.remaining > 0; }).length > 0 || unpaidAmount > 0) {
+    html += '<div style="margin-bottom:12px">';
+    html += '<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px">' +
+      '<i class="fas fa-list"></i> اختر الديون التي تريد تسديدها:</div>';
+
+    // ديون debtHistory
+    if (s.debtHistory) {
+      s.debtHistory.forEach(function(d, i) {
+        if (d.remaining <= 0) return;
+        html += '<div class="settle-debt-item">' +
+          '<label class="settle-debt-check">' +
+          '<input type="checkbox" class="debt-checkbox" data-index="' + i + '" data-amount="' + d.remaining + '" onchange="updateSettleTotal()">' +
+          '<div class="settle-debt-info">' +
+          '<div class="settle-debt-note"><i class="fas fa-circle" style="font-size:6px;color:var(--danger);margin-left:4px"></i> ' + (d.note || 'دين') + '</div>' +
+          '<div class="settle-debt-meta">' + d.date + (d.payments && d.payments.length ? ' · ' + d.payments.length + ' دفعات' : '') + '</div>' +
+          '</div>' +
+          '<div class="settle-debt-amount">' + formatMoney(d.remaining) + '</div>' +
+          '</label>' +
+          '</div>';
+      });
+    }
+
+    // الاشتراك الحالي غير المدفوع
+    if (unpaidAmount > 0) {
+      html += '<div class="settle-debt-item" style="border-color:var(--warning)">' +
+        '<label class="settle-debt-check">' +
+        '<input type="checkbox" class="debt-checkbox" data-index="current" data-amount="' + unpaidAmount + '" onchange="updateSettleTotal()">' +
+        '<div class="settle-debt-info">' +
+        '<div class="settle-debt-note" style="color:var(--warning)"><i class="fas fa-clock" style="margin-left:4px"></i> الاشتراك الحالي (غير مدفوع)</div>' +
+        '<div class="settle-debt-meta">' + s.type + ' · ' + s.start + ' → ' + s.end + '</div>' +
+        '</div>' +
+        '<div class="settle-debt-amount warn">' + formatMoney(unpaidAmount) + '</div>' +
+        '</label>' +
+        '</div>';
+    }
+
+    html += '</div>';
   }
 
-  const html =
-    '<div class="form-wrap" style="padding:0">' +
-    '<div class="debt-box">' +
-    '<div class="debt-box-title"><i class="fas fa-exclamation-triangle"></i> الملخص المالي</div>' +
-    '<div class="debt-grid">' +
-    (s.prevDebt > 0 ? '<div class="debt-grid-item"><span class="dgi-label">دين سابق</span><span class="dgi-value warn">' + formatMoney(s.prevDebt) + '</span></div>' : '') +
-    (unpaidAmount > 0 ? '<div class="debt-grid-item"><span class="dgi-label">الاشتراك الحالي (غير مدفوع)</span><span class="dgi-value warn">' + formatMoney(unpaidAmount) + '</span></div>' : '') +
-    '<div class="debt-grid-item total"><span class="dgi-label">الإجمالي</span><span class="dgi-value" id="dgiTotalSettle">' + formatMoney(totalDebt) + '</span></div>' +
-    '</div></div>' +
-    historyHtml +
-    '<div class="form-group"><label><i class="fas fa-dollar-sign"></i> المبلغ المراد تسديده</label>' +
+  // Custom amount
+  html += '<div class="settle-custom-row">' +
+    '<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px">' +
+    '<i class="fas fa-dollar-sign" style="color:var(--success);font-size:14px"></i> أو أدخل مبلغاً مخصصاً:</div>' +
     '<div style="display:flex;gap:8px">' +
-    '<input type="number" id="settleAmount" value="' + totalDebt + '" min="1" max="' + totalDebt + '" style="flex:1;font-size:16px;font-weight:800">' +
-    '<button type="button" class="as-paid-btn" onclick="document.getElementById(\'settleAmount\').value=' + totalDebt + '" style="flex:0;padding:12px 24px;white-space:nowrap"><i class="fas fa-check-double"></i> الكل</button>' +
-    '</div></div>' +
-    '<div class="form-group"><label><i class="fas fa-sticky-note"></i> ملاحظات <span style="color:var(--text3);font-weight:400">(اختياري)</span></label>' +
+    '<input type="number" id="settleAmount" value="0" min="0" max="' + totalDebt + '" placeholder="أدخل المبلغ..." style="flex:1;font-size:16px;font-weight:800;padding:12px 16px;border-radius:12px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);outline:none;font-family:Tajawal,sans-serif" onchange="updateSettleChecks()" oninput="updateSettleChecks()">' +
+    '<button type="button" class="as-paid-btn" onclick="document.getElementById(\'settleAmount\').value=' + totalDebt + ';updateSettleChecks()" style="flex:0;padding:12px 24px;white-space:nowrap"><i class="fas fa-check-double"></i> الكل</button>' +
+    '</div>' +
+    '<div class="settle-total" id="settleTotalDisplay">الإجمالي المحدد: ' + formatMoney(0) + '</div>' +
+    '</div>';
+
+  // Notes
+  html += '<div class="form-group" style="margin-top:8px"><label><i class="fas fa-sticky-note"></i> ملاحظات <span style="color:var(--text3);font-weight:400">(اختياري)</span></label>' +
     '<textarea id="settleNotes" placeholder="ملاحظات عملية الدفع..." style="min-height:50px"></textarea></div>' +
     '<div class="form-actions" style="margin-top:10px">' +
     '<button class="success" onclick="confirmSettle(' + subId + ')"><i class="fas fa-check"></i> تأكيد التسديد</button>' +
@@ -556,11 +786,74 @@ window.confirmSettle = function(subId) {
   const amount = parseInt(document.getElementById('settleAmount').value);
   if (!amount || amount <= 0) { showToast('⚠️ الرجاء إدخال مبلغ صحيح'); return; }
 
-  const unpaidAmount = !s.paid ? s.amount : 0;
-  const totalDebt = s.prevDebt + unpaidAmount;
+  const totalDebt = calcTotalDebt(s);
   if (amount > totalDebt) { showToast('⚠️ المبلغ أكبر من إجمالي الدين (' + formatMoney(totalDebt) + ')'); return; }
 
   const notes = document.getElementById('settleNotes').value.trim();
+
+  // قراءة الديون المحددة من checkboxes
+  var checkboxes = document.querySelectorAll('.debt-checkbox:checked');
+  var checkedDebts = [];
+  checkboxes.forEach(function(cb) {
+    var idx = cb.dataset.index;
+    checkedDebts.push({
+      type: idx === 'current' ? 'current' : 'history',
+      index: idx === 'current' ? -1 : parseInt(idx),
+      amount: parseInt(cb.dataset.amount)
+    });
+  });
+
+  var remaining = amount;
+
+  if (checkedDebts.length > 0) {
+    // فقط الديون المحددة
+    var checkedTotal = checkedDebts.reduce(function(a, d) { return a + d.amount; }, 0);
+    if (amount > checkedTotal) {
+      showToast('⚠️ المبلغ المدخل (' + formatMoney(amount) + ') أكبر من الديون المحددة (' + formatMoney(checkedTotal) + ')');
+      return;
+    }
+    for (var di = 0; di < checkedDebts.length; di++) {
+      if (remaining <= 0) break;
+      var d = checkedDebts[di];
+      if (d.type === 'current') {
+        var payCur = Math.min(remaining, d.amount);
+        if (payCur >= s.amount) s.paid = true;
+        remaining -= payCur;
+      } else {
+        var debt = s.debtHistory[d.index];
+        if (!debt) continue;
+        var payDebt = Math.min(remaining, debt.remaining);
+        debt.remaining -= payDebt;
+        if (!debt.payments) debt.payments = [];
+        debt.payments.push({ amount: payDebt, date: todayStr() });
+        remaining -= payDebt;
+      }
+    }
+  } else {
+    // لا يوجد تحديد → توزيع المبلغ على كل الديون بالترتيب
+    if (s.debtHistory) {
+      for (var hi = 0; hi < s.debtHistory.length; hi++) {
+        if (remaining <= 0) break;
+        var dh = s.debtHistory[hi];
+        if (dh.remaining <= 0) continue;
+        var pay = Math.min(remaining, dh.remaining);
+        dh.remaining -= pay;
+        if (!dh.payments) dh.payments = [];
+        dh.payments.push({ amount: pay, date: todayStr() });
+        remaining -= pay;
+      }
+    }
+    if (remaining > 0 && !s.paid) {
+      s.paid = (remaining >= s.amount);
+      remaining = 0;
+    }
+  }
+
+  // تحديث prevDebt
+  recalcPrevDebt(s);
+
+  // إزالة الديون التي أصبحت بصفر
+  s.debtHistory = (s.debtHistory || []).filter(function(d) { return d.remaining > 0; });
 
   // تسجيل في الصندوق
   finRecords.unshift({
@@ -574,40 +867,6 @@ window.confirmSettle = function(subId) {
     tower: s.tower || '',
     point: s.point || ''
   });
-
-  // توزيع المبلغ: أولاً الدين السابق، ثم الاشتراك الحالي
-  let remaining = amount;
-
-  // 1. تسديد الدين السابق
-  if (remaining > 0 && s.prevDebt > 0) {
-    if (remaining >= s.prevDebt) {
-      remaining -= s.prevDebt;
-      s.prevDebt = 0;
-    } else {
-      s.prevDebt -= remaining;
-      remaining = 0;
-    }
-  }
-
-  // 2. تسديد الاشتراك الحالي (غير المدفوع)
-  if (remaining > 0 && !s.paid) {
-    if (remaining >= s.amount) {
-      remaining -= s.amount;
-      s.paid = true;
-    } else {
-      // دفع جزء من الاشتراك الحالي - نتركه غير مدفوع مع تقليل المبلغ
-      // لا نغير s.amount لأنه يمثل قيمة الاشتراك
-      remaining = 0;
-    }
-  }
-
-  // الباقي (لا يجب أن يتبقى شيء لأننا نمنع إدخال مبلغ أكبر من الإجمالي)
-  // لكن لو بقي بسبب الدقة، يتجاهل
-
-  // تحديث سجل الديون: إذا تم تسديد كل شيء، إفراغ السجل
-  if (s.paid && s.prevDebt === 0 && amount >= totalDebt) {
-    s.debtHistory = [];
-  }
 
   saveAllData();
   closeModal();

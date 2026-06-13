@@ -1,13 +1,9 @@
-/* ============================================================
-   SubscribersPage.js - صفحة المشتركين
-   ============================================================ */
-
 var SubscribersPage = {
   template: `
     <div class="page">
       <div class="shead">
         <h2><i class="fas fa-users"></i> المشتركين</h2>
-        <a @click="$router.push('/add-sub')"><i class="fas fa-plus"></i> إضافة</a>
+        <a @click="$router.push('/add-sub')" v-if="can('subscribers.add')"><i class="fas fa-plus"></i> إضافة</a>
       </div>
 
       <div class="search-bar">
@@ -46,8 +42,8 @@ var SubscribersPage = {
           </div>
           <div class="actions">
             <button @click.stop="$router.push('/sub-detail/'+s.id)" title="تعديل"><i class="fas fa-edit"></i></button>
-            <button class="gr" @click.stop="renewSub(s.id)" title="تجديد"><i class="fas fa-sync"></i></button>
-            <button class="gr" @click.stop="sendWADirect(s)" title="واتساب" style="color:var(--success)"><i class="fab fa-whatsapp"></i></button>
+            <button v-if="can('subscribers.renew')" class="gr" @click.stop="renewSub(s.id)" title="تجديد"><i class="fas fa-sync"></i></button>
+            <button v-if="can('whatsapp')" class="gr" @click.stop="sendWADirect(s)" title="واتساب" style="color:var(--success)"><i class="fab fa-whatsapp"></i></button>
           </div>
         </div>
         <p v-if="!filteredList.length" style="color:var(--text3);padding:30px;text-align:center;font-size:14px">
@@ -89,6 +85,6 @@ var SubscribersPage = {
       showToast('✅ تم فتح واتساب لـ ' + s.name);
     }
 
-    return { searchQuery, showFilters, currentFilter, filteredList, renewSub, sendWADirect };
+    return { searchQuery, showFilters, currentFilter, filteredList, renewSub, sendWADirect, can };
   }
 };

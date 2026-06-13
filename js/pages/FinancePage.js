@@ -7,26 +7,26 @@ var FinancePage = {
     <div class="page">
       <div class="shead"><h2><i class="fas fa-coins"></i> الصندوق المالي</h2></div>
 
-      <div class="stats">
-        <div class="stat-card">
-          <div class="top"><div class="icon green"><i class="fas fa-arrow-down"></i></div></div>
-          <div class="num" style="color:var(--success)">{{ totalIncome }}</div>
-          <div class="label">إجمالي الإيرادات</div>
+      <div class="fin-grid-2x2">
+        <div class="fin-square-card income">
+          <div class="fsc-icon"><i class="fas fa-arrow-down"></i></div>
+          <div class="fsc-num">{{ totalIncome }}</div>
+          <div class="fsc-label">إجمالي الإيرادات</div>
         </div>
-        <div class="stat-card">
-          <div class="top"><div class="icon red"><i class="fas fa-arrow-up"></i></div></div>
-          <div class="num" style="color:var(--danger)">{{ totalExpense }}</div>
-          <div class="label">إجمالي المصروفات</div>
+        <div class="fin-square-card expense">
+          <div class="fsc-icon"><i class="fas fa-arrow-up"></i></div>
+          <div class="fsc-num">{{ totalExpense }}</div>
+          <div class="fsc-label">إجمالي المصروفات</div>
         </div>
-        <div class="stat-card">
-          <div class="top"><div class="icon cyan"><i class="fas fa-wallet"></i></div></div>
-          <div class="num" style="color:var(--primary)">{{ totalBalance }}</div>
-          <div class="label">الرصيد الحالي</div>
+        <div class="fin-square-card balance">
+          <div class="fsc-icon"><i class="fas fa-wallet"></i></div>
+          <div class="fsc-num">{{ totalBalance }}</div>
+          <div class="fsc-label">الرصيد الحالي</div>
         </div>
-        <div class="stat-card">
-          <div class="top"><div class="icon orange"><i class="fas fa-exclamation-triangle"></i></div></div>
-          <div class="num" style="color:var(--warning)">{{ totalDebts }}</div>
-          <div class="label">الديون المستحقة</div>
+        <div class="fin-square-card debts">
+          <div class="fsc-icon"><i class="fas fa-exclamation-triangle"></i></div>
+          <div class="fsc-num">{{ totalDebts }}</div>
+          <div class="fsc-label">الديون المستحقة</div>
         </div>
       </div>
 
@@ -53,16 +53,8 @@ var FinancePage = {
           </div>
         </div>
       </div>
-      <div class="filter-row">
-        <div class="filter-chip" :class="{ active: filterArea==='all' }" @click="filterArea='all'">كل المناطق</div>
-        <div class="filter-chip" v-for="a in areaOpts" :key="a" :class="{ active: filterArea===a }" @click="filterArea=a">{{ a }}</div>
-      </div>
-      <div class="filter-row">
-        <div class="filter-chip" :class="{ active: filterTower==='all' }" @click="filterTower='all'">كل الأبراج</div>
-        <div class="filter-chip" v-for="t in towerOpts" :key="t" :class="{ active: filterTower===t }" @click="filterTower=t">{{ t }}</div>
-      </div>
 
-      <div class="fin-acts">
+      <div class="fin-acts" v-if="can('finance.add')">
         <button class="gr" @click="addFinance('income')"><i class="fas fa-plus-circle"></i> إضافة إيراد</button>
         <button class="rd" @click="addFinance('expense')"><i class="fas fa-minus-circle"></i> إضافة مصروف</button>
       </div>
@@ -75,9 +67,15 @@ var FinancePage = {
               <div class="fdate">{{ f.date }}</div>
               <div class="fdesc">{{ f.desc }}</div>
             </div>
-            <div style="text-align:left">
-              <div class="famount" :class="f.type">{{ f.type==='income'?'+':'-' }} {{ formatMoney(f.amount) }}</div>
-              <span class="ftype">{{ f.type==='income'?'إيراد':'مصروف' }}</span>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="text-align:left">
+                <div class="famount" :class="f.type">{{ f.type==='income'?'+':'-' }} {{ formatMoney(f.amount) }}</div>
+                <span class="ftype">{{ f.type==='income'?'إيراد':'مصروف' }}</span>
+              </div>
+              <div class="fin-actions" v-if="can('finance.edit') || can('finance.del')">
+                <button v-if="can('finance.edit')" class="fin-edit-btn" @click="editFinance(f)" title="تعديل"><i class="fas fa-pen"></i></button>
+                <button v-if="can('finance.del')" class="fin-del-btn" @click="delFinance(f.id)" title="حذف"><i class="fas fa-times"></i></button>
+              </div>
             </div>
           </div>
         </div>
@@ -92,11 +90,9 @@ var FinancePage = {
     const filterType = ref('all');
     const dateFrom = ref('');
     const dateTo = ref('');
-    const filterArea = ref('all');
-    const filterTower = ref('all');
 
-    const allIncome = computed(() => finRecords.filter(f => f.type === 'income').reduce((a, f) => a + f.amount, 0));
-    const allExpense = computed(() => finRecords.filter(f => f.type === 'expense').reduce((a, f) => a + f.amount, 0));
+    const filteredIncome = computed(() => filteredRecords.value.filter(f => f.type === 'income').reduce((a, f) => a + f.amount, 0));
+    const filteredExpense = computed(() => filteredRecords.value.filter(f => f.type === 'expense').reduce((a, f) => a + f.amount, 0));
 
     function matchesFilters(f) {
       if (filterType.value !== 'all' && f.type !== filterType.value) return false;
@@ -105,12 +101,6 @@ var FinancePage = {
       if (searchQuery.value) {
         const q = searchQuery.value.toLowerCase();
         if (!f.desc.toLowerCase().includes(q)) return false;
-      }
-      if (filterArea.value !== 'all') {
-        if (!f.area || f.area !== filterArea.value) return false;
-      }
-      if (filterTower.value !== 'all') {
-        if (!f.tower || f.tower !== filterTower.value) return false;
       }
       return true;
     }
@@ -129,18 +119,6 @@ var FinancePage = {
       return groups;
     });
 
-    const areaOpts = computed(() => {
-      const s = new Set();
-      finRecords.forEach(f => { if (f.area) s.add(f.area); });
-      return [...s].sort();
-    });
-
-    const towerOpts = computed(() => {
-      const s = new Set();
-      finRecords.forEach(f => { if (f.tower) s.add(f.tower); });
-      return [...s].sort();
-    });
-
     function addFinance(type) {
       const title = type === 'income' ? 'إضافة إيراد' : 'إضافة مصروف';
       document.getElementById('modalTitle').innerHTML = '<i class="fas ' + (type === 'income' ? 'fa-plus-circle' : 'fa-minus-circle') + '" style="color:' + (type === 'income' ? 'var(--success)' : 'var(--danger)') + '"></i> ' + title;
@@ -155,14 +133,35 @@ var FinancePage = {
       openModal();
     }
 
+    function editFinance(f) {
+      document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit" style="color:var(--primary)"></i> تعديل العملية';
+      document.getElementById('modalBody').innerHTML =
+        '<div class="form-wrap" style="padding:0">' +
+        '<div class="form-group"><label>الوصف</label><input type="text" id="fEditDesc" value="' + f.desc + '"></div>' +
+        '<div class="form-group"><label>المبلغ (دينار)</label><input type="number" id="fEditAmount" value="' + f.amount + '"></div>' +
+        (f.type === 'expense' ? '<div class="form-group"><label>فئة المصروف</label><select id="fEditCategory">' + expenseCategories.map(c => '<option ' + (c.name === f.category ? 'selected' : '') + '>' + c.name + '</option>').join('') + '</select></div>' : '') +
+        '<div class="form-actions">' +
+        '<button class="primary" onclick="saveFinanceEdit(' + f.id + ')">حفظ التعديل</button>' +
+        '<button class="secondary" onclick="closeModal()">إلغاء</button></div></div>';
+      openModal();
+    }
+
+    function delFinance(id) {
+      if (!confirm('⚠️ هل أنت متأكد من حذف هذه العملية المالية؟')) return;
+      const idx = finRecords.findIndex(f => f.id === id);
+      if (idx !== -1) finRecords.splice(idx, 1);
+      saveAllData();
+      showToast('🗑️ تم الحذف');
+    }
+
     return {
-      searchQuery, filterType, dateFrom, dateTo, filterArea, filterTower,
-      filteredGroups, areaOpts, towerOpts,
-      totalIncome: computed(() => formatMoney(allIncome.value)),
-      totalExpense: computed(() => formatMoney(allExpense.value)),
-      totalBalance: computed(() => formatMoney(allIncome.value - allExpense.value)),
+      searchQuery, filterType, dateFrom, dateTo,
+      filteredGroups,
+      totalIncome: computed(() => formatMoney(filteredIncome.value)),
+      totalExpense: computed(() => formatMoney(filteredExpense.value)),
+      totalBalance: computed(() => formatMoney(filteredIncome.value - filteredExpense.value)),
       totalDebts: computed(() => formatMoney(subs.filter(s => !s.paid).reduce((a, s) => a + s.amount, 0))),
-      addFinance, formatMoney
+      addFinance, editFinance, delFinance, formatMoney, can
     };
   }
 };

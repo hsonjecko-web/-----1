@@ -52,6 +52,27 @@ const router = createRouter({
   }
 });
 
+// حماية المسارات - التحقق من تسجيل الدخول والصلاحيات
+const routePermissions = {
+  home: 'dashboard', subscribers: 'subscribers.view', 'add-sub': 'subscribers.add',
+  'sub-detail': 'subscribers.view', whatsapp: 'whatsapp',
+  finance: 'finance.view', reports: 'reports',
+  archive: 'archive', notifications: 'notifications', settings: 'settings.view'
+};
+
+router.beforeEach(function(to, from, next) {
+  if (!currentUser) {
+    window.location.href = 'login.html';
+    return;
+  }
+  const perm = routePermissions[to.name];
+  if (perm && !can(perm)) {
+    next('/');
+    return;
+  }
+  next();
+});
+
 // ===== المكون الرئيسي للتطبيق =====
 const App = {
   components: {
@@ -77,6 +98,19 @@ const App = {
 
 // ===== تشغيل التطبيق =====
 const app = createApp(App);
+app.directive('click-outside', {
+  mounted(el, binding) {
+    el._clickOutside = function(event) {
+      if (!el.contains(event.target) && el !== event.target) {
+        binding.value();
+      }
+    };
+    document.addEventListener('click', el._clickOutside);
+  },
+  unmounted(el) {
+    document.removeEventListener('click', el._clickOutside);
+  }
+});
 app.use(router);
 app.mount('#app');
 

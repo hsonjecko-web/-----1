@@ -1,7 +1,3 @@
-/* ============================================================
-   SubDetailPage.js - صفحة تفاصيل المشترك
-   ============================================================ */
-
 var SubDetailPage = {
   template: `
     <div class="page">
@@ -23,6 +19,8 @@ var SubDetailPage = {
           <div class="row"><span class="label"><i class="fas fa-key"></i> كلمة المرور</span><span class="value">{{ sub.pass }}</span></div>
           <div class="row"><span class="label"><i class="fas fa-map-marker-alt"></i> المنطقة</span><span class="value">{{ sub.area }}</span></div>
           <div class="row"><span class="label"><i class="fas fa-tag"></i> نوع الاشتراك</span><span class="value primary">{{ sub.type }}</span></div>
+          <div class="row" v-if="sub.tower"><span class="label"><i class="fas fa-broadcast-tower"></i> البرج</span><span class="value">{{ sub.tower }}</span></div>
+          <div class="row" v-if="sub.point"><span class="label"><i class="fas fa-map-pin"></i> النقطة</span><span class="value">{{ sub.point }}</span></div>
           <div class="row"><span class="label"><i class="fas fa-calendar-plus"></i> تاريخ التفعيل</span><span class="value">{{ sub.start }}</span></div>
           <div class="row">
             <span class="label"><i class="fas fa-calendar-times"></i> تاريخ الانتهاء</span>
@@ -40,7 +38,15 @@ var SubDetailPage = {
           </div>
           <div class="row" v-if="!sub.paid">
             <span class="label"><i class="fas fa-exclamation-triangle"></i> المبلغ المستحق</span>
-            <span class="value danger">{{ sub.amount }} دينار</span>
+            <span class="value danger">{{ formatMoney(sub.amount) }}</span>
+          </div>
+          <div class="row" v-if="sub.prevDebt>0">
+            <span class="label"><i class="fas fa-history"></i> الديون السابقة</span>
+            <span class="value warning">{{ formatMoney(sub.prevDebt) }}</span>
+          </div>
+          <div class="row" v-if="calcTotalDebt(sub)>0">
+            <span class="label"><i class="fas fa-coins"></i> إجمالي المستحقات</span>
+            <span class="value danger">{{ formatMoney(calcTotalDebt(sub)) }}</span>
           </div>
           <div class="row" v-if="sub.notes">
             <span class="label"><i class="fas fa-sticky-note"></i> ملاحظات</span>
@@ -52,15 +58,17 @@ var SubDetailPage = {
       <div v-if="!sub" style="padding:40px;text-align:center;color:var(--text3)">المشترك غير موجود</div>
 
       <div v-if="sub" class="detail-actions">
-        <button class="cy" @click="renewSub"><i class="fas fa-sync"></i> تجديد</button>
-        <button class="gr" @click="activateFree"><i class="fas fa-gift"></i> تفعيل مجاني</button>
-        <button class="rd" @click="toggleStatus">
+        <button v-if="can('subscribers.edit')" class="cy" @click="quickEdit"><i class="fas fa-edit"></i> تعديل</button>
+        <button v-if="can('subscribers.renew')" class="gr" @click="openRenew(sub.id)"><i class="fas fa-sync"></i> تجديد</button>
+        <button v-if="can('subscribers.settle') && calcTotalDebt(sub)>0" class="ow" @click="openSettle(sub.id)"><i class="fas fa-hand-holding-usd"></i> تسديد</button>
+        <button v-if="can('subscribers.edit')" class="ow" @click="activateFree"><i class="fas fa-gift"></i> تفعيل مجاني</button>
+        <button v-if="can('subscribers.edit')" class="rd" @click="toggleStatus">
           <i class="fas" :class="sub.status==='active'?'fa-pause':'fa-play'"></i>
           {{ sub.status==='active'?'إيقاف':'تشغيل' }}
         </button>
-        <button class="gr" @click="sendWA"><i class="fab fa-whatsapp"></i> واتساب</button>
-        <button class="ow" @click="archiveSub"><i class="fas fa-archive"></i> أرشفة</button>
-        <button class="rd" @click="deleteSub"><i class="fas fa-trash"></i> حذف</button>
+        <button v-if="can('whatsapp')" class="gr" @click="sendWA"><i class="fab fa-whatsapp"></i> واتساب</button>
+        <button v-if="can('subscribers.del')" class="ow" @click="archiveSub"><i class="fas fa-archive"></i> أرشفة</button>
+        <button v-if="can('subscribers.del')" class="rd" @click="deleteSub"><i class="fas fa-trash"></i> حذف</button>
       </div>
     </div>
   `,
@@ -71,35 +79,20 @@ var SubDetailPage = {
     const sub = computed(() => subs.find(s => s.id === parseInt(route.params.id)));
     const subDays = computed(() => sub.value ? daysBetween(new Date(sub.value.end), new Date()) : 0);
 
-    function renewSub() {
-      if(!sub.value) return;
-      if(!sub.value.paid && sub.value.status === 'expired') {
-        showModal(
-          '⚠️ تسديد الاشتراك القديم',
-          '<p style="color:var(--text2);margin-bottom:14px">' + sub.value.name + ' مطلوب منه اشتراك قديم غير مدفوع:</p>' +
-          '<div style="background:var(--card);border-radius:12px;padding:14px;margin-bottom:14px">' +
-          '<p style="font-weight:700">المبلغ المستحق: <span style="color:var(--danger)">' + sub.value.amount + ' دينار</span></p>' +
-          '<p style="font-size:12px;color:var(--text2)">نوع الاشتراك: ' + sub.value.type + '</p></div>' +
-          '<div class="form-actions">' +
-          '<button class="success" onclick="showToast(\'✅ تم تسديد الاشتراك القديم\')">تسديد الاشتراك القديم</button>' +
-          '<button class="secondary" onclick="closeModal()">إلغاء</button></div>'
-        );
-      } else {
-        showToast('🔄 تجديد الاشتراك - قيد التطوير');
-      }
+    function openRenew(id) {
+      window.openRenewModal(id);
+    }
+
+    function openSettle(id) {
+      window.openSettleModal(id);
+    }
+
+    function quickEdit() {
+      if(sub.value) window.openQuickEditModal(sub.value.id);
     }
 
     function activateFree() {
-      if(!sub.value) return;
-      sub.value.type = 'مجاني';
-      sub.value.amount = 0;
-      const d = new Date();
-      d.setDate(d.getDate() + 30);
-      sub.value.end = d.toISOString().split('T')[0];
-      sub.value.status = 'active';
-      sub.value.paid = true;
-      saveAllData();
-      showToast('🎁 تم تفعيل اشتراك مجاني لمدة 30 يوماً');
+      if(sub.value) window.openFreeModal(sub.value.id);
     }
 
     function toggleStatus() {
@@ -136,12 +129,6 @@ var SubDetailPage = {
       router.push('/subscribers');
     }
 
-    function showModal(title, body) {
-      document.getElementById('modalTitle').innerHTML = title;
-      document.getElementById('modalBody').innerHTML = body;
-      openModal();
-    }
-
-    return { sub, subDays, renewSub, activateFree, toggleStatus, sendWA, archiveSub, deleteSub };
+    return { sub, subDays, openRenew, openSettle, quickEdit, activateFree, toggleStatus, sendWA, archiveSub, deleteSub, formatMoney, calcTotalDebt, can };
   }
 };

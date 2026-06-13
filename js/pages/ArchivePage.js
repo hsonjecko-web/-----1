@@ -25,6 +25,11 @@ var ArchivePage = {
           <div class="filter-chip" :class="{ active: finFilter==='expense' }" @click="finFilter='expense'">مصروفات</div>
         </div>
         <div class="filter-row">
+          <div class="filter-chip" :class="{ active: finArchiveFilter==='all' }" @click="finArchiveFilter='all'">كل السجلات</div>
+          <div class="filter-chip" :class="{ active: finArchiveFilter==='archived' }" @click="finArchiveFilter='archived'">مؤرشف</div>
+          <div class="filter-chip" :class="{ active: finArchiveFilter==='current' }" @click="finArchiveFilter='current'">حالي</div>
+        </div>
+        <div class="filter-row">
           <div style="display:flex;gap:8px;flex:1">
             <div style="flex:1;min-width:0">
               <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:2px">من تاريخ</label>
@@ -40,14 +45,17 @@ var ArchivePage = {
         <div class="fin-list">
           <div v-for="(group, month) in finGroups" :key="month" style="margin-bottom:16px">
             <div style="font-weight:800;color:var(--primary);margin-bottom:8px;padding:0 4px;font-size:14px">{{ month }}</div>
-            <div v-for="f in group" :key="f.id" class="fin-item">
+            <div v-for="f in group" :key="f.id" class="fin-item" :class="{ 'fin-item-archived': f.archived }">
               <div class="fleft">
                 <div class="fdate">{{ f.date }}</div>
                 <div class="fdesc">{{ f.desc }}</div>
               </div>
-              <div style="text-align:left">
-                <div class="famount" :class="f.type">{{ f.type==='income'?'+':'-' }} {{ formatMoney(f.amount) }}</div>
-                <span class="ftype">{{ f.type==='income'?'إيراد':'مصروف' }}</span>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span v-if="f.archived" class="archived-badge"><i class="fas fa-archive"></i> مؤرشف</span>
+                <div style="text-align:left">
+                  <div class="famount" :class="f.type">{{ f.type==='income'?'+':'-' }} {{ formatMoney(f.amount) }}</div>
+                  <span class="ftype">{{ f.type==='income'?'إيراد':'مصروف' }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -85,6 +93,7 @@ var ArchivePage = {
     const tab = ref('finance');
     const finSearch = ref('');
     const finFilter = ref('all');
+    const finArchiveFilter = ref('all');
     const finDateFrom = ref('');
     const finDateTo = ref('');
     const subSearch = ref('');
@@ -125,6 +134,11 @@ var ArchivePage = {
       let list = [...finRecords];
       const q = finSearch.value.toLowerCase();
       if(q) list = list.filter(f => f.desc.toLowerCase().includes(q));
+
+      // Archived filter
+      if(finArchiveFilter.value === 'archived') list = list.filter(f => f.archived);
+      else if(finArchiveFilter.value === 'current') list = list.filter(f => !f.archived);
+
       if(finFilter.value === 'income') list = list.filter(f => f.type === 'income');
       else if(finFilter.value === 'expense') list = list.filter(f => f.type === 'expense');
       if (finDateFrom.value) list = list.filter(f => f.date >= finDateFrom.value);
@@ -141,6 +155,6 @@ var ArchivePage = {
       return groups;
     });
 
-    return { tab, finSearch, finFilter, finDateFrom, finDateTo, subSearch, finGroups, filteredArchived, restoreSub, permaDelete, formatMoney };
+    return { tab, finSearch, finFilter, finArchiveFilter, finDateFrom, finDateTo, subSearch, finGroups, filteredArchived, restoreSub, permaDelete, formatMoney };
   }
 };

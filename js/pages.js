@@ -9,54 +9,46 @@ var HomePage = {
         <h2><i class="fas fa-chart-simple"></i> نظرة عامة</h2>
       </div>
 
-      <div class="stats home-stats">
-        <div class="stat-card clickable" data-accent="purple" @click="$router.push('/subscribers')">
+      <div class="stats">
+        <div class="stat-card" data-accent="purple" @click="showCardDetail('total')">
           <div class="top">
             <div class="icon cyan"><i class="fas fa-users"></i></div>
-            <span class="trend up"><i class="fas fa-arrow-up"></i> {{ totalSubs }}</span>
           </div>
           <div class="num">{{ totalSubs }}</div>
           <div class="label">إجمالي المشتركين</div>
         </div>
-        <div class="stat-card clickable" data-accent="teal" @click="$router.push('/subscribers')">
+        <div class="stat-card" data-accent="teal" @click="showCardDetail('active')">
           <div class="top">
             <div class="icon green"><i class="fas fa-wifi"></i></div>
           </div>
           <div class="num">{{ activeSubs }}</div>
           <div class="label">مشتركين فعالين</div>
         </div>
-        <div class="stat-card clickable" data-accent="coral" @click="goFilter('expired')">
+        <div class="stat-card" data-accent="coral" @click="showCardDetail('expired')">
           <div class="top">
             <div class="icon red"><i class="fas fa-ban"></i></div>
           </div>
           <div class="num">{{ expiredSubs }}</div>
           <div class="label">اشتراكات منتهية</div>
         </div>
-        <div class="stat-card clickable" data-accent="gold" @click="goFilter('inactive')">
+        <div class="stat-card" data-accent="gold" @click="showCardDetail('inactive')">
           <div class="top">
             <div class="icon orange"><i class="fas fa-user-clock"></i></div>
           </div>
           <div class="num">{{ inactiveSubs }}</div>
           <div class="label">غير مفعلين</div>
         </div>
-        <div class="stat-card clickable" data-accent="gray" @click="goFilter('disabled')">
-          <div class="top">
-            <div class="icon" style="background:rgba(138,135,153,.15);color:var(--text3)"><i class="fas fa-pause-circle"></i></div>
-          </div>
-          <div class="num">{{ disabledSubs }}</div>
-          <div class="label">معطلين</div>
-        </div>
-        <div class="stat-card clickable" data-accent="rose" @click="$router.push('/finance')">
+        <div class="stat-card" data-accent="rose" @click="showCardDetail('debts')">
           <div class="top"><div class="icon red"><i class="fas fa-coins"></i></div></div>
           <div class="num">{{ debtsTotal }}</div>
           <div class="label">الديون المستحقة</div>
         </div>
-        <div class="stat-card clickable" data-accent="mint" @click="$router.push('/finance')">
+        <div class="stat-card" data-accent="mint" @click="showCardDetail('balance')">
           <div class="top"><div class="icon green"><i class="fas fa-wallet"></i></div></div>
           <div class="num">{{ balanceTotal }}</div>
           <div class="label">الرصيد الحالي</div>
         </div>
-        <div class="stat-card clickable" data-accent="orange" @click="$router.push('/subscribers')">
+        <div class="stat-card span2" data-accent="orange" @click="showCardDetail('expiring')">
           <div class="top">
             <div class="icon orange"><i class="fas fa-clock"></i></div>
             <span class="trend down"><i class="fas fa-arrow-down"></i> {{ expiringSoon.length }} مشتركين</span>
@@ -68,22 +60,22 @@ var HomePage = {
 
       <div class="shead"><h2><i class="fas fa-bolt"></i> العمليات السريعة</h2></div>
       <div class="quick-acts">
-        <div class="qa" data-accent="purple" @click="$router.push('/add-sub')">
+        <div class="qa" data-accent="purple" @click="$router.push('/add-sub')" v-if="can('subscribers.add')">
           <div class="qicon cyan"><i class="fas fa-user-plus"></i></div><span>إضافة مشترك</span>
         </div>
-        <div class="qa" data-accent="teal" @click="$router.push('/subscribers')">
+        <div class="qa" data-accent="teal" @click="$router.push('/subscribers')" v-if="can('subscribers.view')">
           <div class="qicon green"><i class="fas fa-sync"></i></div><span>تجديد اشتراك</span>
         </div>
-        <div class="qa" data-accent="mint" @click="$router.push('/whatsapp')">
+        <div class="qa" data-accent="mint" @click="$router.push('/whatsapp')" v-if="can('whatsapp')">
           <div class="qicon green"><i class="fab fa-whatsapp"></i></div><span>إرسال واتساب</span>
         </div>
-        <div class="qa" data-accent="gold" @click="$router.push('/finance')">
+        <div class="qa" data-accent="gold" @click="$router.push('/finance')" v-if="can('finance.view')">
           <div class="qicon orange"><i class="fas fa-coins"></i></div><span>الصندوق المالي</span>
         </div>
-        <div class="qa" data-accent="lavender" @click="$router.push('/reports')">
+        <div class="qa" data-accent="lavender" @click="$router.push('/reports')" v-if="can('reports')">
           <div class="qicon purple"><i class="fas fa-chart-bar"></i></div><span>التقارير</span>
         </div>
-        <div class="qa" data-accent="coral" @click="$router.push('/archive')">
+        <div class="qa" data-accent="coral" @click="$router.push('/archive')" v-if="can('archive')">
           <div class="qicon red"><i class="fas fa-archive"></i></div><span>الأرشيف المالي</span>
         </div>
       </div>
@@ -93,24 +85,20 @@ var HomePage = {
         <a @click="$router.push('/subscribers')">المزيد</a>
       </div>
       <div class="subs-list">
-        <div v-for="s in expiringSoon" :key="s.id" class="sub-card" :class="s.status" @click="$router.push('/sub-detail/'+s.id)">
-          <div class="avatar" :class="s.status==='active'?'on':s.status==='expired'?'off':s.status==='disabled'?'disabled':'wait'">{{ s.name.charAt(0) }}</div>
+        <div v-for="s in expiringSoon" :key="s.id" class="sub-card" @click="$router.push('/sub-detail/'+s.id)">
+          <div class="avatar" :class="{ off: s.status!=='active' }">{{ s.name.charAt(0) }}</div>
           <div class="info">
             <div class="name">
               {{ s.name }}
-              <span class="status-icon" :class="s.status==='active'?'on':s.status==='expired'?'off':'wait'">
-                <i class="fas" :class="s.status==='active'?'fa-check-circle':s.status==='expired'?'fa-times-circle':'fa-clock'"></i>
-              </span>
+              <span class="dot" :class="s.status==='active'?'on':s.status==='expired'?'off':'wait'"></span>
             </div>
-            <div class="phone"><i class="fas fa-phone"></i> {{ s.phone }}</div>
+            <div class="phone"><i class="fas fa-phone" style="font-size:10px;color:var(--text3)"></i> {{ s.phone }}</div>
             <div class="meta">
-              <span class="type"><i class="fas fa-wifi"></i> {{ s.type }}</span>
-              <span :class="s.paid?'paid':'debt'"><i class="fas" :class="s.paid?'fa-check-circle':'fa-exclamation-circle'"></i> {{ s.paid?'مدفوع':'آجل' }}</span>
-              <span v-if="s.status==='active'" class="remaining"><i class="fas fa-clock"></i> {{ daysBetween(new Date(s.end),new Date()) }} يوم</span>
-              <span v-if="s.status==='expired'" class="unpaid"><i class="fas fa-times-circle"></i> منتهي</span>
+              <span class="type">{{ s.type }}</span>
+              <span :class="s.paid?'paid':'debt'">{{ s.paid?'مدفوع':'غير مدفوع' }}</span>
+              <span class="expiring">{{ daysBetween(new Date(s.end),new Date()) }} أيام</span>
             </div>
           </div>
-          <div class="status-bar" :class="s.status"></div>
         </div>
         <p v-if="!expiringSoon.length" style="color:var(--text3);padding:20px;text-align:center;font-size:14px">
           ✅ لا توجد اشتراكات تنتهي قريباً
@@ -119,18 +107,84 @@ var HomePage = {
     </div>
   `,
   setup() {
-    const router = useRouter();
-    function goFilter(filter) {
-      router.push('/subscribers?filter=' + filter);
+    function showCardDetail(key) {
+      let list = [];
+      let title = '';
+      if (key === 'total') {
+        list = [...subs];
+        title = 'جميع المشتركين';
+      } else if (key === 'active') {
+        list = subs.filter(s => s.status === 'active');
+        title = 'المشتركين الفعالين';
+      } else if (key === 'expired') {
+        list = subs.filter(s => s.status === 'expired');
+        title = 'الاشتراكات المنتهية';
+      } else if (key === 'inactive') {
+        list = subs.filter(s => s.status === 'inactive' || s.status === 'disabled');
+        title = 'المشتركين غير المفعلين';
+      } else if (key === 'debts') {
+        list = subs.filter(s => !s.paid);
+        title = 'المشتركين المتأخرين عن الدفع';
+      } else if (key === 'balance') {
+        const i = finRecords.filter(f => f.type === 'income').reduce((a, f) => a + f.amount, 0);
+        const e = finRecords.filter(f => f.type === 'expense').reduce((a, f) => a + f.amount, 0);
+        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-wallet" style="color:var(--success)"></i> الرصيد الحالي';
+        document.getElementById('modalBody').innerHTML =
+          '<div class="form-wrap" style="padding:0;text-align:center">' +
+          '<div style="font-size:48px;font-weight:900;color:var(--success);margin:20px 0">' + formatMoney(i - e) + '</div>' +
+          '<div style="display:flex;gap:20px;justify-content:center;margin-bottom:20px">' +
+          '<div><div style="font-size:24px;font-weight:800;color:var(--success)">' + formatMoney(i) + '</div><div style="font-size:12px;color:var(--text3)">إجمالي الإيرادات</div></div>' +
+          '<div><div style="font-size:24px;font-weight:800;color:var(--danger)">' + formatMoney(e) + '</div><div style="font-size:12px;color:var(--text3)">إجمالي المصروفات</div></div>' +
+          '</div></div>';
+        openModal();
+        return;
+      } else if (key === 'expiring') {
+        list = subs.filter(s => {
+          if (s.status !== 'active') return false;
+          const d = daysBetween(new Date(s.end), new Date());
+          return d >= 0 && d <= alertDays;
+        });
+        title = 'الاشتراكات التي تنتهي قريباً';
+      }
+      const listId = 'cardSubList_' + Date.now();
+      document.getElementById('modalTitle').innerHTML = '<i class="fas fa-list"></i> ' + title + ' (<span id="' + listId + '_cnt">' + list.length + '</span>)';
+      document.getElementById('modalBody').innerHTML =
+        '<div style="position:sticky;top:0;z-index:2;background:var(--bg2);padding-bottom:8px"><input type="text" id="' + listId + '_search" placeholder="🔍 بحث بالاسم أو الهاتف..." style="width:100%;padding:8px 12px;border-radius:10px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-size:13px;font-family:Tajawal,sans-serif;outline:none" onkeyup="window._filterCardList(\'' + listId + '\')"></div>' +
+        '<div id="' + listId + '_wrap">' +
+        list.map(s => '<div class="sub-card" data-search="' + (s.name + ' ' + s.phone).toLowerCase() + '" onclick="closeModal();window.location.href=\'#/sub-detail/' + s.id + '\'" style="cursor:pointer">' +
+          '<div class="avatar" style="background:' + (s.status === 'active' ? 'var(--success)' : s.status === 'expired' ? 'var(--danger)' : 'var(--warning)') + '">' + s.name.charAt(0) + '</div>' +
+          '<div class="info">' +
+          '<div class="name">' + s.name + ' <span class="dot" style="background:' + (s.status === 'active' ? 'var(--success)' : s.status === 'expired' ? 'var(--danger)' : 'var(--warning)') + '"></span></div>' +
+          '<div class="phone"><i class="fas fa-phone"></i> ' + (s.phone || '') + '</div>' +
+          '<div class="meta">' +
+          '<span class="type">' + (s.type || '') + '</span>' +
+          '<span class="' + (s.paid ? 'paid' : 'debt') + '">' + (s.paid ? 'مدفوع' : 'غير مدفوع') + '</span>' +
+          (s.amount > 0 ? '<span>' + formatMoney(s.amount) + '</span>' : '') +
+          '</div></div></div>').join('') +
+        (!list.length ? '<p style="color:var(--text3);padding:40px;text-align:center">لا توجد نتائج</p>' : '') +
+        '</div>';
+      openModal();
+      window._filterCardList = function(id) {
+        const q = document.getElementById(id + '_search')?.value.toLowerCase().trim();
+        const all = document.querySelectorAll('#' + id + '_wrap .sub-card');
+        let visible = 0;
+        all.forEach(el => {
+          const match = !q || el.dataset.search.includes(q);
+          el.style.display = match ? '' : 'none';
+          if(match) visible++;
+        });
+        const cnt = document.getElementById(id + '_cnt');
+        if(cnt) cnt.textContent = visible;
+      };
     }
+
     return {
       totalSubs: computed(() => subs.length),
       activeSubs: computed(() => subs.filter(s => s.status === 'active').length),
       expiredSubs: computed(() => subs.filter(s => s.status === 'expired').length),
-      inactiveSubs: computed(() => subs.filter(s => s.status === 'inactive').length),
-      disabledSubs: computed(() => subs.filter(s => s.status === 'disabled').length),
+      inactiveSubs: computed(() => subs.filter(s => s.status === 'inactive' || s.status === 'disabled').length),
       debtsTotal: computed(() => {
-        const d = subs.reduce((a, s) => a + calcTotalDebt(s), 0);
+        const d = subs.filter(s => !s.paid).reduce((a, s) => a + s.amount, 0);
         return formatMoney(d);
       }),
       balanceTotal: computed(() => {
@@ -143,9 +197,10 @@ var HomePage = {
         const d = daysBetween(new Date(s.end), new Date());
         return d >= 0 && d <= alertDays;
       }).slice(0, 5)),
+      showCardDetail,
       daysBetween,
       alertDays,
-      goFilter
+      can
     };
   }
 };
@@ -291,6 +346,10 @@ var AddSubPage = {
                 <option v-for="a in areas" :key="a" :value="a">{{ a }}</option>
               </select>
             </div>
+            <div class="form-group">
+              <label><i class="fas fa-network-wired"></i> IP الراوتر <span style="color:var(--text3);font-weight:400">(اختياري)</span></label>
+              <input type="text" placeholder="192.168.1.1" v-model="form.ip" dir="ltr">
+            </div>
             <div class="form-actions" style="margin-top:8px">
               <button class="primary" @click="goStep(2)">التالي <i class="fas fa-arrow-left"></i></button>
             </div>
@@ -387,7 +446,7 @@ var AddSubPage = {
     const editId = ref(null);
 
     const form = reactive({
-      name: '', phone: '', ssid: '', pass: '',
+      name: '', phone: '', ssid: '', pass: '', ip: '',
       area: areas[0], type: subscriptionTypes[1]?.name || 'شهري',
       tower: towers[0]?.name || '', point: '',
       amount: subscriptionTypes[1]?.price || 25000,
@@ -407,6 +466,7 @@ var AddSubPage = {
         form.phone = s.phone;
         form.ssid = s.ssid;
         form.pass = s.pass;
+        form.ip = s.ip || '';
         form.area = s.area;
         form.tower = s.tower || towers[0]?.name || '';
         form.point = s.point || '';
@@ -467,6 +527,7 @@ var AddSubPage = {
           s.phone = form.phone;
           s.ssid = ssid;
           s.pass = pass;
+          s.ip = form.ip.trim() || '';
           s.area = form.area;
           s.tower = form.tower;
           s.point = form.point;
@@ -488,6 +549,7 @@ var AddSubPage = {
         name: form.name.trim(),
         phone: form.phone,
         ssid, pass,
+        ip: form.ip.trim() || '',
         area: form.area,
         tower: form.tower,
         point: form.point,
@@ -509,7 +571,7 @@ var AddSubPage = {
       showToast('✅ تم إضافة المشترك ' + form.name + ' بنجاح');
 
       if(addAnother) {
-        form.name = ''; form.phone = ''; form.ssid = ''; form.pass = '';
+        form.name = ''; form.phone = ''; form.ssid = ''; form.pass = ''; form.ip = '';
         form.notes = ''; form.start = todayStr(); form.point = '';
         form.type = subscriptionTypes[1]?.name || 'شهري';
         form.tower = towers[0]?.name || '';
@@ -550,10 +612,11 @@ var SubDetailPage = {
           <div class="row"><span class="label"><i class="fas fa-phone"></i> الهاتف</span><span class="value">{{ sub.phone }}</span></div>
           <div class="row"><span class="label"><i class="fas fa-wifi"></i> اسم الشبكة</span><span class="value">{{ sub.ssid }}</span></div>
           <div class="row"><span class="label"><i class="fas fa-key"></i> كلمة المرور</span><span class="value">{{ sub.pass }}</span></div>
+          <div class="row" v-if="sub.ip"><span class="label"><i class="fas fa-network-wired"></i> IP الراوتر</span><span class="value ltr" dir="ltr">{{ sub.ip }}</span></div>
           <div class="row"><span class="label"><i class="fas fa-map-marker-alt"></i> المنطقة</span><span class="value">{{ sub.area }}</span></div>
           <div class="row"><span class="label"><i class="fas fa-tag"></i> نوع الاشتراك</span><span class="value primary">{{ sub.type }}</span></div>
           <div class="row" v-if="sub.tower"><span class="label"><i class="fas fa-broadcast-tower"></i> البرج</span><span class="value">{{ sub.tower }}</span></div>
-          <div class="row" v-if="sub.point"><span class="label"><i class="fas fa-map-pin"></i> النقطة</span><span class="value">{{ sub.point }}</span></div>
+          <div class="row"><span class="label"><i class="fas fa-map-pin"></i> النقطة</span><span class="value">{{ sub.point || 'لا يوجد' }}</span></div>
           <div class="row"><span class="label"><i class="fas fa-calendar-plus"></i> تاريخ التفعيل</span><span class="value">{{ sub.start }}</span></div>
           <div class="row">
             <span class="label"><i class="fas fa-calendar-times"></i> تاريخ الانتهاء</span>
@@ -569,9 +632,9 @@ var SubDetailPage = {
             <span class="label"><i class="fas fa-dollar-sign"></i> حالة الدفع</span>
             <span class="value" :class="sub.paid?'success':'danger'">{{ sub.paid?'مدفوع':'غير مدفوع' }}</span>
           </div>
-          <div class="row" v-if="!sub.paid">
-            <span class="label"><i class="fas fa-exclamation-triangle"></i> المبلغ المستحق</span>
-            <span class="value danger">{{ formatMoney(sub.amount) }}</span>
+          <div class="row">
+            <span class="label"><i class="fas fa-tag"></i> قيمة الاشتراك</span>
+            <span class="value">{{ formatMoney(sub.amount) }}</span>
           </div>
           <div class="row" v-if="sub.prevDebt>0">
             <span class="label"><i class="fas fa-history"></i> الديون السابقة</span>
@@ -718,11 +781,11 @@ var WhatsAppPage = {
                  @click="pickSub(s)">
               <div class="avatar">{{ s.name.charAt(0) }}</div>
               <div class="info">
-                <div class="name">{{ s.name }}</div>
+                <div class="name" style="color:var(--text)">{{ s.name }} <span style="color:var(--primary);font-size:11px;font-weight:400">#{{ s.id }}</span></div>
                 <div class="phone">{{ s.phone }}</div>
               </div>
               <div class="wa-check" :class="{ checked: selectedSub?.id===s.id }">
-                <i class="fas" :class="selectedSub?.id===s.id?'fa-check-circle':'fa-circle'"></i>
+                <i class="fas" :class="selectedSub?.id===s.id?'fa-check-circle':'fa-circle'" style="color:var(--primary)"></i>
               </div>
             </div>
             <p v-if="!waFiltered.length" style="color:var(--text3);padding:30px;text-align:center">لا يوجد مشتركين</p>
@@ -738,7 +801,7 @@ var WhatsAppPage = {
             <div v-for="(t,i) in waTemplates" :key="t.id" class="wa-tpl"
                  :class="{ active: i===selectedTpl }" @click="pickTpl(i)">
               <div class="tpl-title">
-                <i class="fas" :class="t.icon" style="color:var(--success)"></i> {{ t.title }}
+                <i class="fas" :class="t.icon" style="color:var(--primary)"></i> {{ t.title }}
               </div>
               <div class="tpl-preview">{{ t.msg.substring(0,70) }}...</div>
             </div>
@@ -758,7 +821,7 @@ var WhatsAppPage = {
             <div class="label"><i class="fas fa-eye" style="color:var(--primary)"></i> معاينة الرسالة</div>
             <div class="msg" style="white-space:pre-line">{{ previewMsg }}</div>
           </div>
-          <button class="wa-send-btn" @click="sendWA">
+          <button class="wa-send-btn" @click="sendWA" style="background:linear-gradient(135deg,var(--primary),#5341cd);box-shadow:0 4px 24px var(--primary-glow)">
             <i class="fab fa-whatsapp"></i> إرسال عبر واتساب
           </button>
         </div>
@@ -883,22 +946,25 @@ var FinancePage = {
         <div class="fp-row">
           <div class="fp-group" style="flex:2">
             <label>🔍 بحث</label>
-            <input type="text" placeholder="كلمة بحث..." v-model="f.search">
+            <input type="text" placeholder="كلمة بحث..." v-model="f.search" style="padding:8px 12px;font-size:13px">
           </div>
           <div class="fp-group">
             <label>📅 من تاريخ</label>
-            <input type="date" v-model="f.dateFrom">
+            <input type="date" v-model="f.dateFrom" style="padding:8px 12px;font-size:13px">
           </div>
           <div class="fp-group">
             <label>📅 إلى تاريخ</label>
-            <input type="date" v-model="f.dateTo">
+            <input type="date" v-model="f.dateTo" style="padding:8px 12px;font-size:13px">
           </div>
-          <button class="search-btn" style="margin-top:22px" @click="applyFilters"><i class="fas fa-search"></i> بحث</button>
+          <button class="search-btn" style="margin-top:20px;padding:8px 14px;font-size:12px" @click="applyFilters"><i class="fas fa-search"></i> بحث</button>
+          <button class="search-btn" style="margin-top:20px;padding:8px 14px;font-size:12px;background:var(--bg2);color:var(--text)" @click="showAdvFilter=!showAdvFilter">
+            <i class="fas fa-sliders-h"></i>
+          </button>
         </div>
-        <div class="fp-row">
+        <div class="fp-row" v-if="showAdvFilter">
           <div class="fp-group">
             <label>النوع</label>
-            <select v-model="f.type">
+            <select v-model="f.type" style="padding:6px 10px;font-size:12px">
               <option value="all">الكل</option>
               <option value="income">إيرادات</option>
               <option value="expense">مصروفات</option>
@@ -906,7 +972,7 @@ var FinancePage = {
           </div>
           <div class="fp-group">
             <label>الحالة</label>
-            <select v-model="f.status">
+            <select v-model="f.status" style="padding:6px 10px;font-size:12px">
               <option value="all">الكل</option>
               <option value="active">فعال</option>
               <option value="expired">منتهي</option>
@@ -916,21 +982,21 @@ var FinancePage = {
           </div>
           <div class="fp-group">
             <label>📍 المنطقة</label>
-            <select v-model="f.area" @change="f.tower='all';f.point='all'">
+            <select v-model="f.area" @change="f.tower='all';f.point='all'" style="padding:6px 10px;font-size:12px">
               <option value="all">كل المناطق</option>
               <option v-for="a in allAreas" :key="a" :value="a">{{ a }}</option>
             </select>
           </div>
           <div class="fp-group">
             <label>📡 البرج</label>
-            <select v-model="f.tower" @change="f.point='all'">
+            <select v-model="f.tower" @change="f.point='all'" style="padding:6px 10px;font-size:12px">
               <option value="all">كل الأبراج</option>
               <option v-for="t in allTowers" :key="t" :value="t">{{ t }}</option>
             </select>
           </div>
           <div class="fp-group">
             <label>📍 النقطة</label>
-            <select v-model="f.point">
+            <select v-model="f.point" style="padding:6px 10px;font-size:12px">
               <option value="all">كل النقاط</option>
               <option v-for="p in filteredPoints" :key="p" :value="p">{{ p }}</option>
             </select>
@@ -974,6 +1040,7 @@ var FinancePage = {
   `,
   setup() {
     const f = reactive({ search:'', type:'all', status:'all', dateFrom:'', dateTo:'', area:'all', tower:'all', point:'all' });
+    const showAdvFilter = ref(false);
     const af = reactive({ ...f });
     function applyFilters() { Object.assign(af, f); }
 
@@ -1067,7 +1134,7 @@ var FinancePage = {
       showToast('🗑️ تم الحذف');
     }
 
-    return { f, applyFilters, filteredGroups, allAreas, allTowers, filteredPoints, cIncome, cExpense, cBalance, cDebts, addFinance, editFinance, delFinance, formatMoney, can };
+    return { f, showAdvFilter, applyFilters, filteredGroups, allAreas, allTowers, filteredPoints, cIncome, cExpense, cBalance, cDebts, addFinance, editFinance, delFinance, formatMoney, can };
   }
 };
 
@@ -1603,6 +1670,14 @@ var SettingsPage = {
           </div>
           <i class="fas fa-chevron-left sarrow"></i>
         </div>
+        <div class="set-card" @click="manageTowers" v-if="can('settings.manageTowers')">
+          <div class="sicon green"><i class="fas fa-broadcast-tower"></i></div>
+          <div class="sinfo">
+            <h4>الأبراج والنقاط</h4>
+            <p>إدارة الأبراج والنقاط التابعة لكل برج</p>
+          </div>
+          <i class="fas fa-chevron-left sarrow"></i>
+        </div>
         <div class="set-card" @click="manageTowerInfo" v-if="can('settings.manageTowers')">
           <div class="sicon green"><i class="fas fa-building"></i></div>
           <div class="sinfo">
@@ -1730,6 +1805,12 @@ var SettingsPage = {
       openModal();
     }
 
+    function manageTowers() {
+      window.renderTowersModal();
+      document.getElementById('modalTitle').innerHTML = '<i class="fas fa-broadcast-tower" style="color:var(--success)"></i> إدارة الأبراج والنقاط';
+      openModal();
+    }
+
     function manageTowerInfo() {
       document.getElementById('modalTitle').innerHTML = '<i class="fas fa-building" style="color:var(--success)"></i> معلومات البرج';
       document.getElementById('modalBody').innerHTML =
@@ -1743,6 +1824,6 @@ var SettingsPage = {
       openModal();
     }
 
-    return { alertDays, towerInfo, users, can, manageUsers, manageSubscriptions, manageAreas, manageTemplates, manageAlerts, manageExpenseCategories, manageTowerInfo };
+    return { alertDays, towerInfo, users, can, manageUsers, manageSubscriptions, manageAreas, manageTemplates, manageAlerts, manageExpenseCategories, manageTowers, manageTowerInfo };
   }
 };

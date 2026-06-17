@@ -18,16 +18,17 @@ var HeaderComponent = {
     <header class="header">
       <button class="menu-btn" @click="toggleSidebar"><i class="fas fa-bars"></i></button>
       <div class="page-title"><i :class="'fas ' + currentIcon"></i> {{ currentTitle }}</div>
-      <div class="h-search" style="position:relative">
+      <div class="h-search" v-if="$route.name === 'home'">
         <i class="fas fa-search"></i>
-        <input type="text" placeholder="بحث بالاسم..." v-model="searchQ" @input="doSearch" @focus="doSearch" @blur="setTimeout(()=>showSearchResults=false,200)">
-        <div v-if="showSearchResults" style="position:absolute;top:calc(100% + 6px);right:0;left:0;background:var(--bg2);border:1px solid var(--glass-border);border-radius:12px;padding:6px;box-shadow:var(--shadow-lg);z-index:300;max-height:320px;overflow-y:auto">
-          <div v-for="r in searchResults" :key="r.id" @mousedown="goToSub(r.id)" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:.15s" class="search-result-item">
-            <div style="width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0" :style="{background: r.status==='active'?'var(--success)':r.status==='expired'?'var(--danger)':r.status==='inactive'?'var(--warning)':'var(--text3)'}">{{ r.name.charAt(0) }}</div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:13px;font-weight:700;color:var(--text)">{{ r.name }}</div>
-              <div style="font-size:11px;color:var(--text3)">{{ r.phone }} · <span :style="{color: r.status==='active'?'var(--success)':r.status==='expired'?'var(--danger)':r.status==='inactive'?'var(--warning)':'var(--text3)'}">{{ statusMap[r.status] || r.status }}</span></div>
+        <input type="text" placeholder="بحث..." v-model="searchQ" @input="doSearch" @focus="doSearch" @blur="setTimeout(()=>showSearchResults=false,200)">
+        <div v-if="showSearchResults" class="search-dropdown">
+          <div v-for="r in searchResults" :key="r.id" @mousedown="goToSub(r.id)" class="search-result-item">
+            <div class="sri-avatar" :style="{background: r.status==='active'?'var(--success)':r.status==='expired'?'var(--danger)':r.status==='inactive'?'var(--warning)':'var(--text3)'}">{{ r.name.charAt(0) }}</div>
+            <div class="sri-info">
+              <div class="sri-name">{{ r.name }}</div>
+              <div class="sri-phone">{{ r.phone }}</div>
             </div>
+            <span class="sri-status" :class="r.status">{{ statusMap[r.status] || r.status }}</span>
           </div>
         </div>
       </div>

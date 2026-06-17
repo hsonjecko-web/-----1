@@ -209,7 +209,7 @@ body{
   .sidebar{position:fixed;top:0;right:0;transform:translateX(var(--sidebar-w))}
   .sidebar.open{transform:translateX(0)}
   .header .h-search{width:auto;flex:1;max-width:160px}
-  .header .h-search input{font-size:12px;padding:7px 30px 7px 8px}
+  .header .h-search input{font-size:11px;padding:5px 26px 5px 6px}
   .header .page-title{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
   .header .page-title i{font-size:13px}
 }
@@ -320,13 +320,24 @@ body{
 .header .h-search{position:relative;width:200px}
 .header .h-search input{
   width:100%;background:var(--card);border:1px solid var(--glass-border);
-  padding:9px 36px 9px 12px;border-radius:30px;font-size:13px;
+  padding:6px 30px 6px 10px;border-radius:20px;font-size:12px;
   color:var(--text);outline:none;transition:.3s;font-family:'Tajawal',sans-serif
 }
 .header .h-search input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow)}
 .header .h-search input::placeholder{color:var(--text3)}
-.header .h-search i{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px}
+.header .h-search i{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:11px}
+.header .h-search .search-dropdown{position:absolute;top:calc(100% + 6px);left:0;right:0;min-width:360px;background:var(--bg2);border:1px solid var(--glass-border);border-radius:14px;padding:8px;box-shadow:0 8px 40px rgba(0,0,0,.3);z-index:300;max-height:400px;overflow-y:auto}
+.search-result-item{padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px}
 .search-result-item:hover{background:var(--card)}
+.search-result-item .sri-avatar{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0}
+.search-result-item .sri-info{flex:1;min-width:0}
+.search-result-item .sri-name{font-size:14px;font-weight:700;color:var(--text)}
+.search-result-item .sri-phone{font-size:11px;color:var(--text3)}
+.search-result-item .sri-status{font-size:10px;padding:2px 10px;border-radius:20px;font-weight:700}
+.search-result-item .sri-status.active{background:var(--success-glow);color:var(--success)}
+.search-result-item .sri-status.expired{background:var(--danger-glow);color:var(--danger)}
+.search-result-item .sri-status.inactive{background:var(--warning-glow);color:var(--warning)}
+.search-result-item .sri-status.disabled{background:rgba(138,135,153,.15);color:var(--text3)}
 
 /* ================================================================
    SECTION HEADER - عنوان القسم (يظهر قبل كل مجموعة)
@@ -350,7 +361,7 @@ body{
 .home-stats{grid-template-columns:repeat(2,1fr)}
 .stat-card{
   border-radius:var(--radius);
-  padding:18px;border:1px solid var(--glass-border);
+  padding:12px 14px;border:1px solid var(--glass-border);
   transition:.25s;cursor:pointer;position:relative;overflow:hidden;
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)
 }
@@ -369,9 +380,9 @@ body{
 .stat-card .top .icon.green{background:var(--success-glow);color:var(--success)}
 .stat-card .top .icon.orange{background:var(--warning-glow);color:var(--warning)}
 .stat-card .top .icon.red{background:var(--danger-glow);color:var(--danger)}
-.stat-card .num{font-size:24px;font-weight:900;margin-top:10px;line-height:1.2}
-.stat-card .label{font-size:12px;color:var(--text2);margin-top:2px}
-.stat-card .trend{font-size:11px;margin-top:6px;display:flex;align-items:center;gap:4px}
+.stat-card .num{font-size:22px;font-weight:900;margin-top:6px;line-height:1.2}
+.stat-card .label{font-size:11px;color:var(--text2);margin-top:1px}
+.stat-card .trend{font-size:10px;margin-top:4px;display:flex;align-items:center;gap:4px}
 .stat-card .trend.up{color:var(--success)}
 .stat-card .trend.down{color:var(--danger)}
 .stat-card.span2{grid-column:span 2}
@@ -483,8 +494,8 @@ body{
   display:inline-flex;align-items:center;gap:3px
 }
 .sub-card .info .meta span.type{
-  background:linear-gradient(135deg,rgba(108,92,231,.12),rgba(108,92,231,.06));
-  color:var(--primary-light)
+  background:linear-gradient(135deg,rgba(108,92,231,.15),rgba(108,92,231,.08));
+  color:var(--primary)
 }
 .sub-card .info .meta span.paid{
   background:linear-gradient(135deg,rgba(0,184,148,.12),rgba(0,184,148,.06));
@@ -505,6 +516,10 @@ body{
 .sub-card .info .meta span.remaining{
   background:linear-gradient(135deg,rgba(108,92,231,.12),rgba(108,92,231,.06));
   color:var(--primary)
+}
+.sub-card .info .meta span.expiring{
+  background:linear-gradient(135deg,rgba(212,160,23,.12),rgba(212,160,23,.06));
+  color:var(--warning)
 }
 .sub-card .info .meta span.disabled-badge{
   background:linear-gradient(135deg,rgba(138,135,153,.12),rgba(138,135,153,.06));
@@ -579,10 +594,11 @@ body{
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)
 }
 .wa-tpl:active{transform:scale(.99)}
-.wa-tpl.active{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-glow)}  /* القالب المختار */
+.wa-tpl.active{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-glow)}
 .wa-tpl .tpl-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
-.wa-tpl .tpl-title i{font-size:16px}
+.wa-tpl .tpl-title i{font-size:16px;color:var(--primary)!important}
 .wa-tpl .tpl-preview{font-size:12px;color:var(--text2);margin-top:6px;padding:10px 14px;background:var(--bg2);border-radius:8px;line-height:1.5}
+.wa-tpl .tpl-preview strong{color:var(--primary)}
 /* معاينة الرسالة قبل الإرسال */
 .wa-preview{border-radius:var(--radius);padding:16px;margin:8px 20px;border:1px solid var(--glass-border);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 .wa-preview .label{font-size:12px;color:var(--text2);margin-bottom:6px}
@@ -618,8 +634,10 @@ body{
 .form-group select{
   appearance:none;-webkit-appearance:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394A3B8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:left 14px center;padding-left:36px
+  background-repeat:no-repeat;background-position:left 14px center;padding-left:36px;
+  color-scheme:dark
 }
+.form-group select option{background:var(--bg2);color:var(--text)}
 .form-group .hint{font-size:12px;color:var(--text3);margin-top:2px}
 /* صفوف متعددة الأعمدة في الفورم */
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -889,6 +907,10 @@ body{
 
 /* ===== لون شارة المعطل ===== */
 .detail-card .dhead .sbadge.disabled{background:var(--text3);color:#fcf8ff}
+.sub-card .info .name .dot{width:8px;height:8px;border-radius:50%;display:inline-block;transition:.3s}
+.sub-card .info .name .dot.on{background:var(--success);box-shadow:0 0 8px var(--success-glow)}
+.sub-card .info .name .dot.off{background:var(--danger);box-shadow:0 0 8px var(--danger-glow)}
+.sub-card .info .name .dot.wait{background:var(--warning);box-shadow:0 0 8px var(--warning-glow)}
 .sub-card .info .name .dot.disabled{background:var(--text3);box-shadow:0 0 8px rgba(138,135,153,.3)}
 
 /* ================================================================
@@ -914,7 +936,7 @@ body{
 
 /* علامة الاختيار في بطاقة المشترك */
 .wa-check{font-size:16px;color:var(--text3);flex-shrink:0;transition:.3s}
-.wa-check.checked{color:var(--success);transform:scale(1.2)}
+.wa-check.checked{color:var(--primary);transform:scale(1.2)}
 .wa-subs .sub-card.selected{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-glow)}
 
 /* ===== أنيميشن التنقل بين الخطوات (wa-slide) ===== */
@@ -1151,8 +1173,8 @@ body{
   .stat-card:hover{transform:translateY(-2px);border-color:var(--primary-light);box-shadow:0 8px 32px var(--primary-glow)}
   .header{padding:14px 24px}
   .header .page-title{font-size:20px}
-  .header .h-search{width:280px}
-  .header .h-search input{font-size:14px;padding:10px 40px 10px 14px}
+  .header .h-search{width:220px}
+  .header .h-search input{font-size:13px;padding:7px 32px 7px 12px}
   .subs-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:10px;padding:0 24px 20px}
   .shead{padding:18px 24px 10px}
   .shead h2{font-size:18px}

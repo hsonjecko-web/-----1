@@ -446,9 +446,12 @@ window.openRenewModal = function(subId) {
   const s = subs.find(x => x.id === subId);
   if (!s) return;
 
-  if (s.status === 'active' && s.paid) {
-    showToast('⚠️ لا يمكن التجديد، الاشتراك لا يزال ساري المفعول ومدفوع');
-    return;
+  if (s.status === 'active') {
+    const daysLeft = daysBetween(new Date(s.end), new Date());
+    if (daysLeft > 0) {
+      showToast('⚠️ لا يمكن التجديد، الاشتراك لا يزال ساري المفعول (' + daysLeft + ' يوم متبقي)');
+      return;
+    }
   }
 
   const unpaidAmount = !s.paid ? s.amount : 0;
@@ -912,10 +915,11 @@ window.openQuickEditModal = function(subId) {
     '<div class="form-group"><label><i class="fas fa-user"></i> الاسم</label><input type="text" id="eq_name" value="' + s.name + '"></div>' +
     '<div class="form-group"><label><i class="fas fa-phone"></i> الهاتف</label><input type="text" id="eq_phone" value="' + s.phone + '" maxlength="11"></div></div>' +
 
-    // Row 2: ssid + pass
+    // Row 2: ssid + pass + ip
     '<div class="form-row">' +
     '<div class="form-group"><label><i class="fas fa-wifi"></i> SSID</label><input type="text" id="eq_ssid" value="' + (s.ssid||'') + '"></div>' +
     '<div class="form-group"><label><i class="fas fa-key"></i> كلمة المرور</label><input type="text" id="eq_pass" value="' + (s.pass||'') + '"></div></div>' +
+    '<div class="form-group"><label><i class="fas fa-network-wired"></i> IP الراوتر <span style="color:var(--text3);font-weight:400">(اختياري)</span></label><input type="text" id="eq_ip" value="' + (s.ip||'') + '" dir="ltr"></div>' +
 
     // Row 3: area + tower
     '<div class="form-row">' +
@@ -941,6 +945,12 @@ window.openQuickEditModal = function(subId) {
     // Row 7: status
     '<div class="form-group"><label><i class="fas fa-flag"></i> حالة المشترك</label><select id="eq_status">' + statusOpts + '</select></div>' +
 
+    // Paid/debt toggle
+    '<div class="form-group"><label><i class="fas fa-money-bill-wave"></i> حالة الدفع</label>' +
+    '<div style="display:flex;gap:8px">' +
+    '<button type="button" class="as-paid-btn" id="eq_paid_btn" onclick="window._eqPaid=true;document.getElementById(\'eq_paid_btn\').classList.add(\'active\');document.getElementById(\'eq_debt_btn\').classList.remove(\'active\')" style="flex:1"><i class="fas fa-check-circle"></i> مدفوع</button>' +
+    '<button type="button" class="as-paid-btn" id="eq_debt_btn" onclick="window._eqPaid=false;document.getElementById(\'eq_debt_btn\').classList.add(\'active\');document.getElementById(\'eq_paid_btn\').classList.remove(\'active\')" style="flex:1"><i class="fas fa-clock"></i> آجل</button></div></div>' +
+
     // Notes
     '<div class="form-group" style="margin-top:8px"><label><i class="fas fa-sticky-note"></i> ملاحظات</label>' +
     '<textarea id="eq_notes" style="min-height:40px">' + (s.notes||'') + '</textarea></div>' +
@@ -952,6 +962,15 @@ window.openQuickEditModal = function(subId) {
 
   document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit" style="color:var(--primary)"></i> تعديل بيانات ' + s.name;
   document.getElementById('modalBody').innerHTML = html;
+
+  window._eqPaid = s.paid;
+  const paidBtn = document.getElementById('eq_paid_btn');
+  const debtBtn = document.getElementById('eq_debt_btn');
+  if (paidBtn && debtBtn) {
+    if (s.paid) { paidBtn.classList.add('active'); debtBtn.classList.remove('active'); }
+    else { debtBtn.classList.add('active'); paidBtn.classList.remove('active'); }
+  }
+
   openModal();
 
   // onchange for point updates
@@ -988,6 +1007,7 @@ window.confirmQuickEdit = function(subId) {
   s.phone = phone;
   s.ssid = document.getElementById('eq_ssid')?.value.trim() || s.ssid;
   s.pass = document.getElementById('eq_pass')?.value.trim() || s.pass;
+  s.ip = document.getElementById('eq_ip')?.value.trim() || '';
   s.area = document.getElementById('eq_area')?.value || '';
   s.tower = document.getElementById('eq_tower')?.value || '';
   s.point = document.getElementById('eq_point')?.value || '';
@@ -997,6 +1017,9 @@ window.confirmQuickEdit = function(subId) {
   s.end = document.getElementById('eq_end')?.value || s.end;
   s.status = document.getElementById('eq_status')?.value || 'active';
   s.notes = document.getElementById('eq_notes')?.value.trim() || '';
+  if (window._eqPaid !== undefined) {
+    s.paid = window._eqPaid;
+  }
 
   saveAllData();
   closeModal();

@@ -462,11 +462,18 @@ window.openRenewModal = function(subId) {
   let html = '<div class="form-wrap" style="padding:0">';
 
   if (hasDebt && isExpired) {
+    var debtRows = '';
+    if (s.debtHistory) {
+      s.debtHistory.forEach(function(d) {
+        if (d.remaining <= 0) return;
+        debtRows += '<div class="debt-grid-item"><span class="dgi-label">' + d.date + '</span><span class="dgi-value warn">' + formatMoney(d.remaining) + '</span></div>';
+      });
+    }
     html += '<div class="debt-box">' +
       '<div class="debt-box-title"><i class="fas fa-exclamation-triangle"></i> ⚠️ عليه دين سابق</div>' +
       '<div class="debt-grid">' +
       (unpaidAmount > 0 ? '<div class="debt-grid-item"><span class="dgi-label">غير مدفوعة (الحالية)</span><span class="dgi-value warn">' + formatMoney(unpaidAmount) + '</span></div>' : '') +
-      (s.prevDebt > 0 ? '<div class="debt-grid-item"><span class="dgi-label">الدين السابق</span><span class="dgi-value warn">' + formatMoney(s.prevDebt) + '</span></div>' : '') +
+      debtRows +
       '<div class="debt-grid-item total"><span class="dgi-label">الإجمالي</span><span class="dgi-value" id="dgiTotal">' + formatMoney(totalDebt) + '</span></div>' +
       '</div></div>';
   }
@@ -725,7 +732,8 @@ window.openSettleModal = function(subId) {
   const s = subs.find(x => x.id === subId);
   if (!s) return;
 
-  const unpaidAmount = !s.paid ? s.amount : 0;
+  const debtInHistory = (s.debtHistory || []).some(function(d) { return d.remaining > 0; });
+  const unpaidAmount = (!s.paid && !debtInHistory) ? (s.amount || 0) : 0;
   const totalDebt = calcTotalDebt(s);
 
   if (totalDebt <= 0) {

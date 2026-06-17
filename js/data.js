@@ -173,9 +173,11 @@ function formatMoney(amount) {
   return (amount || 0).toLocaleString() + ' د.ع';
 }
 
-// حساب إجمالي الدين المستحق على مشترك (يشمل prevDebt من debtHistory)
+// حساب إجمالي الدين المستحق على مشترك (من debtHistory + الاشتراك الحالي غير المدفوع)
 function calcTotalDebt(sub) {
-  return (sub.paid ? 0 : sub.amount) + (sub.prevDebt || 0);
+  const debtSum = (sub.debtHistory || []).reduce((a, d) => a + (d.remaining || 0), 0);
+  const currentUnpaid = (!sub.paid && !(sub.debtHistory || []).some(d => d.remaining > 0)) ? (sub.amount || 0) : 0;
+  return debtSum + currentUnpaid;
 }
 
 // حساب prevDebt من debtHistory (مجموع remaining لكل دين)

@@ -5,13 +5,14 @@
 
 /* ===== متغيرات الألوان (الوضع الليلي) ===== */
 :root {
-  --bg: #121217;           /* خلفية الصفحة الرئيسية */
-  --bg2: #1c1b23;          /* خلفية ثانوية (سايدبار) */
+  --bg: #1a1a30;           /* خلفية الصفحة الرئيسية */
+  --bg2: #22223a;          /* خلفية ثانوية (سايدبار) */
   --card: rgba(255,255,255,0.03); /* خلفية البطاقات - زجاجية */
   --card-hover: #312f38;   /* لون البطاقة عند المرور عليها */
   --primary: #6c5ce7;      /* اللون الأساسي - بنفسجي */
   --primary-glow: rgba(108,92,231,.15);  /* توهج بنفسجي */
   --primary-light: rgba(108,92,231,.1);  /* نسخة شفافة من البنفسجي */
+  --primary-end: #5341cd;  /* نهاية التدرج اللوني */
   --success: #00b894;      /* أخضر - للعمليات الناجحة */
   --success-glow: rgba(0,184,148,.15);  /* توهج أخضر */
   --warning: #d4a017;      /* ذهبي - للتحذيرات والتنبيهات */
@@ -35,13 +36,14 @@
 
 /* ===== متغيرات الألوان (الوضع النهاري) ===== */
 [data-theme=light] {
-  --bg: #f0f0f5;          /* خلفية الصفحة */
+  --bg: #e8e6f0;          /* خلفية الصفحة - بنفسجي فاتح */
   --bg2: #ffffff;         /* خلفية ثانوية */
   --card: rgba(0,0,0,.02); /* البطاقات - زجاجية */
   --card-hover: #e8e5f0;  /* لون البطاقة عند المرور */
   --primary: #6c5ce7;     /* بنفسجي */
   --primary-glow: rgba(108,92,231,.12);
   --primary-light: rgba(108,92,231,.08);
+  --primary-end: var(--primary-end);
   --success: #00b894;     /* أخضر */
   --success-glow: rgba(0,184,148,.12);
   --warning: #d4a017;     /* ذهبي */
@@ -74,6 +76,114 @@ body{
   display:flex;                   /* استخدام Flexbox للتخطيط */
 }
 
+/* ===== خلفية نجوم مضيئة (الوضع الليلي فقط) ===== */
+body::before,body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0}
+body::before{
+  background:transparent;
+  background-image:
+    radial-gradient(2px 2px at 4% 12%,rgba(108,92,231,.7),transparent),
+    radial-gradient(3px 3px at 12% 38%,rgba(162,155,254,.5),transparent),
+    radial-gradient(1px 1px at 22% 7%,rgba(108,92,231,.8),transparent),
+    radial-gradient(2px 2px at 32% 55%,rgba(162,155,254,.4),transparent),
+    radial-gradient(1px 1px at 42% 18%,rgba(108,92,231,.6),transparent),
+    radial-gradient(3px 3px at 52% 72%,rgba(162,155,254,.5),transparent),
+    radial-gradient(2px 2px at 62% 5%,rgba(108,92,231,.7),transparent),
+    radial-gradient(1px 1px at 72% 42%,rgba(162,155,254,.4),transparent),
+    radial-gradient(2px 2px at 82% 28%,rgba(108,92,231,.6),transparent),
+    radial-gradient(1px 1px at 92% 65%,rgba(162,155,254,.5),transparent),
+    radial-gradient(2px 2px at 8% 85%,rgba(108,92,231,.5),transparent),
+    radial-gradient(3px 3px at 28% 92%,rgba(162,155,254,.6),transparent),
+    radial-gradient(1px 1px at 48% 78%,rgba(108,92,231,.4),transparent),
+    radial-gradient(2px 2px at 68% 88%,rgba(162,155,254,.5),transparent),
+    radial-gradient(1px 1px at 88% 95%,rgba(108,92,231,.7),transparent),
+    radial-gradient(2px 2px at 18% 48%,rgba(162,155,254,.3),transparent),
+    radial-gradient(1px 1px at 38% 32%,rgba(108,92,231,.6),transparent),
+    radial-gradient(3px 3px at 58% 15%,rgba(162,155,254,.5),transparent),
+    radial-gradient(2px 2px at 78% 58%,rgba(108,92,231,.4),transparent),
+    radial-gradient(1px 1px at 96% 22%,rgba(162,155,254,.6),transparent);
+  animation:starTwinkle 5s ease-in-out infinite alternate
+}
+body::after{
+  background:transparent;
+  background-image:
+    radial-gradient(1px 1px at 7% 25%,rgba(255,255,255,.3),transparent),
+    radial-gradient(2px 2px at 17% 62%,rgba(108,92,231,.5),transparent),
+    radial-gradient(1px 1px at 27% 10%,rgba(162,155,254,.4),transparent),
+    radial-gradient(2px 2px at 37% 45%,rgba(255,255,255,.2),transparent),
+    radial-gradient(1px 1px at 47% 82%,rgba(108,92,231,.6),transparent),
+    radial-gradient(3px 3px at 57% 35%,rgba(162,155,254,.5),transparent),
+    radial-gradient(1px 1px at 67% 90%,rgba(255,255,255,.3),transparent),
+    radial-gradient(2px 2px at 77% 15%,rgba(108,92,231,.4),transparent),
+    radial-gradient(1px 1px at 87% 52%,rgba(162,155,254,.6),transparent),
+    radial-gradient(2px 2px at 97% 72%,rgba(255,255,255,.2),transparent),
+    radial-gradient(1px 1px at 14% 70%,rgba(108,92,231,.5),transparent),
+    radial-gradient(2px 2px at 34% 20%,rgba(162,155,254,.3),transparent),
+    radial-gradient(3px 3px at 54% 68%,rgba(255,255,255,.4),transparent),
+    radial-gradient(1px 1px at 74% 40%,rgba(108,92,231,.6),transparent),
+    radial-gradient(2px 2px at 94% 50%,rgba(162,155,254,.4),transparent),
+    radial-gradient(1px 1px at 24% 88%,rgba(255,255,255,.2),transparent),
+    radial-gradient(2px 2px at 44% 5%,rgba(108,92,231,.5),transparent),
+    radial-gradient(1px 1px at 64% 75%,rgba(162,155,254,.3),transparent),
+    radial-gradient(2px 2px at 84% 30%,rgba(255,255,255,.4),transparent),
+    radial-gradient(1px 1px at 10% 55%,rgba(108,92,231,.5),transparent);
+  animation:starTwinkle2 6s ease-in-out infinite alternate
+}
+[data-theme=light] body::before,[data-theme=light] body::after{display:none}
+@keyframes starTwinkle{0%{opacity:.5}100%{opacity:1}}
+@keyframes starTwinkle2{0%{opacity:1}100%{opacity:.4}}
+
+/* ===== ألوان الأكسنت (تبديل من الإعدادات) ===== */
+[data-accent="silver"] {
+  --primary: #9e9eb0;
+  --primary-glow: rgba(158,158,176,.15);
+  --primary-light: rgba(158,158,176,.1);
+  --primary-end: #8a8a9a;
+}
+[data-accent="silver"][data-theme="light"] {
+  --primary-glow: rgba(158,158,176,.12);
+  --primary-light: rgba(158,158,176,.08);
+}
+[data-accent="bronze"] {
+  --primary: #cd7f32;
+  --primary-glow: rgba(205,127,50,.15);
+  --primary-light: rgba(205,127,50,.1);
+  --primary-end: #a8651a;
+}
+[data-accent="bronze"][data-theme="light"] {
+  --primary-glow: rgba(205,127,50,.12);
+  --primary-light: rgba(205,127,50,.08);
+}
+[data-accent="gold"] {
+  --primary: #c9a84c;
+  --primary-glow: rgba(201,168,76,.15);
+  --primary-light: rgba(201,168,76,.1);
+  --primary-end: #b8942e;
+}
+[data-accent="gold"][data-theme="light"] {
+  --primary-glow: rgba(201,168,76,.12);
+  --primary-light: rgba(201,168,76,.08);
+}
+[data-accent="gray"] {
+  --primary: #7a7a8a;
+  --primary-glow: rgba(122,122,138,.15);
+  --primary-light: rgba(122,122,138,.1);
+  --primary-end: #666676;
+}
+[data-accent="gray"][data-theme="light"] {
+  --primary-glow: rgba(122,122,138,.12);
+  --primary-light: rgba(122,122,138,.08);
+}
+[data-accent="mint"] {
+  --primary: #48c9b0;
+  --primary-glow: rgba(72,201,176,.15);
+  --primary-light: rgba(72,201,176,.1);
+  --primary-end: #36b89e;
+}
+[data-accent="mint"][data-theme="light"] {
+  --primary-glow: rgba(72,201,176,.12);
+  --primary-light: rgba(72,201,176,.08);
+}
+
 /* ===== شريط التمرير - تصميم مخصص ===== */
 ::-webkit-scrollbar{width:4px}                    /* عرض الشريط */
 ::-webkit-scrollbar-track{background:transparent}  /* مسار الشريط شفاف */
@@ -96,6 +206,11 @@ body{
   white-space:nowrap;max-width:92%;text-align:center
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}  /* تظهر عند التفعيل */
+
+/* =============================
+   APP CONTAINER
+   ============================= */
+#app{display:flex;flex-direction:column;min-height:100vh;flex:1}
 
 /* ================================================================
    SIDEBAR - القائمة الجانبية
@@ -121,7 +236,7 @@ body{
 /* أيقونة الشعار */
 .sidebar .logo .icon{
   width:42px;height:42px;border-radius:14px;
-  background:linear-gradient(135deg,var(--primary),#5341cd);
+  background:linear-gradient(135deg,var(--primary),var(--primary-end));
   display:grid;place-items:center;font-size:20px;color:#fff;
   flex-shrink:0;box-shadow:0 4px 16px var(--primary-glow)
 }
@@ -137,7 +252,7 @@ body{
 /* الصورة الرمزية للمستخدم */
 .sidebar .side-user .u-avatar{
   width:40px;height:40px;border-radius:12px;
-  background:linear-gradient(135deg,var(--primary),#5341cd);
+  background:linear-gradient(135deg,var(--primary),var(--primary-end));
   display:grid;place-items:center;font-size:18px;color:#fff;font-weight:800;flex-shrink:0
 }
 .sidebar .side-user div{flex:1}
@@ -200,6 +315,7 @@ body{
   flex:1;min-width:0;                        /* يتمدد ليملأ المساحة المتبقية */
   padding-bottom:20px;position:relative;
   overflow-x:hidden;                         /* يمنع أي تجاوز داخلي */
+  display:flex;flex-direction:column          /* عمود ليملأ الارتفاع */
 }
 
 /* في الموبايل: السايدبار يتحول إلى fixed ويختبئ خارج الشاشة */
@@ -260,7 +376,7 @@ body{
 }
 
 /* أنيميشن دخول الصفحات */
-.page{animation:pageIn .35s ease}
+.page{animation:pageIn .35s ease;flex:1;min-height:0}
 @keyframes pageIn{
   from{opacity:0;transform:translateY(12px)}
   to{opacity:1;transform:translateY(0)}
@@ -276,6 +392,9 @@ body{
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-bottom:1px solid var(--glass-border);
   position:sticky;top:0;z-index:100
+}
+[data-theme=light] .header{
+  background:linear-gradient(135deg,rgba(108,92,231,.06),rgba(108,92,231,.14)),rgba(255,255,255,.88)
 }
 /* زر القائمة في الموبايل */
 .header .menu-btn{
@@ -308,7 +427,7 @@ body{
 /* معلومات المستخدم في الهيدر */
 .header .h-user{position:relative;display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 10px 4px 4px;border-radius:30px;border:1px solid var(--glass-border);background:var(--card);transition:.25s;flex-shrink:0}
 .header .h-user:hover{border-color:var(--primary-light)}
-.header .h-user .hu-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#5341cd);display:grid;place-items:center;font-size:13px;color:#fff;font-weight:800}
+.header .h-user .hu-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-end));display:grid;place-items:center;font-size:13px;color:#fff;font-weight:800}
 .header .h-user .hu-name{font-size:12px;font-weight:700;color:var(--text);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:768px){.header .h-user .hu-name{display:none}}
 .header .h-user .hu-menu{position:absolute;top:calc(100% + 6px);left:0;background:var(--card);border:1px solid var(--glass-border);border-radius:12px;padding:6px;min-width:160px;box-shadow:var(--shadow-lg);z-index:200}
@@ -451,7 +570,7 @@ body{
 }
 .sub-card:hover .avatar{transform:scale(1.05)}
 .sub-card .avatar.on{
-  background:linear-gradient(135deg,var(--primary),#5341cd);
+  background:linear-gradient(135deg,var(--primary),var(--primary-end));
   border-color:rgba(108,92,231,.3);
   box-shadow:0 4px 16px rgba(108,92,231,.25)
 }
@@ -645,7 +764,7 @@ body{
 .form-actions{display:flex;gap:10px;padding-top:4px;flex-wrap:wrap}
 .form-actions button{flex:1;min-width:100px;padding:14px;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;transition:.25s;font-family:'Tajawal',sans-serif}
 /* أنواع الأزرار في الفورم */
-.form-actions .primary{border:none;background:linear-gradient(135deg,var(--primary),#5341cd);color:#fff;box-shadow:0 4px 16px var(--primary-glow)}
+.form-actions .primary{border:none;background:linear-gradient(135deg,var(--primary),var(--primary-end));color:#fff;box-shadow:0 4px 16px var(--primary-glow)}
 .form-actions .primary:active{transform:scale(.98)}
 .form-actions .secondary{border:1px solid var(--glass-border);background:var(--card);color:var(--text2)}  /* ثانوي - عادي */
 .form-actions .secondary:active{background:var(--bg2)}
@@ -786,6 +905,9 @@ body{
   background:var(--glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
   border-top:1px solid var(--glass-border);z-index:200;
   align-items:center;justify-content:space-around;padding:4px 0 8px
+}
+[data-theme=light] .bnav{
+  background:linear-gradient(135deg,rgba(108,92,231,.04),rgba(108,92,231,.12)),rgba(255,255,255,.78)
 }
 @media(max-width:768px){.bnav{display:flex}}  /* يظهر فقط في الموبايل */
 .bnav-item{

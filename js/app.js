@@ -13,8 +13,13 @@ window.showToast = function(msg) {
   t._timer = setTimeout(() => t.classList.remove('show'), 2800);
 };
 
+window._scrollLock = 0;
+function _updateScrollLock() {
+  document.body.classList.toggle('modal-open', window._scrollLock > 0);
+}
 window.openModal = function() {
-  document.body.classList.add('modal-open');
+  window._scrollLock++;
+  _updateScrollLock();
   document.getElementById('modalOverlay')?.classList.add('show');
   const modal = document.getElementById('modal');
   if (modal) {
@@ -22,9 +27,9 @@ window.openModal = function() {
     modal.classList.add('open');
   }
 };
-
 window.closeModal = function() {
-  document.body.classList.remove('modal-open');
+  window._scrollLock = Math.max(0, window._scrollLock - 1);
+  _updateScrollLock();
   document.getElementById('modalOverlay')?.classList.remove('show');
   document.getElementById('modal')?.classList.remove('open');
 };
@@ -92,6 +97,10 @@ const App = {
   setup() {
     const sidebarOpen = ref(false);
     provide('sidebarOpen', sidebarOpen);
+    watch(sidebarOpen, v => {
+      if(v) window._scrollLock++; else window._scrollLock = Math.max(0, window._scrollLock - 1);
+      _updateScrollLock();
+    });
     return { sidebarOpen };
   }
 };
@@ -116,7 +125,10 @@ app.mount('#app');
 
 // ===== تزامن الثيم مع localStorage عند بدء التشغيل =====
 (function() {
-  const saved = localStorage.getItem('nettower-theme');
+  var saved = localStorage.getItem('nettower-theme');
   if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
   else document.documentElement.removeAttribute('data-theme');
+  var accent = localStorage.getItem('nettower-accent');
+  if (accent && accent !== 'default') document.documentElement.setAttribute('data-accent', accent);
+  else document.documentElement.removeAttribute('data-accent');
 })();

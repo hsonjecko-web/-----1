@@ -636,13 +636,17 @@ var SubDetailPage = {
             <span class="label"><i class="fas fa-tag"></i> قيمة الاشتراك</span>
             <span class="value">{{ formatMoney(sub.amount) }}</span>
           </div>
-          <div class="row" v-if="sub.prevDebt>0">
-            <span class="label"><i class="fas fa-history"></i> الديون السابقة</span>
-            <span class="value warning">{{ formatMoney(sub.prevDebt) }}</span>
+          <div v-for="d in activeDebts" :key="d.id" class="row" style="flex-wrap:wrap">
+            <span class="label"><i class="fas fa-calendar-alt"></i> دين {{ d.date }}</span>
+            <span class="value" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">
+              <span style="color:var(--danger);font-weight:800">{{ formatMoney(d.remaining) }}</span>
+              <span v-if="d.payments && d.payments.length" style="font-size:11px;color:var(--text3)">({{ d.payments.length }} دفعات)</span>
+              <span style="font-size:11px;color:var(--text3);width:100%">{{ d.note }}</span>
+            </span>
           </div>
-          <div class="row" v-if="calcTotalDebt(sub)>0">
-            <span class="label"><i class="fas fa-coins"></i> إجمالي المستحقات</span>
-            <span class="value danger">{{ formatMoney(calcTotalDebt(sub)) }}</span>
+          <div v-if="activeDebts.length > 1" class="row" style="border-top:2px solid var(--danger);padding-top:10px;margin-top:4px">
+            <span class="label"><i class="fas fa-calculator"></i> المجموع</span>
+            <span class="value danger" style="font-size:17px">{{ formatMoney(totalActiveDebt) }}</span>
           </div>
           <div class="row" v-if="sub.notes">
             <span class="label"><i class="fas fa-sticky-note"></i> ملاحظات</span>
@@ -674,6 +678,32 @@ var SubDetailPage = {
 
     const sub = computed(() => subs.find(s => s.id === parseInt(route.params.id)));
     const subDays = computed(() => sub.value ? daysBetween(new Date(sub.value.end), new Date()) : 0);
+
+    const activeDebts = computed(() => {
+      if (!sub.value) return [];
+      const debts = [];
+      if (sub.value.debtHistory) {
+        sub.value.debtHistory.forEach(d => {
+          if (d.remaining > 0) debts.push({...d});
+        });
+      }
+      const hasDebtHistory = debts.length > 0;
+      if (!sub.value.paid && !hasDebtHistory) {
+        debts.push({
+          id: 'current',
+          date: sub.value.start || '—',
+          amount: sub.value.amount || 0,
+          remaining: sub.value.amount || 0,
+          note: 'الاشتراك الحالي',
+          payments: []
+        });
+      }
+      return debts;
+    });
+
+    const totalActiveDebt = computed(() => {
+      return activeDebts.value.reduce((a, d) => a + (d.remaining || 0), 0);
+    });
 
     function openRenew(id) {
       window.openRenewModal(id);
@@ -725,7 +755,7 @@ var SubDetailPage = {
       router.push('/subscribers');
     }
 
-    return { sub, subDays, openRenew, openSettle, quickEdit, activateFree, toggleStatus, sendWA, archiveSub, deleteSub, formatMoney, calcTotalDebt, can };
+    return { sub, subDays, activeDebts, totalActiveDebt, openRenew, openSettle, quickEdit, activateFree, toggleStatus, sendWA, archiveSub, deleteSub, formatMoney, calcTotalDebt, can };
   }
 };
 
@@ -821,7 +851,7 @@ var WhatsAppPage = {
             <div class="label"><i class="fas fa-eye" style="color:var(--primary)"></i> معاينة الرسالة</div>
             <div class="msg" style="white-space:pre-line">{{ previewMsg }}</div>
           </div>
-          <button class="wa-send-btn" @click="sendWA" style="background:linear-gradient(135deg,var(--primary),#5341cd);box-shadow:0 4px 24px var(--primary-glow)">
+          <button class="wa-send-btn" @click="sendWA" style="background:linear-gradient(135deg,var(--primary),var(--primary-end));box-shadow:0 4px 24px var(--primary-glow)">
             <i class="fab fa-whatsapp"></i> إرسال عبر واتساب
           </button>
         </div>
@@ -1455,7 +1485,7 @@ var ReportsPage = {
               <div class="meta">
                 <span class="type">{{ s.type }}</span>
                 <span class="debt">دين: {{ formatMoney(calcTotalDebt(s)) }}</span>
-                <span v-if="s.prevDebt > 0" class="remaining">سابق: {{ formatMoney(s.prevDebt) }}</span>
+                <span v-if="(s.debtHistory||[]).length > 0" class="remaining">{{ (s.debtHistory||[]).length }} دفعات</span>
               </div>
             </div>
           </div>
@@ -1686,23 +1716,81 @@ var SettingsPage = {
           </div>
           <i class="fas fa-chevron-left sarrow"></i>
         </div>
+        <div class="set-card" @click="manageColors">
+          <div class="sicon" style="background:linear-gradient(135deg,var(--primary),var(--primary-end))"><i class="fas fa-palette" style="color:#fff"></i></div>
+          <div class="sinfo">
+            <h4>ألوان التطبيق</h4>
+            <p>{{ colorLabel }}</p>
+          </div>
+          <i class="fas fa-chevron-left sarrow"></i>
+        </div>
       </div>
     </div>
   `,
   setup() {
+    const accentNames = {
+      default: 'الافتراضي (بنفسجي)',
+      silver: 'فضي',
+      bronze: 'برونزي',
+      gold: 'ذهبي',
+      gray: 'رمادي',
+      mint: 'نعناعي فاتح'
+    };
+    const currentAccent = ref(localStorage.getItem('nettower-accent') || 'default');
+    const colorLabel = computed(() => accentNames[currentAccent.value] || 'الافتراضي (بنفسجي)');
+
+    function manageColors() {
+      var html = '<div style="padding:0">' +
+        '<div style="font-size:13px;color:var(--text2);margin-bottom:14px;padding:0 4px">اختر اللون الرئيسي للتطبيق:</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">';
+      var list = [
+        {id:'default', label:'بنفسجي', color:'#6c5ce7', end:'#5341cd'},
+        {id:'silver', label:'فضي', color:'#9e9eb0', end:'#8a8a9a'},
+        {id:'bronze', label:'برونزي', color:'#cd7f32', end:'#a8651a'},
+        {id:'gold', label:'ذهبي', color:'#c9a84c', end:'#b8942e'},
+        {id:'gray', label:'رمادي', color:'#7a7a8a', end:'#666676'},
+        {id:'mint', label:'نعناعي', color:'#48c9b0', end:'#36b89e'}
+      ];
+      list.forEach(function(a) {
+        html += '<div class="color-opt" data-id="' + a.id + '" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:14px;border:2px solid var(--glass-border);cursor:pointer;transition:.2s;background:var(--card)" onclick="pickAccent(\'' + a.id + '\')">' +
+          '<div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,' + a.color + ',' + a.end + ');box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>' +
+          '<span style="font-size:12px;font-weight:700;color:var(--text)">' + a.label + '</span>' +
+          (a.id === (localStorage.getItem('nettower-accent') || 'default') ? '<span style="font-size:10px;color:var(--success)"><i class="fas fa-check"></i> الحالي</span>' : '') +
+          '</div>';
+      });
+      html += '</div></div>';
+      document.getElementById('modalTitle').innerHTML = '<i class="fas fa-palette" style="color:var(--primary)"></i> ألوان التطبيق';
+      document.getElementById('modalBody').innerHTML = html;
+      openModal();
+    }
+
+    window.pickAccent = function(id) {
+      var html = document.documentElement;
+      if (id === 'default') {
+        html.removeAttribute('data-accent');
+        localStorage.removeItem('nettower-accent');
+      } else {
+        html.setAttribute('data-accent', id);
+        localStorage.setItem('nettower-accent', id);
+      }
+      currentAccent.value = id;
+      showToast('🎨 تم تغيير اللون إلى ' + (accentNames[id] || id));
+      closeModal();
+    };
+
     function manageUsers() {
       let html = '<div class="form-wrap" style="padding:0">';
       users.forEach(u => {
         const permStr = u.permissions.settings.manageUsers ? 'مدير نظام' : 'مستخدم';
         html += '<div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--glass-border);cursor:pointer" onclick="openEditUser(' + u.id + ')">' +
-          '<div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--primary),#5341cd);display:grid;place-items:center;font-size:16px;color:#fff;font-weight:800">' + u.name.charAt(0) + '</div>' +
+          '<div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--primary-end));display:grid;place-items:center;font-size:16px;color:#fff;font-weight:800">' + u.name.charAt(0) + '</div>' +
           '<div style="flex:1">' +
           '<div style="font-weight:700;font-size:14px">' + u.name + '</div>' +
           '<div style="font-size:11px;color:var(--text3)">@' + u.username + ' · ' + permStr + '</div></div>' +
           '<i class="fas fa-chevron-left" style="color:var(--text3);font-size:12px"></i></div>';
       });
       html += '<div style="margin-top:14px">' +
-        '<button class="primary" onclick="openAddUser()" style="padding:12px 24px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--primary),#5341cd);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:Tajawal,sans-serif"><i class="fas fa-plus"></i> إضافة مستخدم جديد</button></div>' +
+        '<button class="primary" onclick="openAddUser()" style="padding:12px 24px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--primary),var(--primary-end));color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:Tajawal,sans-serif"><i class="fas fa-plus"></i> إضافة مستخدم جديد</button></div>' +
         '</div>';
       document.getElementById('modalTitle').innerHTML = '<i class="fas fa-users-cog" style="color:var(--primary)"></i> إدارة المستخدمين';
       document.getElementById('modalBody').innerHTML = html;
@@ -1824,6 +1912,6 @@ var SettingsPage = {
       openModal();
     }
 
-    return { alertDays, towerInfo, users, can, manageUsers, manageSubscriptions, manageAreas, manageTemplates, manageAlerts, manageExpenseCategories, manageTowers, manageTowerInfo };
+    return { alertDays, towerInfo, users, can, manageUsers, manageSubscriptions, manageAreas, manageTemplates, manageAlerts, manageExpenseCategories, manageTowers, manageTowerInfo, manageColors, colorLabel };
   }
 };

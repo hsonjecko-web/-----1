@@ -7,11 +7,10 @@ var HomePage = {
     <div class="page">
       <div class="shead">
         <h2><i class="fas fa-chart-simple"></i> نظرة عامة</h2>
-        <a @click="$router.push('/subscribers')"><i class="fas fa-arrow-left"></i> عرض الكل</a>
       </div>
 
       <div class="stats">
-        <div class="stat-card" style="cursor:pointer" @click="showCardDetail('total')">
+        <div class="stat-card" data-accent="purple" style="cursor:pointer" @click="showCardDetail('total')">
           <div class="top">
             <div class="icon cyan"><i class="fas fa-users"></i></div>
             <span class="trend up"><i class="fas fa-arrow-up"></i> +12%</span>
@@ -19,7 +18,7 @@ var HomePage = {
           <div class="num">{{ totalSubs }}</div>
           <div class="label">إجمالي المشتركين</div>
         </div>
-        <div class="stat-card" style="cursor:pointer" @click="showCardDetail('active')">
+        <div class="stat-card" data-accent="teal" style="cursor:pointer" @click="showCardDetail('active')">
           <div class="top">
             <div class="icon green"><i class="fas fa-wifi"></i></div>
             <span class="trend up"><i class="fas fa-arrow-up"></i> +5%</span>
@@ -27,7 +26,7 @@ var HomePage = {
           <div class="num">{{ activeSubs }}</div>
           <div class="label">مشتركين فعالين</div>
         </div>
-        <div class="stat-card" style="cursor:pointer" @click="showCardDetail('expired')">
+        <div class="stat-card" data-accent="coral" style="cursor:pointer" @click="showCardDetail('expired')">
           <div class="top">
             <div class="icon red"><i class="fas fa-ban"></i></div>
             <span class="trend down"><i class="fas fa-arrow-down"></i> +3</span>
@@ -35,7 +34,7 @@ var HomePage = {
           <div class="num">{{ expiredSubs }}</div>
           <div class="label">اشتراكات منتهية</div>
         </div>
-        <div class="stat-card" style="cursor:pointer" @click="showCardDetail('inactive')">
+        <div class="stat-card" data-accent="gold" style="cursor:pointer" @click="showCardDetail('inactive')">
           <div class="top">
             <div class="icon orange"><i class="fas fa-user-clock"></i></div>
             <span class="trend down"><i class="fas fa-arrow-down"></i> +2</span>
@@ -43,17 +42,17 @@ var HomePage = {
           <div class="num">{{ inactiveSubs }}</div>
           <div class="label">غير مفعلين</div>
         </div>
-        <div class="stat-card" style="cursor:pointer" @click="showCardDetail('debts')">
+        <div class="stat-card" data-accent="rose" style="cursor:pointer" @click="showCardDetail('debts')">
           <div class="top"><div class="icon red"><i class="fas fa-coins"></i></div></div>
           <div class="num">{{ debtsTotal }}</div>
           <div class="label">الديون المستحقة</div>
         </div>
-        <div class="stat-card" style="cursor:pointer" @click="showCardDetail('balance')">
+        <div class="stat-card" data-accent="mint" style="cursor:pointer" @click="showCardDetail('balance')">
           <div class="top"><div class="icon green"><i class="fas fa-wallet"></i></div></div>
           <div class="num">{{ balanceTotal }}</div>
           <div class="label">الرصيد الحالي</div>
         </div>
-        <div class="stat-card" style="grid-column:span 2;cursor:pointer" @click="showCardDetail('expiring')">
+        <div class="stat-card" data-accent="orange" style="grid-column:span 2;cursor:pointer" @click="showCardDetail('expiring')">
           <div class="top">
             <div class="icon orange"><i class="fas fa-clock"></i></div>
             <span class="trend down"><i class="fas fa-arrow-down"></i> {{ expiringSoon.length }} مشتركين</span>
@@ -65,22 +64,22 @@ var HomePage = {
 
       <div class="shead"><h2><i class="fas fa-bolt"></i> العمليات السريعة</h2></div>
       <div class="quick-acts">
-        <div class="qa" @click="$router.push('/add-sub')" v-if="can('subscribers.add')">
+        <div class="qa" data-accent="purple" @click="$router.push('/add-sub')" v-if="can('subscribers.add')">
           <div class="qicon cyan"><i class="fas fa-user-plus"></i></div><span>إضافة مشترك</span>
         </div>
-        <div class="qa" @click="$router.push('/subscribers')" v-if="can('subscribers.view')">
+        <div class="qa" data-accent="teal" @click="$router.push('/subscribers')" v-if="can('subscribers.view')">
           <div class="qicon green"><i class="fas fa-sync"></i></div><span>تجديد اشتراك</span>
         </div>
-        <div class="qa" @click="$router.push('/whatsapp')" v-if="can('whatsapp')">
+        <div class="qa" data-accent="mint" @click="$router.push('/whatsapp')" v-if="can('whatsapp')">
           <div class="qicon green"><i class="fab fa-whatsapp"></i></div><span>إرسال واتساب</span>
         </div>
-        <div class="qa" @click="$router.push('/finance')" v-if="can('finance.view')">
+        <div class="qa" data-accent="gold" @click="$router.push('/finance')" v-if="can('finance.view')">
           <div class="qicon orange"><i class="fas fa-coins"></i></div><span>الصندوق المالي</span>
         </div>
-        <div class="qa" @click="$router.push('/reports')" v-if="can('reports')">
+        <div class="qa" data-accent="lavender" @click="$router.push('/reports')" v-if="can('reports')">
           <div class="qicon purple"><i class="fas fa-chart-bar"></i></div><span>التقارير</span>
         </div>
-        <div class="qa" @click="$router.push('/archive')" v-if="can('archive')">
+        <div class="qa" data-accent="coral" @click="$router.push('/archive')" v-if="can('archive')">
           <div class="qicon red"><i class="fas fa-archive"></i></div><span>الأرشيف</span>
         </div>
       </div>

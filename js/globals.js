@@ -60,6 +60,22 @@ window.saveFinance = function(type) {
 };
 
 // ===== دوال إدارة أنواع الاشتراك =====
+window.openEditSubscriptionType = function(id) {
+  const t = subscriptionTypes.find(x => x.id === id);
+  if(!t) { showToast('⚠️ النوع غير موجود'); return; }
+  document.getElementById('modalTitle').innerHTML = '<i class="fas fa-tags" style="color:var(--primary)"></i> تعديل نوع الاشتراك';
+  document.getElementById('modalBody').innerHTML =
+    '<div class="form-wrap" style="padding:0">' +
+    '<div class="form-group"><label>الاسم</label><input type="text" id="st_name_' + id + '" value="' + t.name + '"></div>' +
+    '<div class="form-row"><div class="form-group"><label>السعر (دينار)</label><input type="number" id="st_price_' + id + '" value="' + t.price + '"></div>' +
+    '<div class="form-group"><label>المدة (أيام)</label><input type="number" id="st_days_' + id + '" value="' + t.days + '"></div></div>' +
+    '<div class="form-actions">' +
+    '<button class="primary" onclick="saveSubscriptionType(' + id + ')">حفظ</button>' +
+    '<button class="secondary" onclick="closeModal()">إلغاء</button></div></div>';
+  openModal();
+};
+
+// ===== دوال إدارة أنواع الاشتراك =====
 window.addSubscriptionType = function() {
   const name = document.getElementById('new_st_name')?.value?.trim();
   const price = parseInt(document.getElementById('new_st_price')?.value);

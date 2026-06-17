@@ -34,7 +34,6 @@ var SidebarComponent = {
         <router-link to="/settings" v-if="can('settings.view')"><i class="fas fa-cog"></i> الإعدادات</router-link>
       </nav>
       <div class="side-foot">
-        <button @click="doLogout"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
       </div>
     </aside>
   `,
@@ -54,14 +53,10 @@ var SidebarComponent = {
       return n;
     });
 
-    function doLogout() {
-      window.doLogout();
-    }
-
     watch(() => route.path, () => {
       if (window.innerWidth <= 768) sidebarOpen.value = false;
     });
 
-    return { sidebarOpen, towerInfo, subsCount, notifCount, currentUser, can, doLogout };
+    return { sidebarOpen, towerInfo, subsCount, notifCount, currentUser, can };
   }
 };

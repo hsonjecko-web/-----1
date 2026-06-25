@@ -27,7 +27,7 @@ var SubscribersPage = {
 
       <div class="subs-list">
         <div v-for="s in filteredList" :key="s.id" class="sub-card" @click="$router.push('/sub-detail/'+s.id)">
-          <div class="avatar" :class="{ off: s.status!=='active' }">{{ s.name.charAt(0) }}</div>
+          <div class="avatar" :class="{ on: s.status==='active', off: s.status!=='active' }">{{ s.name.charAt(0) }}</div>
           <div class="info">
             <div class="name">
               {{ s.name }}

@@ -86,7 +86,7 @@ var HomePage = {
       </div>
       <div class="subs-list">
         <div v-for="s in expiringSoon" :key="s.id" class="sub-card" @click="$router.push('/sub-detail/'+s.id)">
-          <div class="avatar" :class="{ off: s.status!=='active' }">{{ s.name.charAt(0) }}</div>
+          <div class="avatar" :class="{ on: s.status==='active', off: s.status!=='active' }">{{ s.name.charAt(0) }}</div>
           <div class="info">
             <div class="name">
               {{ s.name }}
@@ -1788,23 +1788,25 @@ var SettingsPage = {
     const styleNames = {
       default: 'الرئيسي',
       neo: 'نيومورفيزم كلاسيكي',
-      skeuo: 'سكيومورفيزم حديث'
+      skeuo: 'سكيومورفيزم حديث',
+      super: 'سوبر'
     };
     const currentStyle = ref(localStorage.getItem('nettower-style') || 'default');
     const styleLabel = computed(() => styleNames[currentStyle.value] || 'الرئيسي');
 
-    const styleIcons = { default:'fa-palette', neo:'fa-cube', skeuo:'fa-cubes' };
+    const styleIcons = { default:'fa-palette', neo:'fa-cube', skeuo:'fa-cubes', super:'fa-crown' };
     const stylePreviews = {
       default: 'linear-gradient(135deg,#6c5ce7,#5341cd)',
       neo: 'linear-gradient(135deg,#1a1a2e,#16213e)',
-      skeuo: 'linear-gradient(135deg,#362a50,#201730)'
+      skeuo: 'linear-gradient(135deg,#362a50,#201730)',
+      super: 'linear-gradient(135deg,#002D62,#D4AF37)'
     };
 
     function manageStyles() {
       var html = '<div style="padding:0">' +
         '<div style="font-size:13px;color:var(--text2);margin-bottom:14px;padding:0 4px">اختر نمط التصميم:</div>' +
         '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">';
-      var list = ['default','neo','skeuo'];
+      var list = ['default','neo','skeuo','super'];
       list.forEach(function(id) {
         var curr = localStorage.getItem('nettower-style') || 'default';
         html += '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 10px;border-radius:16px;border:2px solid ' + (curr === id ? 'var(--primary)' : 'var(--glass-border)') + ';cursor:pointer;transition:.2s;background:var(--card)" onclick="pickStyle(\'' + id + '\')">' +

@@ -126,8 +126,8 @@ app.mount('#app');
 // ===== تزامن الثيم والأكسنت والنمط مع localStorage عند بدء التشغيل =====
 (function() {
   var saved = localStorage.getItem('nettower-theme');
-  if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
-  else document.documentElement.removeAttribute('data-theme');
+  if (saved === 'dark') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', 'light');
   var accent = localStorage.getItem('nettower-accent');
   if (accent && accent !== 'default') document.documentElement.setAttribute('data-accent', accent);
   else document.documentElement.removeAttribute('data-accent');

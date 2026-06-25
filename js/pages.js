@@ -24,16 +24,14 @@ var HomePage = {
           <div class="num">{{ activeSubs }}</div>
           <div class="label">مشتركين فعالين</div>
         </div>
-        <div class="stat-card" data-accent="coral" @click="showCardDetail('expired')">
-          <div class="top">
-            <div class="icon red"><i class="fas fa-ban"></i></div>
-          </div>
-          <div class="num">{{ expiredSubs }}</div>
-          <div class="label">اشتراكات منتهية</div>
+        <div class="stat-card" data-accent="mint" @click="showCardDetail('balance')">
+          <div class="top"><div class="icon orange"><i class="fas fa-wallet"></i></div></div>
+          <div class="num">{{ balanceTotal }}</div>
+          <div class="label">الرصيد الحالي</div>
         </div>
-        <div class="stat-card" data-accent="gold" @click="showCardDetail('inactive')">
+        <div class="stat-card" data-accent="gray" @click="showCardDetail('inactive')">
           <div class="top">
-            <div class="icon orange"><i class="fas fa-user-clock"></i></div>
+            <div class="icon rose"><i class="fas fa-user-clock"></i></div>
           </div>
           <div class="num">{{ inactiveSubs }}</div>
           <div class="label">غير مفعلين</div>
@@ -43,14 +41,16 @@ var HomePage = {
           <div class="num">{{ debtsTotal }}</div>
           <div class="label">الديون المستحقة</div>
         </div>
-        <div class="stat-card" data-accent="mint" @click="showCardDetail('balance')">
-          <div class="top"><div class="icon green"><i class="fas fa-wallet"></i></div></div>
-          <div class="num">{{ balanceTotal }}</div>
-          <div class="label">الرصيد الحالي</div>
+        <div class="stat-card" data-accent="coral" @click="showCardDetail('expired')">
+          <div class="top">
+            <div class="icon blue"><i class="fas fa-ban"></i></div>
+          </div>
+          <div class="num">{{ expiredSubs }}</div>
+          <div class="label">اشتراكات منتهية</div>
         </div>
         <div class="stat-card span2" data-accent="orange" @click="showCardDetail('expiring')">
           <div class="top">
-            <div class="icon orange"><i class="fas fa-clock"></i></div>
+            <div class="icon mint"><i class="fas fa-clock"></i></div>
             <span class="trend down"><i class="fas fa-arrow-down"></i> {{ expiringSoon.length }} مشتركين</span>
           </div>
           <div class="num">{{ expiringSoon.length }}</div>
@@ -214,7 +214,10 @@ var SubscribersPage = {
     <div class="page">
       <div class="shead">
         <h2><i class="fas fa-users"></i> المشتركين</h2>
-        <a @click="$router.push('/add-sub')"><i class="fas fa-plus"></i> إضافة</a>
+        <div class="shead-actions">
+          <button class="filter-btn" @click="showFilters=!showFilters"><i class="fas fa-sliders-h"></i></button>
+          <a @click="$router.push('/add-sub')"><i class="fas fa-plus"></i> إضافة</a>
+        </div>
       </div>
 
       <div class="search-bar">
@@ -222,9 +225,6 @@ var SubscribersPage = {
           <i class="fas fa-search"></i>
           <input type="text" placeholder="بحث بالاسم أو الهاتف..." v-model="searchQuery">
         </div>
-        <button class="filter-btn" @click="showFilters=!showFilters">
-          <i class="fas fa-sliders-h"></i>
-        </button>
       </div>
 
       <div class="filter-row" v-if="showFilters">

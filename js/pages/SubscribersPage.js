@@ -3,7 +3,10 @@ var SubscribersPage = {
     <div class="page">
       <div class="shead">
         <h2><i class="fas fa-users"></i> المشتركين</h2>
-        <a @click="$router.push('/add-sub')" v-if="can('subscribers.add')"><i class="fas fa-plus"></i> إضافة</a>
+        <div class="shead-actions">
+          <button class="filter-btn" @click="showFilters=!showFilters"><i class="fas fa-sliders-h"></i></button>
+          <a @click="$router.push('/add-sub')" v-if="can('subscribers.add')"><i class="fas fa-plus"></i> إضافة</a>
+        </div>
       </div>
 
       <div class="search-bar">
@@ -11,9 +14,6 @@ var SubscribersPage = {
           <i class="fas fa-search"></i>
           <input type="text" placeholder="بحث بالاسم أو الهاتف..." v-model="searchQuery">
         </div>
-        <button class="filter-btn" @click="showFilters=!showFilters">
-          <i class="fas fa-sliders-h"></i>
-        </button>
       </div>
 
       <div class="filter-row" v-if="showFilters">

@@ -52,7 +52,7 @@ var HeaderComponent = {
     const searchQ = ref('');
     const searchResults = ref([]);
     const showSearchResults = ref(false);
-    const isDark = ref(localStorage.getItem('nettower-theme') !== 'light');
+    const isDark = ref(localStorage.getItem('nettower-theme') === 'dark');
 
     const currentTitle = computed(() => {
       const name = route.name || 'home';

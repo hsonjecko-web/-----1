@@ -26,17 +26,14 @@ var HomePage = {
           <div class="num">{{ activeSubs }}</div>
           <div class="label">مشتركين فعالين</div>
         </div>
-        <div class="stat-card" data-accent="coral" style="cursor:pointer" @click="showCardDetail('expired')">
-          <div class="top">
-            <div class="icon red"><i class="fas fa-ban"></i></div>
-            <span class="trend down"><i class="fas fa-arrow-down"></i> +3</span>
-          </div>
-          <div class="num">{{ expiredSubs }}</div>
-          <div class="label">اشتراكات منتهية</div>
+        <div class="stat-card" data-accent="mint" style="cursor:pointer" @click="showCardDetail('balance')">
+          <div class="top"><div class="icon orange"><i class="fas fa-wallet"></i></div></div>
+          <div class="num">{{ balanceTotal }}</div>
+          <div class="label">الرصيد الحالي</div>
         </div>
-        <div class="stat-card" data-accent="gold" style="cursor:pointer" @click="showCardDetail('inactive')">
+        <div class="stat-card" data-accent="gray" style="cursor:pointer" @click="showCardDetail('inactive')">
           <div class="top">
-            <div class="icon orange"><i class="fas fa-user-clock"></i></div>
+            <div class="icon rose"><i class="fas fa-user-clock"></i></div>
             <span class="trend down"><i class="fas fa-arrow-down"></i> +2</span>
           </div>
           <div class="num">{{ inactiveSubs }}</div>
@@ -47,14 +44,17 @@ var HomePage = {
           <div class="num">{{ debtsTotal }}</div>
           <div class="label">الديون المستحقة</div>
         </div>
-        <div class="stat-card" data-accent="mint" style="cursor:pointer" @click="showCardDetail('balance')">
-          <div class="top"><div class="icon green"><i class="fas fa-wallet"></i></div></div>
-          <div class="num">{{ balanceTotal }}</div>
-          <div class="label">الرصيد الحالي</div>
+        <div class="stat-card" data-accent="coral" style="cursor:pointer" @click="showCardDetail('expired')">
+          <div class="top">
+            <div class="icon blue"><i class="fas fa-ban"></i></div>
+            <span class="trend down"><i class="fas fa-arrow-down"></i> +3</span>
+          </div>
+          <div class="num">{{ expiredSubs }}</div>
+          <div class="label">اشتراكات منتهية</div>
         </div>
         <div class="stat-card" data-accent="orange" style="grid-column:span 2;cursor:pointer" @click="showCardDetail('expiring')">
           <div class="top">
-            <div class="icon orange"><i class="fas fa-clock"></i></div>
+            <div class="icon mint"><i class="fas fa-clock"></i></div>
             <span class="trend down"><i class="fas fa-arrow-down"></i> {{ expiringSoon.length }} مشتركين</span>
           </div>
           <div class="num">{{ expiringSoon.length }}</div>

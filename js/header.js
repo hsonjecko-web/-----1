@@ -7,18 +7,20 @@ var pageTitles = {
   'sub-detail': 'تفاصيل المشترك', whatsapp: 'واتساب', finance: 'الصندوق المالي',
   reports: 'التقارير', archive: 'الأرشيف', notifications: 'الإشعارات', settings: 'الإعدادات'
 };
+var searchPageRoutes = ['home', 'subscribers', 'whatsapp'];
 var pageIcons = {
   home: 'fa-chart-pie', subscribers: 'fa-users', 'add-sub': 'fa-user-plus',
   'sub-detail': 'fa-id-card', whatsapp: 'fa-whatsapp', finance: 'fa-coins',
   reports: 'fa-chart-bar', archive: 'fa-archive', notifications: 'fa-bell', settings: 'fa-cog'
 };
 
+
 var HeaderComponent = {
   template: `
     <header class="header">
       <button class="menu-btn" @click="toggleSidebar"><i class="fas fa-bars"></i></button>
       <div class="page-title"><i :class="'fas ' + currentIcon"></i> {{ currentTitle }}</div>
-      <div class="h-search" v-if="$route.name === 'home'">
+      <div class="h-search" v-if="showSearchInHeader">
         <i class="fas fa-search"></i>
         <input type="text" placeholder="بحث..." v-model="searchQ" @input="doSearch" @focus="doSearch" @blur="setTimeout(()=>showSearchResults=false,200)">
         <div v-if="showSearchResults" class="search-dropdown">
@@ -60,6 +62,8 @@ var HeaderComponent = {
       const name = route.name || 'home';
       return pageIcons[name] || 'fa-circle';
     });
+    const showSearchInHeader = computed(() => searchPageRoutes.includes(route.name));
+
     const notifBadge = computed(() => {
       let n = 0;
       subs.forEach(s => {
@@ -99,6 +103,6 @@ var HeaderComponent = {
 
     const statusMap = { active: 'فعال', expired: 'منتهي', inactive: 'غير مفعل', disabled: 'معطل' };
 
-    return { currentTitle, currentIcon, notifBadge, toggleSidebar, toggleTheme, searchQ, searchResults, showSearchResults, doSearch, goToSub, isDark, statusMap };
+    return { currentTitle, currentIcon, notifBadge, toggleSidebar, toggleTheme, searchQ, searchResults, showSearchResults, doSearch, goToSub, isDark, statusMap, showSearchInHeader };
   }
 };

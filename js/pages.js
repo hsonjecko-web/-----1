@@ -150,7 +150,7 @@ var HomePage = {
       document.getElementById('modalTitle').innerHTML = '<i class="fas fa-list"></i> ' + title + ' (<span id="' + listId + '_cnt">' + list.length + '</span>)';
       document.getElementById('modalBody').innerHTML =
         '<div style="position:sticky;top:0;z-index:2;background:var(--bg2);padding-bottom:8px"><input type="text" id="' + listId + '_search" placeholder="🔍 بحث بالاسم أو الهاتف..." style="width:100%;padding:8px 12px;border-radius:10px;border:1px solid var(--glass-border);background:var(--card);color:var(--text);font-size:13px;font-family:Tajawal,sans-serif;outline:none" onkeyup="window._filterCardList(\'' + listId + '\')"></div>' +
-        '<div id="' + listId + '_wrap">' +
+        '<div id="' + listId + '_wrap" style="display:flex;flex-direction:column;gap:8px">' +
         list.map(s => '<div class="sub-card" data-search="' + (s.name + ' ' + s.phone).toLowerCase() + '" onclick="closeModal();window.location.href=\'#/sub-detail/' + s.id + '\'" style="cursor:pointer">' +
           '<div class="avatar" style="background:' + (s.status === 'active' ? 'var(--success)' : s.status === 'expired' ? 'var(--danger)' : 'var(--warning)') + '">' + s.name.charAt(0) + '</div>' +
           '<div class="info">' +

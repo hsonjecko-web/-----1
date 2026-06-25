@@ -687,8 +687,7 @@ var SubDetailPage = {
           if (d.remaining > 0) debts.push({...d});
         });
       }
-      const hasDebtHistory = debts.length > 0;
-      if (!sub.value.paid && !hasDebtHistory) {
+      if (!sub.value.paid) {
         debts.push({
           id: 'current',
           date: sub.value.start || '—',
@@ -1724,6 +1723,14 @@ var SettingsPage = {
           </div>
           <i class="fas fa-chevron-left sarrow"></i>
         </div>
+        <div class="set-card" @click="manageStyles">
+          <div class="sicon" style="background:#222"><i class="fas fa-paint-roller" style="color:#fff"></i></div>
+          <div class="sinfo">
+            <h4>أنماط التطبيق</h4>
+            <p>{{ styleLabel }}</p>
+          </div>
+          <i class="fas fa-chevron-left sarrow"></i>
+        </div>
       </div>
     </div>
   `,
@@ -1775,6 +1782,47 @@ var SettingsPage = {
       }
       currentAccent.value = id;
       showToast('🎨 تم تغيير اللون إلى ' + (accentNames[id] || id));
+      closeModal();
+    };
+
+    const styleNames = {
+      default: 'الرئيسي',
+      neo: 'نيومورفيزم كلاسيكي',
+      skeuo: 'سكيومورفيزم حديث'
+    };
+    const currentStyle = ref(localStorage.getItem('nettower-style') || 'default');
+    const styleLabel = computed(() => styleNames[currentStyle.value] || 'الرئيسي');
+
+    const styleIcons = { default:'fa-palette', neo:'fa-cube', skeuo:'fa-cubes' };
+    const stylePreviews = {
+      default: 'linear-gradient(135deg,#6c5ce7,#5341cd)',
+      neo: 'linear-gradient(135deg,#1a1a2e,#16213e)',
+      skeuo: 'linear-gradient(135deg,#362a50,#201730)'
+    };
+
+    function manageStyles() {
+      var html = '<div style="padding:0">' +
+        '<div style="font-size:13px;color:var(--text2);margin-bottom:14px;padding:0 4px">اختر نمط التصميم:</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">';
+      var list = ['default','neo','skeuo'];
+      list.forEach(function(id) {
+        var curr = localStorage.getItem('nettower-style') || 'default';
+        html += '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 10px;border-radius:16px;border:2px solid ' + (curr === id ? 'var(--primary)' : 'var(--glass-border)') + ';cursor:pointer;transition:.2s;background:var(--card)" onclick="pickStyle(\'' + id + '\')">' +
+          '<div style="width:56px;height:56px;border-radius:14px;background:' + stylePreviews[id] + ';box-shadow:0 4px 14px rgba(0,0,0,.2);display:grid;place-items:center">' +
+          '<i class="fas ' + styleIcons[id] + '" style="font-size:20px;color:#fff"></i></div>' +
+          '<span style="font-size:13px;font-weight:800;color:var(--text)">' + styleNames[id] + '</span>' +
+          (curr === id ? '<span style="font-size:10px;color:var(--success)"><i class="fas fa-check"></i> الحالي</span>' : '<span style="font-size:10px;color:var(--text3)">اختيار</span>') +
+          '</div>';
+      });
+      html += '</div></div>';
+      document.getElementById('modalTitle').innerHTML = '<i class="fas fa-paint-roller" style="color:var(--primary)"></i> أنماط التصميم';
+      document.getElementById('modalBody').innerHTML = html;
+      openModal();
+    }
+
+    window.pickStyle = function(id) {
+      currentStyle.value = id;
+      window.applyStyle(id);
       closeModal();
     };
 
@@ -1912,6 +1960,6 @@ var SettingsPage = {
       openModal();
     }
 
-    return { alertDays, towerInfo, users, can, manageUsers, manageSubscriptions, manageAreas, manageTemplates, manageAlerts, manageExpenseCategories, manageTowers, manageTowerInfo, manageColors, colorLabel };
+    return { alertDays, towerInfo, users, can, manageUsers, manageSubscriptions, manageAreas, manageTemplates, manageAlerts, manageExpenseCategories, manageTowers, manageTowerInfo, manageColors, colorLabel, manageStyles, styleLabel };
   }
 };

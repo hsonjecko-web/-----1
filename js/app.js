@@ -123,7 +123,7 @@ app.directive('click-outside', {
 app.use(router);
 app.mount('#app');
 
-// ===== تزامن الثيم مع localStorage عند بدء التشغيل =====
+// ===== تزامن الثيم والأكسنت والنمط مع localStorage عند بدء التشغيل =====
 (function() {
   var saved = localStorage.getItem('nettower-theme');
   if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
@@ -131,4 +131,30 @@ app.mount('#app');
   var accent = localStorage.getItem('nettower-accent');
   if (accent && accent !== 'default') document.documentElement.setAttribute('data-accent', accent);
   else document.documentElement.removeAttribute('data-accent');
+  var style = localStorage.getItem('nettower-style');
+  if (style && style !== 'default') document.documentElement.setAttribute('data-style', style);
+  else document.documentElement.removeAttribute('data-style');
+})();
+
+// ===== تغيير نمط التصميم مع تأثير تحميل =====
+(function() {
+  var loader = document.createElement('div');
+  loader.className = 'style-loader';
+  loader.innerHTML = '<div class="sl-spinner"></div>';
+  document.body.appendChild(loader);
+
+  window.applyStyle = function(name) {
+    loader.classList.add('show');
+    setTimeout(function() {
+      var html = document.documentElement;
+      if (name === 'default') {
+        html.removeAttribute('data-style');
+        localStorage.removeItem('nettower-style');
+      } else {
+        html.setAttribute('data-style', name);
+        localStorage.setItem('nettower-style', name);
+      }
+      loader.classList.remove('show');
+    }, 600);
+  };
 })();

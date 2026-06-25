@@ -551,7 +551,11 @@ window.updateRenewSummary = function(s, tpl) {
     }
     summary += '<div class="ps-row" style="margin-top:4px;font-size:11px">';
     if (window._renewPaid !== false) {
-      summary += '<span style="color:var(--success)"><i class="fas fa-check-circle"></i> الكل مدفوع</span>';
+      if ((s.debtHistory || []).some(function(d) { return d.remaining > 0; })) {
+        summary += '<span style="color:var(--success)"><i class="fas fa-check-circle"></i> الاشتراك الجديد مدفوع - الديون السابقة باقية</span>';
+      } else {
+        summary += '<span style="color:var(--success)"><i class="fas fa-check-circle"></i> مدفوع</span>';
+      }
     } else {
       summary += '<span style="color:var(--warning)"><i class="fas fa-arrow-left"></i> يبقى الدين السابق ويضاف الجديد كدين</span>';
     }
@@ -716,7 +720,8 @@ window.updateSettleChecks = function() {
   var checkboxes = document.querySelectorAll('.debt-checkbox');
   checkboxes.forEach(function(cb) { cb.checked = false; });
   var remaining = amt;
-  for (var i = 0; i < checkboxes.length; i++) {
+  // ابدأ من آخر checkbox (الاشتراك الحالي أو آخر دين) → الأحدث أولاً
+  for (var i = checkboxes.length - 1; i >= 0; i--) {
     if (remaining <= 0) break;
     var dAmt = parseInt(checkboxes[i].dataset.amount);
     if (dAmt <= remaining) {
@@ -733,7 +738,7 @@ window.openSettleModal = function(subId) {
   if (!s) return;
 
   const debtInHistory = (s.debtHistory || []).some(function(d) { return d.remaining > 0; });
-  const unpaidAmount = (!s.paid && !debtInHistory) ? (s.amount || 0) : 0;
+  const unpaidAmount = (!s.paid) ? (s.amount || 0) : 0;
   const totalDebt = calcTotalDebt(s);
 
   if (totalDebt <= 0) {
@@ -857,8 +862,13 @@ window.confirmSettle = function(subId) {
       }
     }
   } else {
-    // لا يوجد تحديد → توزيع المبلغ على كل الديون بالترتيب
-    if (s.debtHistory) {
+    // لا يوجد تحديد → ادفع الاشتراك الحالي أولاً (الأحدث)، ثم الديون القديمة
+    if (remaining > 0 && !s.paid) {
+      var payCur = Math.min(remaining, s.amount);
+      if (payCur >= s.amount) s.paid = true;
+      remaining -= payCur;
+    }
+    if (remaining > 0 && s.debtHistory) {
       for (var hi = 0; hi < s.debtHistory.length; hi++) {
         if (remaining <= 0) break;
         var dh = s.debtHistory[hi];
@@ -869,10 +879,6 @@ window.confirmSettle = function(subId) {
         dh.payments.push({ amount: pay, date: todayStr() });
         remaining -= pay;
       }
-    }
-    if (remaining > 0 && !s.paid) {
-      s.paid = (remaining >= s.amount);
-      remaining = 0;
     }
   }
 

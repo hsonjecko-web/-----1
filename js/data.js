@@ -176,7 +176,7 @@ function formatMoney(amount) {
 // حساب إجمالي الدين المستحق على مشترك (من debtHistory + الاشتراك الحالي غير المدفوع)
 function calcTotalDebt(sub) {
   const debtSum = (sub.debtHistory || []).reduce((a, d) => a + (d.remaining || 0), 0);
-  const currentUnpaid = (!sub.paid && !(sub.debtHistory || []).some(d => d.remaining > 0)) ? (sub.amount || 0) : 0;
+  const currentUnpaid = !sub.paid ? (sub.amount || 0) : 0;
   return debtSum + currentUnpaid;
 }
 
